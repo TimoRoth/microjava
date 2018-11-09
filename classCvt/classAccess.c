@@ -660,7 +660,7 @@ fail:;
 }
 
 static void classDumpMethodOrField(JavaClass* c, JavaMethodOrField* method, UInt8 indents, const char* type){
-
+	(void)type;
 	JavaConstant* jc;
 	UInt16 i;
 	

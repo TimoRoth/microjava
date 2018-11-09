@@ -535,7 +535,7 @@ static UInt32 bbPrvInstrExport(const Instr* i, UInt8* buf, UInt32 pc){	//return 
 			case 4: if(buf) *buf++ = i->finalOffset >> 24;
 				if(buf) *buf++ = i->finalOffset >> 16;
 				len += 2;
-				//falthrough
+				/* fall-thru */
 			case 2:	if(buf) *buf++ = i->finalOffset >> 8;
 				if(buf) *buf++ = i->finalOffset;
 				len += 2;

@@ -2,6 +2,7 @@
 #include <errno.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 
 static unsigned int numFiles = 0;
 static unsigned long numBytes = 0;
@@ -48,7 +49,7 @@ int main(int argc, char** argv){
 		
 			char* t;
 			
-			filename = tempnam(NULL, NULL);
+			filename = "/tmp/tobin_tmp_file";
 			if(!filename){
 			
 				fprintf(stderr, "%s: failed to create a tempfile: %d\n", self, errno);
@@ -100,7 +101,7 @@ int main(int argc, char** argv){
 			return -5;
 		}
 		
-		if(len > 0x00FFFFFFUL){
+		if(len > 0x00FFFFFFL){
 		
 			fprintf(stderr, "%s:  file '%s' is %lu bytes, while maximum allowable size is %lu.\n", self, *argv, len, 0x00FFFFFFUL);
 			return -6;	
@@ -119,7 +120,6 @@ int main(int argc, char** argv){
 		fclose(f);
 		if(filename != *argv){
 			unlink(filename);
-			free(filename);
 		}
 		argv++;
 	}

@@ -916,7 +916,7 @@ HANDLE ujThreadCreate(UInt16 stackSz) {
     if (!stackSz)
         stackSz = UJ_DEFAULT_STACK_SIZE;
     handle = ujHeapHandleNew(sizeof(UjThread) + stackSz +
-                             ((stackSz / sizeof(UInt32)) + 7) / 8);
+                             ((stackSz / sizeof(uintptr_t)) + 7) / 8);
     if (!handle)
         return 0;
 
@@ -924,7 +924,7 @@ HANDLE ujThreadCreate(UInt16 stackSz) {
 
     t->spBase = 0;
     t->localsBase = 0;
-    t->spLimit = stackSz / sizeof(UInt32);
+    t->spLimit = stackSz / sizeof(uintptr_t);
     t->pc = UJ_PC_BAD;
 
     if (!gFirstThread)

@@ -1,5 +1,6 @@
 *.class
 *.o
+uJ/uJ
 classCvt/classCvt
 BuildEnv/*.java
 BuildEnv/*.class

@@ -215,8 +215,7 @@ typedef struct UjThread {
     UInt16 spBase;  // we use an empty ascending stack
     UInt16 spLimit; // also used for "isPtr"
     UInt16 localsBase;
-    UInt32 stack[];
-
+    uintptr_t stack[];
 } UjThread;
 
 #define STR_EQ_PAR_TYPE_PTR 0 // len, const char*
@@ -1178,7 +1177,7 @@ out:
 Boolean ujCanRun(void) { return !!gFirstThread; }
 
 static void ujThreadPrvPut32(UInt8 *ptr, UInt32 v) { // to pointer
-    const UInt8 *d = &v;
+    const UInt8 *d = (UInt8*)&v;
 
     *ptr++ = *d++;
     *ptr++ = *d++;
@@ -1187,8 +1186,7 @@ static void ujThreadPrvPut32(UInt8 *ptr, UInt32 v) { // to pointer
 }
 
 static void ujThreadPrvPut16(UInt8 *ptr, UInt16 v) { // to pointer
-
-    const UInt8 *d = &v;
+    const UInt8 *d = (UInt8*)&v;
 
     *ptr++ = *d++;
     *ptr = *d;
@@ -1197,7 +1195,7 @@ static void ujThreadPrvPut16(UInt8 *ptr, UInt16 v) { // to pointer
 static UInt32 ujThreadPrvGet32(const UInt8 *ptr) { // from pointer
 
     UInt32 v;
-    UInt8 *d = &v;
+    UInt8 *d = (UInt8*)&v;
 
     *d++ = *ptr++;
     *d++ = *ptr++;
@@ -1210,7 +1208,7 @@ static UInt32 ujThreadPrvGet32(const UInt8 *ptr) { // from pointer
 static UInt16 ujThreadPrvGet16(const UInt8 *ptr) { // from pointer
 
     UInt16 v;
-    UInt8 *d = &v;
+    UInt8 *d = (UInt8*)&v;
 
     *d++ = *ptr++;
     *d = *ptr;
@@ -1250,8 +1248,8 @@ static _INLINE_ Boolean ujThreadPrvBitGet(UjThread *t, UInt16 offst) {
     return !!(*p & v);
 }
 
-static Boolean ujThreadPrvPush(UjThread *t, UInt32 v, Boolean isRef) {
-    TL(" stack push %s 0x%08X\n", isRef ? "ref" : "int", v);
+static Boolean ujThreadPrvPush(UjThread *t, uintptr_t v, Boolean isRef) {
+    TL(" stack push %s 0x%08" PRIXPTR "\n", isRef ? "ref" : "int", v);
 
     if (t->spBase < t->spLimit) {
         t->stack[t->spBase] = v;
@@ -1264,21 +1262,21 @@ static Boolean ujThreadPrvPush(UjThread *t, UInt32 v, Boolean isRef) {
     return false;
 }
 
-Boolean ujThreadPush(UjThread *t, UInt32 v, Boolean isRef) {
+Boolean ujThreadPush(UjThread *t, uintptr_t v, Boolean isRef) {
     return ujThreadPrvPush(t, v, isRef);
 }
 
-static UInt32 ujThreadPrvPop(UjThread *t) {
+static uintptr_t ujThreadPrvPop(UjThread *t) {
     t->spBase--;
 
-    TL(" stack pop %s 0x%08X\n",
+    TL(" stack pop %s 0x%08" PRIXPTR "\n",
        ujThreadPrvBitGet(t, t->spBase) ? "ref" : "int", t->stack[t->spBase]);
 
     ujThreadPrvBitClear(t, t->spBase);
     return t->stack[t->spBase];
 }
 
-UInt32 ujThreadPop(UjThread *t) { return ujThreadPrvPop(t); }
+uintptr_t ujThreadPop(UjThread *t) { return ujThreadPrvPop(t); }
 
 #define DUP_FLAG_DONT_COPY                                                     \
     0x40 // apply to "howMany" to not copy or adjust stack afterwards
@@ -1373,28 +1371,28 @@ ujThreadPrvDup(UjThread *t, Int8 howManyEx,
     return true;
 }
 
-static UInt32 ujThreadPrvPeek(
+static uintptr_t ujThreadPrvPeek(
     UjThread *t,
     UInt8 slots /* 0 is top of stack*/) { // peek at stack items without popping
 
-    TL(" stack peek %u %s -> 0x%08X\n", slots,
+    TL(" stack peek %u %s -> 0x%08" PRIXPTR "\n", slots,
        ujThreadPrvBitGet(t, t->spBase - (slots + 1)) ? "ref" : "int",
        t->stack[t->spBase - (slots + 1)]);
 
     return t->stack[t->spBase - (slots + 1)];
 }
 
-static UInt32 ujThreadPrvLocalLoad(UjThread *t, UInt16 idx) {
-    TL(" local load %u %s -> 0x%08X\n", idx,
+static uintptr_t ujThreadPrvLocalLoad(UjThread *t, UInt16 idx) {
+    TL(" local load %u %s -> 0x%08" PRIXPTR "\n", idx,
        ujThreadPrvBitGet(t, t->localsBase + idx) ? "ref" : "int",
        t->stack[t->localsBase + idx]);
 
     return t->stack[t->localsBase + idx];
 }
 
-static void ujThreadPrvLocalStore(UjThread *t, UInt16 idx, UInt32 v,
+static void ujThreadPrvLocalStore(UjThread *t, UInt16 idx, uintptr_t v,
                                   Boolean isRef) {
-    TL(" local store %u %s 0x%08X\n", idx, isRef ? "ref" : "int", v);
+    TL(" local store %u %s 0x%08" PRIXPTR "\n", idx, isRef ? "ref" : "int", v);
 
     t->stack[t->localsBase + idx] = v;
     if (isRef)
@@ -1404,10 +1402,10 @@ static void ujThreadPrvLocalStore(UjThread *t, UInt16 idx, UInt32 v,
 }
 
 #define ujThreadPrvPushRef(t, obj)                                             \
-    if (!ujThreadPrvPush(t, (UInt32)obj, 1))                                   \
+    if (!ujThreadPrvPush(t, (uintptr_t)obj, 1))                                   \
     return UJ_ERR_STACK_SPACE
 #define ujThreadPrvPushInt(t, i)                                               \
-    if (!ujThreadPrvPush(t, (UInt32)i, 0))                                     \
+    if (!ujThreadPrvPush(t, (uintptr_t)i, 0))                                     \
     return UJ_ERR_STACK_SPACE
 #define ujThreadPrvPushFloat(t, f)                                             \
     if (!ujThreadPrvPushFloat_(t, f))                                          \
@@ -1650,7 +1648,7 @@ static UInt8 ujThreadPushRetInfo(
     if (t->flags.access.hasInst) {
         ujThreadPrvPushRef(t, t->instH); // needed to keep ref to the obj
     } else {
-        ujThreadPrvPushInt(t, (UInt32)t->cls);
+        ujThreadPrvPushInt(t, (uintptr_t)t->cls);
     }
 
     combined = t->localsBase;
@@ -1672,7 +1670,7 @@ static UInt8 ujThreadPrvRet(UjThread *t,
                             HANDLE threadH) { // the opposite of the above
 
     UjInstance *inst;
-    UInt32 combined;
+    uintptr_t combined;
     UInt8 ret;
 
     // no matter where sp is (stack may be non-empty), restore it to original

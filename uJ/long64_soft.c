@@ -281,17 +281,14 @@ Int64 i64_div(Int64 a, Int64 b) {
 
 Int64 i64_mod(Int64 a, Int64 b) {
     Boolean a_neg = false;
-    Boolean b_neg = false;
 
     if (i64_isNeg(a)) {
         a_neg = true;
         a = u64_sub(u64_zero(), a);
     }
 
-    if (i64_isNeg(b)) {
-        b_neg = true;
+    if (i64_isNeg(b))
         b = u64_sub(u64_zero(), b);
-    }
 
     a = u64_divmod(a, b, false);
     if (a_neg)

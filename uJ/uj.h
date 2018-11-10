@@ -96,8 +96,8 @@ UInt32 ujGetNumInstrs(void);
 #define JAVA_ACC_STRICT                                                        \
     0x0800 // Declared strictfp; floating-point mode is FP-strict
 
-UInt32 ujThreadPop(struct UjThread *t);
-Boolean ujThreadPush(struct UjThread *t, UInt32 v, Boolean isRef);
+uintptr_t ujThreadPop(struct UjThread *t);
+Boolean ujThreadPush(struct UjThread *t, uintptr_t v, Boolean isRef);
 UInt32 ujArrayLen(UInt32 arr);
 UInt32 ujArrayGetByte(UInt32 arr, UInt32 idx);
 UInt32 ujArrayGetShort(UInt32 arr, UInt32 idx);
@@ -116,7 +116,6 @@ typedef struct {
     const char *type;
     ujNativeMethodF func;
     UInt16 flags;
-
 } UjNativeMethod;
 
 typedef struct {
@@ -129,7 +128,6 @@ typedef struct {
 
     UInt16 numMethods;
     UjNativeMethod methods[];
-
 } UjNativeClass;
 
 UInt8 ujRegisterNativeClass(

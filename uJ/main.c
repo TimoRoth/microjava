@@ -14,7 +14,7 @@ UInt8 ujReadClassByte(void *userData, UInt32 offset) {
     if ((UInt32)ftell(f) != offset) {
         i = fseek(f, offset, SEEK_SET);
         if (i == -1) {
-            fprintf(stderr, "Failed to seek to offset %lu, errno=%d\n", offset,
+            fprintf(stderr, "Failed to seek to offset %" PRIu32 ", errno=%d\n", offset,
                     errno);
             exit(-2);
         }
@@ -43,7 +43,6 @@ void ujLog(const char *fmtStr, ...) {
 int main(int argc, char **argv) {
     UInt32 threadH;
     Boolean done;
-    Boolean remaining;
     UInt8 ret;
     struct UjClass *mainClass = NULL;
     int i;
@@ -65,10 +64,8 @@ int main(int argc, char **argv) {
     argv++;
     do {
         done = false;
-        remaining = false;
         for (i = 0; i < argc; i++) {
             if (argv[i]) {
-                remaining = true;
                 FILE *f = fopen(argv[i], "rb");
                 if (!f) {
                     fprintf(stderr, " Failed to open file\n");
@@ -122,7 +119,7 @@ int main(int argc, char **argv) {
     while (ujCanRun()) {
         i = ujInstr();
         if (i != UJ_ERR_NONE) {
-            fprintf(stderr, "Ret %d @ instr right before 0x%08lX\n", i,
+            fprintf(stderr, "Ret %d @ instr right before 0x%08" PRIX32 "\n", i,
                     ujThreadDbgGetPc(threadH));
             exit(-10);
         }

@@ -4,10 +4,10 @@
 #ifdef DEBUG_HEAP
 #include <stdio.h>
 #define pr fprintf
-#define pe(...)                                                                \
-    do {                                                                       \
-        perr(__VA_ARGS__);                                                     \
-        ujHeapDebug();                                                         \
+#define pe(...)            \
+    do {                   \
+        perr(__VA_ARGS__); \
+        ujHeapDebug();     \
     } while (0)
 #else
 #define pr(...)
@@ -59,9 +59,9 @@ static void perr(const char *err) { fprintf(stderr, "%s", err); }
 
 static UjHeapChunk *ujHeapPrvGetFirstChunk(void) {
     UjHeapHdr *hdr = (UjHeapHdr *)gHeap;
-    UInt32 ptr;
+    uintptr_t ptr;
 
-    ptr = (UInt32)(hdr->data + sizeof(SIZE) * hdr->numHandles);
+    ptr = (uintptr_t)(hdr->data + sizeof(SIZE) * hdr->numHandles);
     ptr = (ptr + HEAP_ALIGN - 1) & ~(HEAP_ALIGN - 1);
     return (UjHeapChunk *)ptr;
 }
@@ -117,7 +117,7 @@ void ujHeapDebug(void) {
     SIZE *handleTable = (SIZE *)hdr->data;
     SIZE i;
 
-    pr(stderr, " %u handles, data begins at 0x%08X (0x%08X)\n", hdr->numHandles,
+    pr(stderr, " %u handles, data begins at 0x%08tX (0x%08tX)\n", hdr->numHandles,
        (UInt8 *)(handleTable + hdr->numHandles) - hdr->data,
        (UInt8 *)ujHeapPrvGetFirstChunk() - hdr->data);
 
@@ -217,8 +217,7 @@ static UjHeapChunk *ujHeapPrvAllocChunk(UInt16 sz) {
     if (!fit)
         return NULL;
 
-    if (fit->size - sz > CHUNK_HDR_SZ) { // splitting makes sense
-
+    if (fit->size - sz > (int)(CHUNK_HDR_SZ)) { // splitting makes sense
         chk = fit;
         chk->size = fit->size - sz - CHUNK_HDR_SZ;
         chk->free = 1;
@@ -228,7 +227,6 @@ static UjHeapChunk *ujHeapPrvAllocChunk(UInt16 sz) {
         fit->size = sz;
         fit->wsze = 0;
     } else { // we cnanot split, let's at least record wasted size for later use
-
         fit->wsze = fit->size - sz;
     }
 

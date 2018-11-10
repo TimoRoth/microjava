@@ -4,6 +4,7 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
+#include <inttypes.h>
 
 typedef int8_t Int8;
 typedef int16_t Int16;

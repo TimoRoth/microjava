@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <inttypes.h>
 
 #include "classOptimizer.h"
 #include "classAccess.h"
@@ -17,13 +18,13 @@ static void dumpcode(const char* name, const UInt8* code, UInt32 codeLen,
 	
 	for(i = 0; i < codeLen; i++){
 		
-		if(!(i % 16)) fprintf(stderr, "\n%04lX ", i);
+		if(!(i % 16)) fprintf(stderr, "\n%04" PRIX32, i);
 		fprintf(stderr," %02X", code[i]);
 	}
 	fprintf(stderr, "\n");
 	if(numExcs){
 		
-		fprintf(stderr, "EXCs(%ld):\n", numExcs);
+		fprintf(stderr, "EXCs(%" PRIu32 "):\n", numExcs);
 		while(numExcs--){
 		
 			fprintf(stderr, "  type_%05u %04X-%04X -> %04X\n", excs->catchType, excs->start_pc, excs->end_pc, excs->handler_pc);
@@ -188,7 +189,7 @@ static void bbOptimizationPassF(Instr* instrs, UInt32 numInstr, void *userData){
 					instr->bytes[2] = d >> 8;
 					instr->bytes[3] = d;
 				
-					if(DEBUG) fprintf(stderr, "LDC%s %d (val is 0x%08lX)\n", (instr->type == 0x12) ? "" : "_w", idx, d);
+					if(DEBUG) fprintf(stderr, "LDC%s %d (val is 0x%08" PRIu32 ")\n", (instr->type == 0x12) ? "" : "_w", idx, d);
 				}
 				break;
 				
@@ -444,7 +445,7 @@ void classOptimize(JavaClass* c){
 					newCode = natAlloc(sizeof(JavaAttribute) + len);
 					if(!newCode){
 					
-						fprintf(stderr, "fail to alloc new code (sz=%lu)\n", len);
+						fprintf(stderr, "fail to alloc new code (sz=%" PRIu32 ")\n", len);
 						exit(-50);	
 					}
 					memcpy(newCode, attrib, sizeof(JavaAttribute));
@@ -659,7 +660,7 @@ void classOptimize(JavaClass* c){
 					newCode = natAlloc(sizeof(JavaAttribute) + len);
 					if(!newCode){
 					
-						fprintf(stderr, "fail to alloc new code (sz=%lu)\n", len);
+						fprintf(stderr, "fail to alloc new code (sz=%" PRIu32 ")\n", len);
 						exit(-50);	
 					}
 					memcpy(newCode, attrib, sizeof(JavaAttribute));

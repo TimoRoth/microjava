@@ -1,14 +1,15 @@
 #ifndef _COMMON_H_
 #define _COMMON_H_
 
+#include <stdint.h>
 
-typedef signed char Int8;
-typedef signed short Int16;
-typedef signed long Int32;
-typedef unsigned char UInt8;
-typedef unsigned short UInt16;
-typedef unsigned long UInt32;
-typedef unsigned long long UInt64;
+typedef int8_t Int8;
+typedef int16_t Int16;
+typedef int32_t Int32;
+typedef uint8_t UInt8;
+typedef uint16_t UInt16;
+typedef uint32_t UInt32;
+typedef uint64_t UInt64;
 typedef unsigned char Boolean;
 
 

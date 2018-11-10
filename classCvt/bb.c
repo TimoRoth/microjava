@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <inttypes.h>
 #include "bb.h"
 
 #define DBG		0
@@ -75,7 +76,7 @@ void* alloc(UInt32 sz){
 	ret = malloc(sz);
 	if(!ret){
 
-		fprintf(stderr, "Alloc of %lu bytes fail!\n", sz);
+		fprintf(stderr, "Alloc of %" PRIu32 " bytes fail!\n", sz);
 		exit(-10);
 	}
 
@@ -397,11 +398,11 @@ static BB* bbPrvDisasm(const UInt8* code, UInt32 pos, UInt32 len){
 
 		if(i->destLen) bbPrvInsertAddr(i->destOrigAddr);
 
-		if(DBG) fprintf(stderr, "INSTR(0x%06lX): %s%02X", initialPC, i->wide ? "C4 ":"", i->type);
+		if(DBG) fprintf(stderr, "INSTR(0x%06" PRIX32 "): %s%02X", initialPC, i->wide ? "C4 ":"", i->type);
 
 		if(extraSz > sizeof(i->bytes)){
 		
-			fprintf(stderr, "Too much data for an instruction: %lu bytes\n", extraSz);
+			fprintf(stderr, "Too much data for an instruction: %" PRIu32 " bytes\n", extraSz);
 			exit(-22);	
 		}
 		i->numBytes = extraSz;
@@ -465,7 +466,7 @@ static UInt32 bbPrvInstrExport(const Instr* i, UInt8* buf, UInt32 pc){	//return 
 	UInt32 len = 1;	//instr itself
 	
 	
-	if(DBG) fprintf(stderr, "exporting %s %02X (nb=%lu)->", i->wide ? "wide" : "", i->type, i->numBytes);
+	if(DBG) fprintf(stderr, "exporting %s %02X (nb=%" PRIu32 ")->", i->wide ? "wide" : "", i->type, i->numBytes);
 	
 	if(i->wide){
 		if(buf) *buf++ = INSTR_TYPE_WIDE;
@@ -542,7 +543,7 @@ static UInt32 bbPrvInstrExport(const Instr* i, UInt8* buf, UInt32 pc){	//return 
 				break;
 			default:
 				
-				fprintf(stderr, "Weird destination size in branch: %lu\n", i->destLen);
+				fprintf(stderr, "Weird destination size in branch: %" PRIu32 "\n", i->destLen);
 				exit(-19);
 		}
 	}
@@ -555,7 +556,7 @@ static UInt32 bbPrvInstrExport(const Instr* i, UInt8* buf, UInt32 pc){	//return 
 		}
 	}
 	
-	if(DBG) fprintf(stderr, "%lu\n", len);
+	if(DBG) fprintf(stderr, "%" PRIu32 "\n", len);
 	
 	return len;
 }
@@ -598,7 +599,7 @@ static void bbTruncate(BB* bb, UInt32 newLen){	//not not call this anytime if ad
 
 	UInt32 len = 0;
 
-	if(DBG) fprintf(stderr, "Truncating 0x%lX+0x%lX to len 0x%lX\n", bb->initialAddr, bb->initialLen, newLen);
+	if(DBG) fprintf(stderr, "Truncating 0x%" PRIX32 "+0x%" PRIX32 " to len 0x%" PRIX32 "\n", bb->initialAddr, bb->initialLen, newLen);
 
 	if(newLen > bb->initialLen){
 
@@ -623,7 +624,7 @@ static void bbTruncate(BB* bb, UInt32 newLen){	//not not call this anytime if ad
 
 		if(len != newLen){
 
-			fprintf(stderr, "Truncate failed: len=%lu instrsLeft=%lu, wantedLen=%lu\n", len, instrsLeft, newLen);
+			fprintf(stderr, "Truncate failed: len=%" PRIu32 " instrsLeft=%" PRIu32 ", wantedLen=%" PRIu32 "\n", len, instrsLeft, newLen);
 			exit(-17);
 		}
 
@@ -716,7 +717,7 @@ void bbInit(UInt8* code, UInt32 len){
 
 		while((lli = lli->next) != &bbList){
 
-			fprintf(stderr, "BLOCK: 0x%08lX + 0x%08lX\n", ((BB*)lli)->initialAddr, ((BB*)lli)->initialLen);
+			fprintf(stderr, "BLOCK: 0x%08" PRIX32 " + 0x%08" PRIX32 "\n", ((BB*)lli)->initialAddr, ((BB*)lli)->initialLen);
 		}
 	}
 }
@@ -798,7 +799,7 @@ void bbFinishLoading(){
 
 	return;
 fail:
-	fprintf(stderr, "Branch resolution failed for address 0x%06lX\n", wantedAddr);
+	fprintf(stderr, "Branch resolution failed for address 0x%06" PRIX32 "\n", wantedAddr);
 	exit(-17);
 }
 
@@ -868,7 +869,7 @@ void bbFinalizeChanges(){
 					
 					if(t && t != -1){
 					
-						fprintf(stderr, "offsett impossible in 16 bits: %ld\n", bb->instrs[i].finalOffset);
+						fprintf(stderr, "offsett impossible in 16 bits: %" PRIi32 "\n", bb->instrs[i].finalOffset);
 						exit(-23);
 					}
 				}
@@ -923,7 +924,7 @@ void bbGetExc(UInt32 idx, UInt16* startP, UInt16* endP, UInt16* handlerP){
 
 			if((ee->start->addr & 0xFFFF0000) || (ee->end->addr & 0xFFFF0000) || (ee->handler->addr & 0xFFFF0000)){
 			
-				fprintf(stderr, "Exception pointer out of range for exception %lu (0x%06lX 0x%06lX 0x%06lX)\n",
+				fprintf(stderr, "Exception pointer out of range for exception %" PRIu32 " (0x%06" PRIX32 " 0x%06" PRIX32 " 0x%06" PRIX32 ")\n",
 						idxOrig, ee->start->addr, ee->end->addr, ee->handler->addr);
 				exit(-22);
 				/*
@@ -940,7 +941,7 @@ void bbGetExc(UInt32 idx, UInt16* startP, UInt16* endP, UInt16* handlerP){
 	}
 
 	//we asked too much
-	fprintf(stderr, "Asked for nonexistent exception handler (index %lu)\n", idxOrig);
+	fprintf(stderr, "Asked for nonexistent exception handler (index %" PRIu32 ")\n", idxOrig);
 	exit(-18);
 }
 

@@ -31,18 +31,18 @@ else
 	MYCLASS = $(DIR)/$(CLASS).class
 endif
 
-all:
-	CLASSPATH=$(SELF)/RT/real:$(SELF)/RT/fake:$(DIR) javac $(DIR)/$(CLASS).java
+all: runtime
+	javac -source 1.8 -target 1.8 -classpath $(SELF)/RT/real:$(SELF)/RT/fake:$(DIR) $(DIR)/$(CLASS).java
 	find $(SELF)/RT/real -iname "*.class" -type f > $(SELF)/files
 	ls $(DIR)/*.class | grep -v "$(CLASS)\.class" >> $(SELF)/files || true
 	cat $(SELF)/files | xargs $(CMD) $(MYCLASS) >$(OUT)
 	rm -f $(SELF)/files
 
 runtime:
-	find $(SELF)/RT -name "*.java" -type f | xargs javac
+	find $(SELF)/RT -name "*.java" -type f | xargs javac -source 1.8 -target 1.8
 
-rtclean:	clean
+rtclean:
 	find $(SELF)/RT -name "*.class" -type f | xargs rm -f
 
-clean:
+clean: rtclean
 	rm -f $(DIR)/*.class

@@ -54,7 +54,7 @@ public class CoolTest implements Runnable{
 		
 		if(neg) ret[--len] = '-';
 		
-		return uj.lang.MiniString.Xnew_(ret);
+		return new String(ret);
 	}
 
 	public static String toString(float f){

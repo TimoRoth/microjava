@@ -35,9 +35,8 @@ UInt8 ujReadClassByte(void *userData, UInt32 offset) {
 
     sprintf(path, "/proc/self/fd/%d", fd);
     memset(result, 0, sizeof(result));
-    readlink(path, result, sizeof(result) - 1);
-
-    fprintf(stderr, "Read byte 0x%.2x at offset %d from %s\n", (int)v, (int)offset, result);
+    if (readlink(path, result, sizeof(result) - 1) > 0)
+        fprintf(stderr, "Read byte 0x%.2x at offset %d from %s\n", (int)v, (int)offset, result);
 
     return v;
 }

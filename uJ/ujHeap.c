@@ -297,7 +297,7 @@ static void ujHeapPrvCompact() {
         pos = (UInt8 *)p - gHeap;
         for (i = 0; i < hdr->numHandles; i++) {
             if (handleTable[i] == pos) {
-                TL(" compact updating chunk %u from 0x%08X to 0x%08X\n", i + 1,
+                TL(" compact updating chunk %u from 0x%08X to 0x%08tX\n", i + 1,
                    handleTable[i], (UInt8 *)f - gHeap);
                 handleTable[i] = (UInt8 *)f - gHeap;
                 break;
@@ -449,8 +449,8 @@ void *ujHeapHandleLock(HANDLE handle) {
 
     chk->lock = 1;
 
-    TL("Do lock handle %d -> 0x%08X (0x%08X)\n", handle, chk->data - gHeap,
-       chk->data);
+    TL("Do lock handle %d -> 0x%08tX (0x%08" PRIXPTR ")\n", handle, chk->data - gHeap,
+       (uintptr_t)chk->data);
 
     return chk->data;
 }
@@ -464,8 +464,8 @@ void *ujHeapHandleIsLocked(HANDLE handle) {
         pe("TryLocking a NULL handle\n");
     }
 
-    TL("Try lock handle %d -> 0x%08X (0x%08X)\n", handle,
-       (chk->lock ? chk->data - gHeap : NULL), chk->lock ? chk->data : NULL);
+    TL("Try lock handle %d -> 0x%08tX (0x%08" PRIXPTR ")\n", handle,
+       chk->lock ? (ptrdiff_t)(chk->data - gHeap) : (ptrdiff_t)NULL, (uintptr_t)(chk->lock ? chk->data : NULL));
 
     return chk->lock ? chk->data : NULL;
 }

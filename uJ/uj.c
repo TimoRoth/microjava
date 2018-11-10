@@ -1891,7 +1891,7 @@ static HANDLE ujThreadPrvNewInstance(UjClass *cls) {
     if (!handle)
         return 0;
 
-    TL(" creating new instance of class 0x%08X of size %u (datsz=%u)\n", cls,
+    TL(" creating new instance of class 0x%08" PRIXPTR " of size %u (datsz=%zu)\n", (uintptr_t)cls,
        cls->instDataOfst + cls->instDataSize,
        sizeof(UjInstance) + cls->instDataOfst + cls->instDataSize);
 
@@ -2291,7 +2291,7 @@ static UInt8 ujThreadPrvInvoke(UjThread *t, HANDLE threadH, UInt8 numParams,
         t->flags.access.syncronized = isSyncNow;
     }
 
-    TL("  goto 0x%06X with cls 0x%08X and obj %u\n", addr, cls, objRef);
+    TL("  goto 0x%06" PRIX32 " with cls 0x%08" PRIXPTR " and obj %u\n", addr, (uintptr_t)cls, objRef);
     ret = ujThreadPrvGoto(t, cls, objRef, addr);
     return ret;
 }
@@ -2474,8 +2474,8 @@ ujThreadPrvAccessClass(UjThread *t, char knownType, UInt16 descrIdx_or_ofst,
     }
     ptr += ofst;
 
-    TL("  decided on offset %u into %s (cls 0x%08X o=%u cs=%u io=%u is=%u)\n",
-       ofst, (flags & UJ_ACCESS_FIELD) ? "inst" : "cls", cls, cls->clsDataOfst,
+    TL("  decided on offset %u into %s (cls 0x%08" PRIXPTR " o=%u cs=%u io=%u is=%u)\n",
+       ofst, (flags & UJ_ACCESS_FIELD) ? "inst" : "cls", (uintptr_t)cls, cls->clsDataOfst,
        cls->clsDataSize, cls->instDataOfst, cls->instDataSize);
     if (flags & UJ_ACCESS_PUT) {
         switch (sz) {
@@ -2760,7 +2760,7 @@ instr_start:
 
     // fetch first byte of instruction and then decide what to do
 
-    TL("Instr at pc 0x%06X in thread %u (0x%08X)\n", t->pc, threadH, t);
+    TL("Instr at pc 0x%06X in thread %u (0x%08" PRIXPTR ")\n", t->pc, threadH, (uintptr_t)t);
 
     instr = ujThreadPrvFetchClassByte(t, t->pc++);
 
@@ -4471,7 +4471,7 @@ UInt8 ujGC(void) {
     cls = gFirstClass;
 
     while (cls) {
-        TL(" gc marking class %08X\n", cls);
+        TL(" gc marking class %08" PRIXPTR "\n", (uintptr_t)cls);
         ujGcPrvMarkClass(cls, NULL);
         cls = cls->nextClass;
     }
@@ -4511,8 +4511,8 @@ UInt8 ujGC(void) {
 
         if (inst->cls) { // object - handle it
 
-            TL(" gc marking instance %u (0x%08X) of class 0x%08X\n", handle,
-               inst, inst->cls);
+            TL(" gc marking instance %u (0x%08" PRIXPTR ") of class 0x%08" PRIXPTR "\n", handle,
+               (uintptr_t)inst, (uintptr_t)inst->cls);
             ujGcPrvMarkClass(inst->cls, inst);
             if (needsRelease)
                 ujHeapHandleRelease(handle);

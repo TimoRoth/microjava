@@ -35,6 +35,7 @@ endif
 
 %.c: %.ujc
 	"$(TOBIN)" "$@" "$<" $(RT_UJC)
+	"$(TOBIN)" "$(patsubst %.c,%.raw.ujc,$@)" "$<" $(RT_UJC)
 
 runtime: $(RT_UJC)
 

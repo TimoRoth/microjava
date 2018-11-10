@@ -1,4 +1,9 @@
 *.class
 *.o
 classCvt/classCvt
-classCvt/tobin
+BuildEnv/*.java
+BuildEnv/*.class
+BuildEnv/*.c
+BuildEnv/*.ujc
+BuildEnv/RT/**/*.rtujc
+BuildEnv/RT/**/*.rtclass

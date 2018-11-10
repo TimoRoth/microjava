@@ -1176,6 +1176,15 @@ out:
 
 Boolean ujCanRun(void) { return !!gFirstThread; }
 
+static int ujThreadPrvPutPtr(UInt8 *ptr, uintptr_t v) { // to pointer
+    const UInt8 *d = (UInt8*)&v;
+
+    for (size_t i = 0; i < sizeof(v); i++)
+        ptr[i] = d[i];
+
+    return sizeof(v);
+}
+
 static void ujThreadPrvPut32(UInt8 *ptr, UInt32 v) { // to pointer
     const UInt8 *d = (UInt8*)&v;
 
@@ -1190,6 +1199,17 @@ static void ujThreadPrvPut16(UInt8 *ptr, UInt16 v) { // to pointer
 
     *ptr++ = *d++;
     *ptr = *d;
+}
+
+static uintptr_t ujThreadPrvGetPtr(const UInt8 *ptr) { // from pointer
+
+    uintptr_t v;
+    UInt8 *d = (UInt8*)&v;
+
+    for (size_t i = 0; i < sizeof(v); i++)
+        d[i] = ptr[i];
+
+    return v;
 }
 
 static UInt32 ujThreadPrvGet32(const UInt8 *ptr) { // from pointer
@@ -1885,8 +1905,7 @@ static UInt8 ujThreadPrvHandleMultiNewArray(UjThread *t, UInt16 typeIdx,
 
 static HANDLE ujThreadPrvNewInstance(UjClass *cls) {
     UjInstance *inst;
-    HANDLE handle = ujHeapHandleNew(sizeof(UjInstance) + cls->instDataOfst +
-                                    cls->instDataSize);
+    HANDLE handle = ujHeapHandleNew(sizeof(UjInstance) + cls->instDataOfst + cls->instDataSize);
 
     if (!handle)
         return 0;
@@ -1921,8 +1940,7 @@ void ujDbgPrintJavaString(HANDLE handle) {
     extra = ujThreadPrvGet32(inst->data + inst->cls->supr->instDataOfst + 0);
 #else
 
-    cls = (UjClass *)ujThreadPrvGet32(inst->data +
-                                      inst->cls->supr->instDataOfst + 0);
+    cls = (UjClass *)ujThreadPrvGetPtr(inst->data + inst->cls->supr->instDataOfst + 0);
     extra = ujThreadPrvGet32(inst->data + inst->cls->supr->instDataOfst + 4);
 #endif
 
@@ -2025,8 +2043,7 @@ static UInt8 ujThreadPrvNewConstString(UjThread *t, UInt24 addr,
         return UJ_ERR_OUT_OF_MEMORY;
     }
 
-    ujThreadPrvPut32(inst->data + inst->cls->supr->instDataOfst + 0,
-                     stringData);
+    ujThreadPrvPut32(inst->data + inst->cls->supr->instDataOfst + 0, stringData);
 
     dst = ujHeapHandleLock(stringData);
     ujThreadPrvPut16(dst, len);
@@ -2037,9 +2054,9 @@ static UInt8 ujThreadPrvNewConstString(UjThread *t, UInt24 addr,
 
 #else
 
-    ujThreadPrvPut32(inst->data + inst->cls->supr->instDataOfst + 0,
-                     (UInt32)t->cls);
-    ujThreadPrvPut32(inst->data + inst->cls->supr->instDataOfst + 4, addr);
+    ujThreadPrvPutPtr(inst->data + inst->cls->supr->instDataOfst + 0,
+                     (uintptr_t)t->cls);
+    ujThreadPrvPut32(inst->data + inst->cls->supr->instDataOfst + sizeof(uintptr_t), addr);
 
 #endif
 
@@ -4592,13 +4609,11 @@ static UInt8 ujNat_MiniString_genericF_(UjThread *t, UjClass *cls,
     UInt8 v;
 
 #ifdef UJ_OPT_RAM_STRINGS
-
     strCls = NULL;
     strData = ujThreadPrvGet32(inst->data + cls->instDataOfst + 0);
 #else
-
-    strCls = (UjClass *)ujThreadPrvGet32(inst->data + cls->instDataOfst + 0);
-    strData = ujThreadPrvGet32(inst->data + cls->instDataOfst + 4);
+    strCls = (UjClass *)ujThreadPrvGetPtr(inst->data + cls->instDataOfst + 0);
+    strData = ujThreadPrvGet32(inst->data + cls->instDataOfst + sizeof(uintptr_t));
 #endif
 
     ujHeapHandleRelease(handle);
@@ -4862,12 +4877,9 @@ static UInt8 ujNat_MiniString_init(UjThread *t, UjClass *cls) {
 
     obj = ujHeapHandleLock(objHandle);
 #ifdef UJ_OPT_RAM_STRINGS
-
     ofst = 0;
 #else
-
-    ujThreadPrvPut32(obj->data + cls->instDataOfst, 0);
-    ofst = 4;
+    ofst = ujThreadPrvPutPtr(obj->data + cls->instDataOfst, 0);
 #endif
     ujThreadPrvPut32(obj->data + cls->instDataOfst + ofst, (UInt32)handle);
     ujHeapHandleRelease(objHandle);
@@ -4937,8 +4949,8 @@ static void ujNat_MiniString_instGc(UjClass *cls, UjInstance *inst) {
     strCls = NULL;
     ofst = 0;
 #else
-    strCls = (UjClass *)ujThreadPrvGet32(inst->data + cls->instDataOfst + 0);
-    ofst = 4;
+    strCls = (UjClass *)ujThreadPrvGetPtr(inst->data + cls->instDataOfst + 0);
+    ofst = sizeof(uintptr_t);
 #endif
 
     if (!strCls) {

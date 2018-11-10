@@ -473,8 +473,8 @@ static void ujThreadPrvStrEqualProcessParam(
 
         p->data.ref.from.cls = p->data.ref.from.t->cls;
         p->type = STR_EQ_PAR_TYPE_REF;
-        // fallthrough intended
 
+        /* fall-thru */
     case STR_EQ_PAR_TYPE_REF:
 
         addr = ujThreadPrvFindConst_ex(p->data.ref.from.cls, p->data.ref.idx);
@@ -484,8 +484,8 @@ static void ujThreadPrvStrEqualProcessParam(
         p->data.idx.cls = p->data.ref.from.cls;
         p->data.idx.strIdx = addr;
         p->type = STR_EQ_PAR_TYPE_IDX;
-        // fallthrough intentional
 
+        /* fall-thru */
     case STR_EQ_PAR_TYPE_IDX:
 
         addr = ujThreadPrvFindConst_ex(p->data.idx.cls, p->data.idx.strIdx) + 1;
@@ -493,8 +493,8 @@ static void ujThreadPrvStrEqualProcessParam(
     addr_ready:
         p->data.adr.addr = addr;
         p->type = STR_EQ_PAR_TYPE_ADR;
-        // fallthrough intended
 
+        /* fall-thru */
     case STR_EQ_PAR_TYPE_ADR:
 
         break;
@@ -1878,7 +1878,7 @@ static UInt8 ujThreadPrvHandleMultiNewArray(UjThread *t, UInt16 typeIdx,
 
     ret = ujThreadPrvMultiNewArrayHelper(t, typeAddr, numDim - 1, numDim, arrP);
     while (numDim--)
-        ujThreadPrvPopInt(t); // pop indices off the stack
+        ujThreadPrvPop(t); // pop indices off the stack
     return ret;
 }
 
@@ -2832,9 +2832,9 @@ instr_start:
 
     case 0x12: // ldc
 
-        wide = true; // clever hack)
-                     // fallthrough intended
+        wide = true; // clever hack
 
+        /* fall-thru */
     case 0x13: // ldc_w
 
         v32 = ujThreadPrvReadConst32(t, ujThreadPrvGetOffset(t, !wide), &instr);
@@ -3154,13 +3154,13 @@ instr_start:
 
     case 0x57: // pop
 
-        ujThreadPrvPopInt(t);
+        ujThreadPrvPop(t);
         break;
 
     case 0x58: // pop2
 
-        ujThreadPrvPopInt(t);
-        ujThreadPrvPopInt(t);
+        ujThreadPrvPop(t);
+        ujThreadPrvPop(t);
         break;
 
     case 0x59: // dup
@@ -3218,7 +3218,7 @@ instr_start:
             ret = UJ_ERR_STACK_SPACE;
             goto out;
         }
-        ujThreadPrvPopInt(t);
+        ujThreadPrvPop(t);
         break;
 
     case 0x60: // i{add,sub,mul,div,rem,neg}
@@ -4613,6 +4613,7 @@ static UInt8 ujNat_MiniString_genericF_(UjThread *t, UjClass *cls,
     return v;
 }
 
+#ifndef UJ_OPT_RAM_STRINGS
 static UInt8 ujNat_MiniString_prv_class_XbyteAt_(UjThread *t, UjClass *strCls,
                                                  UInt24 addr, UInt32 extra) {
     ujThreadPrvPushInt(t,
@@ -4620,6 +4621,7 @@ static UInt8 ujNat_MiniString_prv_class_XbyteAt_(UjThread *t, UjClass *strCls,
 
     return UJ_ERR_NONE;
 }
+#endif
 
 static UInt8 ujNat_MiniString_prv_ram_XbyteAt_(UjThread *t, UInt8 *dataP,
                                                UInt32 extra) {
@@ -4634,15 +4636,21 @@ static UInt8 ujNat_MiniString_XbyteAt_(UjThread *t, UjClass *cls) {
         ujNat_MiniString_prv_ram_XbyteAt_, ujThreadPrvPopInt(t) + 2);
 }
 
+#ifndef UJ_OPT_RAM_STRINGS
 static UInt8 ujNat_MiniString_prv_class_Xlen_(UjThread *t, UjClass *strCls,
                                               UInt24 addr, UInt32 extra) {
+    (void)extra;
+
     ujThreadPrvPushInt(t, ujThreadReadBE16_ex(strCls->info.java.readD, addr));
 
     return UJ_ERR_NONE;
 }
+#endif
 
 static UInt8 ujNat_MiniString_prv_ram_Xlen_(UjThread *t, UInt8 *dataP,
                                             UInt32 extra) {
+    (void)extra;
+
     ujThreadPrvPushInt(t, ujThreadPrvGet16(dataP));
 
     return UJ_ERR_NONE;
@@ -4655,6 +4663,7 @@ static UInt8 ujNat_MiniString_Xlen_(UjThread *t, UjClass *cls) {
 
 #ifdef UJ_FTR_STRING_FEATURES
 
+#ifndef UJ_OPT_RAM_STRINGS
 static UInt8 ujNat_MiniString_prv_class_charAt(UjThread *t, UjClass *strCls,
                                                UInt24 addr, UInt32 idx) {
     UInt16 L = ujThreadReadBE16_ex(strCls->info.java.readD, addr);
@@ -4704,6 +4713,7 @@ static UInt8 ujNat_MiniString_prv_class_charAt(UjThread *t, UjClass *strCls,
 
     return UJ_ERR_NONE;
 }
+#endif
 
 static UInt8 ujNat_MiniString_prv_ram_charAt(UjThread *t, UInt8 *dataP,
                                              UInt32 idx) {
@@ -4761,8 +4771,11 @@ static UInt8 ujNat_MiniString_charAt(UjThread *t, UjClass *cls) {
                                      ujThreadPrvPopInt(t));
 }
 
+#ifndef UJ_OPT_RAM_STRINGS
 static UInt8 ujNat_MiniString_prv_class_length(UjThread *t, UjClass *strCls,
                                                UInt24 addr, UInt32 extra) {
+    (void)extra;
+
     UInt16 L = ujThreadReadBE16_ex(strCls->info.java.readD, addr);
     UInt8 b, len;
     UInt32 ret = 0;
@@ -4787,9 +4800,12 @@ static UInt8 ujNat_MiniString_prv_class_length(UjThread *t, UjClass *strCls,
 
     return UJ_ERR_NONE;
 }
+#endif
 
 static UInt8 ujNat_MiniString_prv_ram_length(UjThread *t, UInt8 *dataP,
                                              UInt32 extra) {
+    (void)extra;
+
     UInt16 L = ujThreadPrvGet16(dataP);
     UInt8 b, len;
     UInt32 ret = 0;
@@ -4826,7 +4842,7 @@ static UInt8 ujNat_MiniString_init(UjThread *t, UjClass *cls) {
     HANDLE arrayHandle = (HANDLE)ujThreadPrvPeek(t, 0);
     Int32 i, len = ujThreadPrvArrayGetLength(arrayHandle);
     UInt8 *data;
-    UInt8 ret, ofst;
+    UInt8 ofst;
     UjInstance *obj;
     HANDLE handle;
 

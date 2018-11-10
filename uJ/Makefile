@@ -16,16 +16,16 @@ VMFEATURES = -DUJ_FTR_SUPPORT_EXCEPTIONS -DUJ_FTR_SUPPORT_UJC_FORMAT -DUJ_FTR_SU
 APP = uJ
 OBJS = main.o uj.o ujHeap.o long64.o double64.o
 
-CFLAGS     += -O0 -g -ggdb -ggdb3 -DUJ_DBG_HELPERS -DDEBUG_HEAP -DUJ_LOG
-LDFLAGS    += -O0 -g -ggdb -ggdb3
+CFLAGS     += -Og -g -ggdb -ggdb3 -DUJ_DBG_HELPERS -DDEBUG_HEAP -DUJ_LOG
+LDFLAGS    += -Og -g -ggdb -ggdb3
 MATH64_SRC  = long64_soft.c
 DOUBLE_SRC  = double64_soft.c
 
 CC = gcc
 LD = gcc
 
-LDFLAGS += -fno-strict-aliasing -Wall -Wextra -lm
-CFLAGS  += -fno-strict-aliasing -Wall -Wextra $(VMFEATURES) $(VMOPTS)
+LDFLAGS += -Wall -Wextra -lm
+CFLAGS  += -std=c11 -fno-strict-aliasing -Wall -Wextra $(VMFEATURES) $(VMOPTS)
 
 all: $(APP)
 
@@ -33,7 +33,7 @@ $(APP): $(OBJS)
 	$(ECODE)
 	$(LD) -o $(APP) $(OBJS) $(LDFLAGS)
 
-%.o: %.c
+%.o: %.c common.h uj.h ujHeap.h
 	$(CC) $(CFLAGS) -o $@ -c $<
 
 long64.o: long64_soft.o

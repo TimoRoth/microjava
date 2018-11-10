@@ -327,7 +327,7 @@ static void ujHeapPrvCompact() {
 HANDLE ujHeapHandleNew(UInt16 sz) {
     UjHeapHdr *hdr = (UjHeapHdr *)gHeap;
     SIZE *handleTable = (SIZE *)hdr->data;
-    UjHeapChunk *chk;
+    UjHeapChunk *chk = NULL;
     HANDLE i;
 
     TL("Start allocating new handle with size %u\n", sz);

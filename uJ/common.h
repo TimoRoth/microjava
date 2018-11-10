@@ -5,6 +5,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <inttypes.h>
+#include <stdalign.h>
 
 typedef int8_t Int8;
 typedef int16_t Int16;
@@ -27,14 +28,14 @@ typedef uint32_t UInt24;
 
 void err(const char *str);
 
-#define TL(...) // fprintf(stderr, "**UL** " __VA_ARGS__)
+#define TL(...) fprintf(stderr, "**UL** " __VA_ARGS__)
 
 #define DEBUG 1
 
 #define _UNUSED_ __attribute__((unused))
 #define _INLINE_ __attribute__((always_inline)) inline
 
-#define HEAP_ALIGN 4
+#define HEAP_ALIGN alignof(uintptr_t)
 #define _HEAP_ATTRS_
 #define HEAP_SZ 4096
 

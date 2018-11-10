@@ -7,8 +7,8 @@
 
 #ifdef COMPILER_SUPPORTS_LONG_LONG
 
-typedef unsigned long long UInt64;
-typedef signed long long Int64;
+typedef uint64_t UInt64;
+typedef int64_t Int64;
 
 #else
 

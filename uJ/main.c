@@ -1,15 +1,20 @@
+#define _POSIX_C_SOURCE 200112L
+
 #include "common.h"
 #include "uj.h"
 #include <errno.h>
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
 #include <string.h>
 
 UInt8 ujReadClassByte(void *userData, UInt32 offset) {
     int i;
     UInt8 v;
     FILE *f = (FILE *)userData;
+    char path[1024];
+    char result[1024];
 
     if ((UInt32)ftell(f) != offset) {
         i = fseek(f, offset, SEEK_SET);
@@ -25,6 +30,14 @@ UInt8 ujReadClassByte(void *userData, UInt32 offset) {
         fprintf(stderr, "Failed to read\n");
         exit(-2);
     }
+
+    int fd = fileno(f);
+
+    sprintf(path, "/proc/self/fd/%d", fd);
+    memset(result, 0, sizeof(result));
+    readlink(path, result, sizeof(result) - 1);
+
+    fprintf(stderr, "Read byte 0x%.2x at offset %d from %s\n", (int)v, (int)offset, result);
 
     return v;
 }

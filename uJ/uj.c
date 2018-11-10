@@ -267,10 +267,10 @@ typedef struct {
 
 /************************ START GLOBALS *******************************/
 
-static UjClass *gFirstClass;
-static HANDLE gCurThread;
-static HANDLE gFirstThread;
-static UInt32 gNumInstrs;
+static UjClass *gFirstClass = NULL;
+static HANDLE gCurThread = 0;
+static HANDLE gFirstThread = 0;
+static UInt32 gNumInstrs = 0;
 
 /************************ END  GLOBALS *******************************/
 
@@ -1648,7 +1648,7 @@ static UInt8 ujThreadPushRetInfo(
     if (t->flags.access.hasInst) {
         ujThreadPrvPushRef(t, t->instH); // needed to keep ref to the obj
     } else {
-        ujThreadPrvPushInt(t, (uintptr_t)t->cls);
+        ujThreadPrvPushRef(t, (uintptr_t)t->cls);
     }
 
     combined = t->localsBase;
@@ -1670,7 +1670,8 @@ static UInt8 ujThreadPrvRet(UjThread *t,
                             HANDLE threadH) { // the opposite of the above
 
     UjInstance *inst;
-    uintptr_t combined;
+    Int32 combined;
+    uintptr_t combined_ptr;
     UInt8 ret;
 
     // no matter where sp is (stack may be non-empty), restore it to original
@@ -1715,14 +1716,14 @@ static UInt8 ujThreadPrvRet(UjThread *t,
         t->pc = t->methodStartPc + (combined & 0x0000FFFFUL);
         t->localsBase = combined >> 16;
 
-        combined = ujThreadPrvPopInt(t);
+        combined_ptr = ujThreadPrvPop(t);
         if (t->flags.access.hasInst) {
-            t->instH = (HANDLE)combined;
+            t->instH = (HANDLE)combined_ptr;
             inst = ujHeapHandleLock(t->instH);
             t->cls = inst->cls;
             ujHeapHandleRelease(t->instH);
         } else {
-            t->cls = (UjClass *)combined;
+            t->cls = (UjClass *)combined_ptr;
         }
     }
     TL(" return completes with locals=%u, sp=%u, pc=0x%06X\n", t->localsBase,
@@ -2741,7 +2742,7 @@ static UInt8 ujThreadPrvInstr(HANDLE threadH,
     Int64 i64, v64;
 #endif
 #if defined(UJ_FTR_SUPPORT_FLOAT)
-    UjFloat uf, uf2;
+    UjFloat uf = 0.0f, uf2 = 0.0f;
 #endif
 #if defined(UJ_FTR_SUPPORT_DOUBLE)
     Double64 ud, ud2;
@@ -4240,7 +4241,7 @@ UInt8 ujInstr(void) { // return UJ_ERR_*
     HANDLE h;
     UjThread *t;
     UInt8 ret, i;
-    Boolean died;
+    Boolean died = false;
 
     t = ujHeapHandleLock(h = gCurThread);
 

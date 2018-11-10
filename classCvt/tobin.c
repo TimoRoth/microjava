@@ -38,7 +38,7 @@ int main(int argc, char** argv){
 		argc -= 2;
 	}
 	
-	printf("#include <avr/pgmspace.h>\n\nconst unsigned char uj_code[] PROGMEM = {\n\t");
+	printf("const unsigned char uj_code[] = {\n\t");
 	
 	while(argc--){
 		char* filename = *argv;

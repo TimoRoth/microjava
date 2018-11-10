@@ -4922,7 +4922,7 @@ static UInt8 ujNat_RT_threadCreate(UjThread *oldT, _UNUSED_ UjClass *myCls) {
     ret = ujThreadPrvGoto(t, cls, handle, addr);
     ujHeapHandleRelease(threadH);
 
-    return UJ_ERR_NONE;
+    return ret;
 }
 
 static void ujNat_MiniString_instGc(UjClass *cls, UjInstance *inst) {

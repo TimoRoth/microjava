@@ -1176,7 +1176,7 @@ out:
 
 Boolean ujCanRun(void) { return !!gFirstThread; }
 
-static int ujThreadPrvPutPtr(UInt8 *ptr, uintptr_t v) { // to pointer
+_UNUSED_ static int ujThreadPrvPutPtr(UInt8 *ptr, uintptr_t v) { // to pointer
     const UInt8 *d = (UInt8*)&v;
 
     for (size_t i = 0; i < sizeof(v); i++)
@@ -1201,7 +1201,7 @@ static void ujThreadPrvPut16(UInt8 *ptr, UInt16 v) { // to pointer
     *ptr = *d;
 }
 
-static uintptr_t ujThreadPrvGetPtr(const UInt8 *ptr) { // from pointer
+_UNUSED_ static uintptr_t ujThreadPrvGetPtr(const UInt8 *ptr) { // from pointer
 
     uintptr_t v;
     UInt8 *d = (UInt8*)&v;
@@ -4654,9 +4654,7 @@ static UInt8 ujNat_MiniString_XbyteAt_(UjThread *t, UjClass *cls) {
 
 #ifndef UJ_OPT_RAM_STRINGS
 static UInt8 ujNat_MiniString_prv_class_Xlen_(UjThread *t, UjClass *strCls,
-                                              UInt24 addr, UInt32 extra) {
-    (void)extra;
-
+                                              UInt24 addr, _UNUSED_ UInt32 extra) {
     ujThreadPrvPushInt(t, ujThreadReadBE16_ex(strCls->info.java.readD, addr));
 
     return UJ_ERR_NONE;
@@ -4664,9 +4662,7 @@ static UInt8 ujNat_MiniString_prv_class_Xlen_(UjThread *t, UjClass *strCls,
 #endif
 
 static UInt8 ujNat_MiniString_prv_ram_Xlen_(UjThread *t, UInt8 *dataP,
-                                            UInt32 extra) {
-    (void)extra;
-
+                                            _UNUSED_ UInt32 extra) {
     ujThreadPrvPushInt(t, ujThreadPrvGet16(dataP));
 
     return UJ_ERR_NONE;
@@ -4789,9 +4785,7 @@ static UInt8 ujNat_MiniString_charAt(UjThread *t, UjClass *cls) {
 
 #ifndef UJ_OPT_RAM_STRINGS
 static UInt8 ujNat_MiniString_prv_class_length(UjThread *t, UjClass *strCls,
-                                               UInt24 addr, UInt32 extra) {
-    (void)extra;
-
+                                               UInt24 addr, _UNUSED_ UInt32 extra) {
     UInt16 L = ujThreadReadBE16_ex(strCls->info.java.readD, addr);
     UInt8 b, len;
     UInt32 ret = 0;
@@ -4819,9 +4813,7 @@ static UInt8 ujNat_MiniString_prv_class_length(UjThread *t, UjClass *strCls,
 #endif
 
 static UInt8 ujNat_MiniString_prv_ram_length(UjThread *t, UInt8 *dataP,
-                                             UInt32 extra) {
-    (void)extra;
-
+                                             _UNUSED_ UInt32 extra) {
     UInt16 L = ujThreadPrvGet16(dataP);
     UInt8 b, len;
     UInt32 ret = 0;
@@ -4891,9 +4883,8 @@ static UInt8 ujNat_MiniString_init(UjThread *t, UjClass *cls) {
 }
 
 static UInt8 ujNat_RT_consolePut(UjThread *t, _UNUSED_ UjClass *myCls) {
-    char c = ujThreadPop(t);
+    _UNUSED_ char c = ujThreadPop(t);
     ujLog("%c", c);
-    (void)c;
 
     return UJ_ERR_NONE;
 }

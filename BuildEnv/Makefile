@@ -1,14 +1,14 @@
 SHELL := bash -O globstar
 
 JAVAC    ?= javac
-TOBIN    ?= ./tobin.sh
-CLASSCVT ?= ../classCvt/classCvt
+TOBIN    ?= $(CURDIR)/tobin.sh
+CLASSCVT ?= $(CURDIR)/../classCvt/classCvt
 
-RT_SOURCES = $(shell ls RT/**/*.java)
+RT_SOURCES = $(shell ls $(CURDIR)/RT/**/*.java)
 RT_CLASSES = $(RT_SOURCES:.java=.rtclass)
 RT_UJC     = $(RT_SOURCES:.java=.rtujc)
 
-LOCAL_SOURCES = $(shell ls *.java)
+LOCAL_SOURCES = $(shell ls $(CURDIR)/*.java)
 LOCAL_CLASSES = $(LOCAL_SOURCES:.java=.class)
 LOCAL_UJC     = $(LOCAL_SOURCES:.java=.ujc)
 LOCAL_C       = $(LOCAL_SOURCES:.java=.c)
@@ -16,15 +16,15 @@ LOCAL_C       = $(LOCAL_SOURCES:.java=.c)
 all: runtime $(LOCAL_C)
 
 classCvt:
-ifeq ($(CLASSCVT),../classCvt/classCvt)
-	$(MAKE) -C ../classCvt
+ifeq ($(CLASSCVT),$(CURDIR)/../classCvt/classCvt)
+	$(MAKE) -C $(CURDIR)/../classCvt
 endif
 
 %.class: %.java runtime
-	"$(JAVAC)" -source 1.8 -target 1.8 -classpath "$(PWD)/RT/real:$(PWD)/RT/fake:$(PWD)" "$<"
+	"$(JAVAC)" -source 1.6 -target 1.6 -classpath "$(CURDIR)/RT/real:$(CURDIR)/RT/fake:$(CURDIR)" "$<"
 
 %.rtclass: %.java
-	"$(JAVAC)" -source 1.8 -target 1.8 -classpath "$(PWD)/RT/real:$(PWD)/RT/fake:$(PWD)" "$<"
+	"$(JAVAC)" -source 1.6 -target 1.6 -classpath "$(CURDIR)/RT/real:$(CURDIR)/RT/fake:$(CURDIR)" "$<"
 	cp "$(patsubst %.rtclass,%.class,$@)" "$@"
 
 %.rtujc: %.rtclass classCvt

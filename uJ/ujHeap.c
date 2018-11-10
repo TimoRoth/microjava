@@ -243,7 +243,7 @@ static UjHeapChunk *ujHeapPrvAllocChunk(UInt16 sz) {
 // UjHeapChunk* ujHeapPrevGetPrevChunk(UjHeapChunk*)
 // UjHeapChunk* ujHeapNextGetPrevChunk(UjHeapChunk*)
 
-static void ujHeapPrvCompact() {
+static void ujHeapPrvCompact(void) {
     UjHeapHdr *hdr = (UjHeapHdr *)gHeap;
     SIZE *handleTable = (SIZE *)hdr->data;
     UjHeapChunk *c, *p, *pp, *f, tmp;

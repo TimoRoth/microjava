@@ -4,7 +4,9 @@
 #include "common.h"
 
 // init & debug
-#define UJ_HEAP_SZ HEAP_SZ
+#ifndef UJ_HEAP_SZ
+#define UJ_HEAP_SZ 1024
+#endif
 
 #define UJ_HEAP_MAX_HANDLES (UJ_HEAP_SZ / 8)
 

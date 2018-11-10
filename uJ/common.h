@@ -37,7 +37,6 @@ void err(const char *str);
 
 #define HEAP_ALIGN alignof(uintptr_t)
 #define _HEAP_ATTRS_
-#define HEAP_SZ 4096
 
 #ifdef UJ_LOG
 void ujLog(const char *fmtStr, ...);

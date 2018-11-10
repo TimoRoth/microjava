@@ -56,7 +56,7 @@ int main(int argc, char **argv) {
     UInt32 threadH;
     Boolean done;
     UInt8 ret;
-    struct UjClass *mainClass = NULL;
+    UjClass *mainClass = NULL;
     int i;
 
     if (argc == 1) {

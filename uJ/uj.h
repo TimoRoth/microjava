@@ -15,7 +15,7 @@ void ujLog(const char *fmtStr, ...);
 
 // api
 
-#define UJ_DEFAULT_STACK_SIZE 192
+#define UJ_DEFAULT_STACK_SIZE 256
 
 // some of these will thrown an exception at a higher level, perhaps?
 #define UJ_ERR_NONE                                                            \
@@ -55,19 +55,19 @@ void ujLog(const char *fmtStr, ...);
 
 #define UJ_THREAD_QUANTUM 10 // instrs
 
-struct UjClass;
-struct UjThread;
-struct UjInstance;
+typedef struct UjClass UjClass;
+typedef struct UjThread UjThread;
+typedef struct UjInstance UjInstance;
 
-UInt8 ujInit(struct UjClass **objectClsP);
+UInt8 ujInit(UjClass **objectClsP);
 
-UInt8 ujLoadClass(void *readD, struct UjClass **clsP);
+UInt8 ujLoadClass(void *readD, UjClass **clsP);
 
 UInt8 ujInitAllClasses(void);
 
 HANDLE ujThreadCreate(UInt16 stackSz /*zero for default*/);
 UInt32 ujThreadDbgGetPc(HANDLE threadH);
-UInt8 ujThreadGoto(HANDLE threadH, struct UjClass *cls,
+UInt8 ujThreadGoto(HANDLE threadH, UjClass *cls,
                    const char *methodNamePtr,
                    const char *methodTypePtr); // static call only (used to
                                                // clal main or some such thing)
@@ -96,8 +96,8 @@ UInt32 ujGetNumInstrs(void);
 #define JAVA_ACC_STRICT                                                        \
     0x0800 // Declared strictfp; floating-point mode is FP-strict
 
-uintptr_t ujThreadPop(struct UjThread *t);
-Boolean ujThreadPush(struct UjThread *t, uintptr_t v, Boolean isRef);
+uintptr_t ujThreadPop(UjThread *t);
+Boolean ujThreadPush(UjThread *t, uintptr_t v, Boolean isRef);
 UInt32 ujArrayLen(UInt32 arr);
 UInt32 ujArrayGetByte(UInt32 arr, UInt32 idx);
 UInt32 ujArrayGetShort(UInt32 arr, UInt32 idx);
@@ -107,9 +107,9 @@ void ujArrayRawAccessFinish(UInt32 arr);
 
 // native classes
 
-typedef UInt8 (*ujNativeMethodF)(struct UjThread *, struct UjClass *);
-typedef void (*ujNativeGcInstF)(struct UjClass *cls, struct UjInstance *inst);
-typedef void (*ujNativeGcClsF)(struct UjClass *cls);
+typedef UInt8 (*ujNativeMethodF)(UjThread *, UjClass *);
+typedef void (*ujNativeGcInstF)(UjClass *cls, UjInstance *inst);
+typedef void (*ujNativeGcClsF)(UjClass *cls);
 
 typedef struct {
     const char *name;
@@ -132,6 +132,6 @@ typedef struct {
 
 UInt8 ujRegisterNativeClass(
     const UjNativeClass *nCls /*references and must remain valid forever*/,
-    struct UjClass *super, struct UjClass **clsP);
+    UjClass *super, UjClass **clsP);
 
 #endif

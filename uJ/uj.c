@@ -350,6 +350,7 @@ static UInt24 ujPrvSkipAttribute(void *readD, UInt24 addr) {
 }
 #endif
 
+#ifdef UJ_FTR_SYNCHRONIZATION
 static Boolean ujThreadPrvMonEnter(HANDLE h, UjMonitor *mon) {
     if (mon->numHolds && (mon->holder != h))
         return false;
@@ -365,6 +366,7 @@ static Boolean ujThreadPrvMonExit(HANDLE h, UjMonitor *mon) {
     }
     return UJ_ERR_MON_STATE_ERR;
 }
+#endif
 
 #ifdef UJ_FTR_SUPPORT_CLASS_FORMAT
 static UInt24 ujThreadPrvFindConst_ex_class(void *readD, UInt16 idx) {
@@ -443,7 +445,7 @@ static UInt24 ujThreadPrvFindConst_ex(UjClass *cls, UInt16 idx) {
 
 #define ujThreadPrvFindConst(t, idx) ujThreadPrvFindConst_ex(t->cls, idx)
 
-static UInt8 ujThreadPrvStrEqualGetChar(UjPrvStrEqualParam *p,
+_UNUSED_ static UInt8 ujThreadPrvStrEqualGetChar(UjPrvStrEqualParam *p,
                                         UInt16 idx) { // get n-th char
 
     return (p->type == STR_EQ_PAR_TYPE_PTR)
@@ -552,6 +554,9 @@ static Boolean ujThreadPrvStrEqualEx(UjPrvStrEqualParam *p1,
     return true;
 }
 
+#ifndef UJ_FTR_SUPPORT_CLASS_FORMAT
+_UNUSED_
+#endif
 static Boolean ujThreadPrvStrEqual(UjClass *cls, UInt16 strIdx,
                                    UjPrvStrEqualParam *p2) {
     UjPrvStrEqualParam p1;
@@ -564,7 +569,7 @@ static Boolean ujThreadPrvStrEqual(UjClass *cls, UInt16 strIdx,
 }
 
 static UjClass *ujThreadPrvFindClass(UjPrvStrEqualParam *name) {
-    UjPrvStrEqualParam p;
+    UjPrvStrEqualParam p = { 0 };
     UjClass *cls = gFirstClass;
 #ifdef UJ_OPT_CLASS_SEARCH
     UInt8 nameCrc = ujPrvHashString(name);
@@ -679,13 +684,16 @@ UInt8 ujLoadClass(void *readD, UjClass **clsP) {
     UjClass *cls;
     UjClass *supr = NULL;
     UjPrvStrEqualParam p;
-    UInt16 n, numInterfaces, clsDatSz = 0, instDatSz = 0;
+    UInt16 n, clsDatSz = 0, instDatSz = 0;
     UInt24 addr, fields, interfaces;
     Boolean isUjc = false;
     Boolean isClassVar;
     UInt8 type;
 #ifdef UJ_OPT_CLASS_SEARCH
     UInt8 clsNameHash;
+#endif
+#ifdef UJ_FTR_SUPPORT_CLASS_FORMAT
+    UInt16 numInterfaces;
 #endif
 
     if (ujThreadReadBE16_ex(readD, 0) == UJC_MAGIC) { // UJC file
@@ -1094,7 +1102,7 @@ UInt32 ujThreadDbgGetPc(HANDLE threadH) {
 
 static UInt8 ujThreadPrvGoto(UjThread *t, UjClass *cls, HANDLE objHandle,
                              UInt24 addr) {
-    UInt16 numLocals;
+    UInt16 numLocals = 0;
 
     if (cls->native) { // native class
 
@@ -1687,12 +1695,11 @@ static UInt8 ujThreadPushRetInfo(
 }
 
 static UInt8 ujThreadPrvRet(UjThread *t,
-                            HANDLE threadH) { // the opposite of the above
+                            _UNUSED_ HANDLE threadH) { // the opposite of the above
 
     UjInstance *inst;
     Int32 combined;
     uintptr_t combined_ptr;
-    UInt8 ret;
 
     // no matter where sp is (stack may be non-empty), restore it to original
     // place while doing that, clear bits for "ref" since locals are now gone
@@ -1711,10 +1718,9 @@ static UInt8 ujThreadPrvRet(UjThread *t,
 
         t->pc = UJ_PC_DONE; // will be destroyed later
     } else {                // we have levels to return to
-
 #ifdef UJ_FTR_SYNCHRONIZATION
         if (t->flags.access.syncronized) { // release the monitor
-
+            UInt8 ret;
             if (t->flags.access.hasInst) {
                 inst = ujHeapHandleLock(t->instH);
                 ret = ujThreadPrvMonExit(threadH, &inst->mon);
@@ -2119,7 +2125,7 @@ static void ujThreadProcessTrippleRef(UjThread *t, UInt16 idx,
     }
 }
 
-static UInt8 ujThreadPrvInvoke(UjThread *t, HANDLE threadH, UInt8 numParams,
+static UInt8 ujThreadPrvInvoke(UjThread *t, _UNUSED_ HANDLE threadH, UInt8 numParams,
                                UInt8 invokeType, UInt8 pcBytes) {
     UjPrvStrEqualParam p1, p2, p3;
     UjClass *cls = NULL;
@@ -2357,14 +2363,14 @@ ujThreadPrvAccessClass(UjThread *t, char knownType, UInt16 descrIdx_or_ofst,
 
     UjPrvStrEqualParam p1, p2, p3;
     UjClass *cls;
-    UInt16 n, ofst, wantedFlag = JAVA_ACC_STATIC, numFields;
+    UInt16 ofst, wantedFlag = JAVA_ACC_STATIC, numFields;
     UInt24 addr;
     HANDLE handle = 0;
     UInt8 *ptr;
-    UInt8 sz;
+    UInt8 sz = 0;
     char type;
 #ifdef UJ_OPT_CLASS_SEARCH
-    UInt8 wantedNameHash = 0, fieldNameHash;
+    UInt8 wantedNameHash = 0, fieldNameHash = 0;
 #endif
 
     TL(" performing class access on descr %u at pc 0x%06X with sp=%u\n",
@@ -2372,6 +2378,7 @@ ujThreadPrvAccessClass(UjThread *t, char knownType, UInt16 descrIdx_or_ofst,
 
     if (knownType) {
         cls = t->cls;
+        type = knownType;
     } else {
         ujThreadProcessTrippleRef(t, descrIdx_or_ofst, &p1, &p2,
                                   &p3); // n = type
@@ -2393,7 +2400,6 @@ ujThreadPrvAccessClass(UjThread *t, char knownType, UInt16 descrIdx_or_ofst,
     }
 
     if (knownType) {
-        type = knownType;
         ofst += descrIdx_or_ofst;
         sz = ujPrvJavaTypeToSize(type);
     } else {
@@ -2469,8 +2475,7 @@ ujThreadPrvAccessClass(UjThread *t, char knownType, UInt16 descrIdx_or_ofst,
 #endif
             } else { // java class
 #ifdef UJ_FTR_SUPPORT_CLASS_FORMAT
-
-                n = ujThreadReadBE16_ex(cls->info.java.readD, addr + 6);
+                UInt16 n = ujThreadReadBE16_ex(cls->info.java.readD, addr + 6);
                 addr += 8;
                 while (n--)
                     addr = ujPrvSkipAttribute(cls->info.java.readD, addr);
@@ -2630,7 +2635,7 @@ static UInt8 ujThreadPrvInstanceof(UjThread *t, UInt16 descrIdx,
 
                 UInt24 addr;
                 UInt16 i, N;
-                UjClass *tc;
+                UjClass *tc = NULL;
 
                 cls->mark = 2;
                 addr = cls->info.java.interfaces;
@@ -2679,8 +2684,8 @@ static UInt8 ujThreadPrvInstanceof(UjThread *t, UInt16 descrIdx,
 static UInt8 ujThreadPrvThrow(UjThread *t, HANDLE threadH, HANDLE excH) {
     do {
         UInt16 pcOfst = t->pc - t->methodStartPc;
-        UInt24 addr;
-        UInt16 handler, i, typ, numExcEntries;
+        UInt24 addr = 0;
+        UInt16 handler, i = 0, typ, numExcEntries = 0;
         UInt8 ret;
 
         if (t->cls->ujc) {
@@ -2768,7 +2773,9 @@ static UInt8 ujThreadPrvInstr(HANDLE threadH,
     UInt16 t16, v16;
     Int32 i32, v32, t32;
     HANDLE h, h2;
+#if defined(UJ_FTR_SYNCHRONIZATION)
     UjInstance *obj;
+#endif
     Boolean wide = false;
 
     gNumInstrs++;
@@ -4393,9 +4400,9 @@ ujGcPrvMarkClass(UjClass *cls,
         } else { // java class
 
             UInt24 addr = cls->info.java.fields;
-            UInt16 numFields, n, wantedFlag = inst ? 0 : JAVA_ACC_STATIC;
+            UInt16 numFields, wantedFlag = inst ? 0 : JAVA_ACC_STATIC;
             UInt8 *ptr;
-            char type;
+            char type = 0;
 
             ptr = inst ? (inst->data + cls->instDataOfst)
                        : (cls->data + cls->clsDataOfst);
@@ -4443,8 +4450,7 @@ ujGcPrvMarkClass(UjClass *cls,
 #endif
                 } else {
 #ifdef UJ_FTR_SUPPORT_CLASS_FORMAT
-
-                    n = ujThreadReadBE16_ex(cls->info.java.readD, addr + 6);
+                    UInt16 n = ujThreadReadBE16_ex(cls->info.java.readD, addr + 6);
                     addr += 8;
                     while (n--)
                         addr = ujPrvSkipAttribute(cls->info.java.readD, addr);
@@ -4972,7 +4978,7 @@ static const UjNativeClass ujNatCls_MiniString = {
 #ifdef UJ_OPT_RAM_STRINGS
     4,
 #else
-    8,
+    4 + sizeof(uintptr_t),
 #endif
     NULL,
     ujNat_MiniString_instGc,

@@ -6,5 +6,6 @@ BuildEnv/*.java
 BuildEnv/*.class
 BuildEnv/*.c
 BuildEnv/*.ujc
+BuildEnv/*.raw
 BuildEnv/RT/**/*.rtujc
 BuildEnv/RT/**/*.rtclass

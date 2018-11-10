@@ -4,9 +4,13 @@ JAVAC    ?= javac
 TOBIN    ?= $(CURDIR)/tobin.sh
 CLASSCVT ?= $(CURDIR)/../classCvt/classCvt
 
-RT_SOURCES = $(shell ls $(CURDIR)/RT/**/*.java)
-RT_CLASSES = $(RT_SOURCES:.java=.rtclass)
-RT_UJC     = $(RT_SOURCES:.java=.rtujc)
+RT_R_SOURCES = $(shell ls $(CURDIR)/RT/real/**/*.java)
+RT_R_CLASSES = $(RT_R_SOURCES:.java=.rtclass)
+RT_R_UJC     = $(RT_R_SOURCES:.java=.rtujc)
+
+RT_F_SOURCES = $(shell ls $(CURDIR)/RT/fake/**/*.java)
+RT_F_CLASSES = $(RT_F_SOURCES:.java=.rtclass)
+RT_F_UJC     = $(RT_F_SOURCES:.java=.rtujc)
 
 LOCAL_SOURCES = $(shell ls $(CURDIR)/*.java)
 LOCAL_CLASSES = $(LOCAL_SOURCES:.java=.class)
@@ -34,16 +38,16 @@ endif
 	"$(CLASSCVT)" <"$<" >"$@"
 
 %.c: %.ujc
-	"$(TOBIN)" "$@" "$<" $(RT_UJC)
-	"$(TOBIN)" "$(patsubst %.c,%.raw.ujc,$@)" "$<" $(RT_UJC)
+	"$(TOBIN)" "$@" "$<" $(RT_R_UJC)
+	"$(TOBIN)" "$(patsubst %.c,%.raw,$@)" "$<" $(RT_R_UJC)
 
-runtime: $(RT_UJC)
+runtime: $(RT_F_UJC) $(RT_R_UJC)
 
 rtclean:
-	rm -f $(RT_SOURCES:.java=.class) $(RT_CLASSES) $(RT_UJC)
+	rm -f $(RT_F_SOURCES:.java=.class) $(RT_R_SOURCES:.java=.class) $(RT_F_CLASSES) $(RT_R_CLASSES) $(RT_R_UJC) $(RT_F_UJC)
 
 clean: rtclean
 	rm -f $(LOCAL_CLASSES) $(LOCAL_UJC)
 
 .PHONY: all runtime rtclean clean classCvt
-.PRECIOUS: %.class %.rtclass %.ujc %rtucj
+.PRECIOUS: %.class %.rtclass %.ujc %.rtucj

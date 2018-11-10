@@ -117,7 +117,7 @@ int main(int argc, char **argv) {
 
     // now classes are loaded, time to call the entry point
 
-    threadH = ujThreadCreate(0);
+    threadH = ujThreadCreate(1024);
     if (!threadH) {
         fprintf(stderr, "ujThreadCreate() fail\n");
         return -1;

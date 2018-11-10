@@ -13,8 +13,8 @@ UInt8 ujReadClassByte(void *userData, UInt32 offset) {
     int i;
     UInt8 v;
     FILE *f = (FILE *)userData;
-    char path[1024];
-    char result[1024];
+    //char path[1024];
+    //char result[1024];
 
     if ((UInt32)ftell(f) != offset) {
         i = fseek(f, offset, SEEK_SET);
@@ -31,12 +31,12 @@ UInt8 ujReadClassByte(void *userData, UInt32 offset) {
         exit(-2);
     }
 
-    int fd = fileno(f);
+    /* int fd = fileno(f);
 
     sprintf(path, "/proc/self/fd/%d", fd);
     memset(result, 0, sizeof(result));
     if (readlink(path, result, sizeof(result) - 1) > 0)
-        fprintf(stderr, "Read byte 0x%.2x at offset %d from %s\n", (int)v, (int)offset, result);
+        fprintf(stderr, "Read byte 0x%.2x at offset %d from %s\n", (int)v, (int)offset, result); */
 
     return v;
 }

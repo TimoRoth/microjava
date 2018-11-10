@@ -28,7 +28,7 @@ typedef uint32_t UInt24;
 
 void err(const char *str);
 
-#define TL(...) fprintf(stderr, "**UL** " __VA_ARGS__)
+#define TL(...) // fprintf(stderr, "**UL** " __VA_ARGS__)
 
 #define DEBUG 1
 

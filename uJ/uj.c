@@ -1930,6 +1930,53 @@ static HANDLE ujThreadPrvNewInstance(UjClass *cls) {
     return handle;
 }
 
+UInt16 ujStringGetBytes(HANDLE handle, UInt8 *buf, UInt32 bufsize)
+{
+    UjInstance *inst;
+    UjClass *cls;
+    UInt32 extra;
+    UInt16 sz, i;
+
+    inst = ujHeapHandleLock(handle);
+
+#ifdef UJ_OPT_RAM_STRINGS
+    cls = NULL;
+    extra = ujThreadPrvGet32(inst->data + inst->cls->supr->instDataOfst + 0);
+#else
+    cls = (UjClass *)ujThreadPrvGetPtr(inst->data + inst->cls->supr->instDataOfst + 0);
+    extra = ujThreadPrvGet32(inst->data + inst->cls->supr->instDataOfst + 4);
+#endif
+
+    ujHeapHandleRelease(handle);
+
+    if (cls) {
+        sz = ujThreadReadBE16_ex(cls->info.java.readD, extra);
+        extra += 2;
+
+        if (buf && bufsize)
+        {
+            for (i = 0; i < sz && i < bufsize - 1; i++)
+                buf[i] = ujReadClassByte(cls->info.java.readD, extra++);
+            buf[i] = 0;
+        }
+    } else {
+        UInt8 *ptr = ujHeapHandleLock(extra);
+        sz = ujThreadPrvGet16(ptr);
+        ptr += 2;
+
+        if (buf && bufsize)
+        {
+            for (i = 0; i < sz && i < bufsize - 1; i++)
+                buf[i] = *ptr++;
+            buf[i] = 0;
+        }
+
+        ujHeapHandleRelease(extra);
+    }
+
+    return sz + 1;
+}
+
 #ifdef UJ_DBG_HELPERS
 
 void ujDbgPrintJavaString(HANDLE handle) {
@@ -1941,11 +1988,9 @@ void ujDbgPrintJavaString(HANDLE handle) {
     inst = ujHeapHandleLock(handle);
 
 #ifdef UJ_OPT_RAM_STRINGS
-
     cls = NULL;
     extra = ujThreadPrvGet32(inst->data + inst->cls->supr->instDataOfst + 0);
 #else
-
     cls = (UjClass *)ujThreadPrvGetPtr(inst->data + inst->cls->supr->instDataOfst + 0);
     extra = ujThreadPrvGet32(inst->data + inst->cls->supr->instDataOfst + 4);
 #endif
@@ -1970,6 +2015,8 @@ void ujDbgPrintJavaString(HANDLE handle) {
         while (sz--)
             fprintf(stderr, "%c", *ptr++);
         fprintf(stderr, "'\n");
+
+        ujHeapHandleRelease(extra);
     }
 }
 

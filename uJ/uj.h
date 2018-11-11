@@ -104,6 +104,7 @@ UInt32 ujArrayGetShort(UInt32 arr, UInt32 idx);
 UInt32 ujArrayGetInt(UInt32 arr, UInt32 idx);
 void *ujArrayRawAccessStart(UInt32 arr);
 void ujArrayRawAccessFinish(UInt32 arr);
+UInt16 ujStringGetBytes(HANDLE handle, UInt8 *buf, UInt32 bufsize);
 
 // native classes
 

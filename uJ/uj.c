@@ -1930,6 +1930,8 @@ static HANDLE ujThreadPrvNewInstance(UjClass *cls) {
     return handle;
 }
 
+static UInt8 ujPrvNewStringObj(HANDLE *hP);
+
 UInt16 ujStringGetBytes(HANDLE handle, UInt8 *buf, UInt32 bufsize)
 {
     UjInstance *inst;
@@ -1975,6 +1977,50 @@ UInt16 ujStringGetBytes(HANDLE handle, UInt8 *buf, UInt32 bufsize)
     }
 
     return sz + 1;
+}
+
+UInt8 ujStringFromBytes(HANDLE *handleP, UInt8 *str, UInt16 len)
+{
+    HANDLE stringData;
+    UInt8 ofst, ret;
+    UInt8 *dst;
+    UjInstance *inst;
+
+    if (!len)
+        while(str[len])
+            len++;
+
+    ret = ujPrvNewStringObj(handleP);
+    if (ret != UJ_ERR_NONE)
+        return ret;
+
+    inst = ujHeapHandleLock(*handleP);
+
+    stringData = ujHeapHandleNew(len + 2);
+    if (!stringData) {
+        ujHeapHandleRelease(*handleP);
+        ujHeapHandleFree(*handleP);
+        return UJ_ERR_OUT_OF_MEMORY;
+    }
+
+#ifdef UJ_OPT_RAM_STRINGS
+    ofst = 0;
+#else
+    ofst = ujThreadPrvPutPtr(inst->data + inst->cls->supr->instDataOfst, 0);
+#endif
+
+    ujThreadPrvPut32(inst->data + inst->cls->supr->instDataOfst + ofst, stringData);
+
+    dst = ujHeapHandleLock(stringData);
+    ujThreadPrvPut16(dst, len);
+    dst += 2;
+    while(len--)
+        *dst++ = *str++;
+    ujHeapHandleRelease(stringData);
+
+    ujHeapHandleRelease(*handleP);
+
+    return UJ_ERR_NONE;
 }
 
 #ifdef UJ_DBG_HELPERS

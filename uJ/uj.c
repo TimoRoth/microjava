@@ -27,6 +27,8 @@ double floor(double);
 #endif
 #endif
 
+#define ARRAY_ELEMS(a) (sizeof(a) / sizeof((a)[0]))
+
 /*
         TODO:
 
@@ -5053,20 +5055,36 @@ static void ujNat_MiniString_instGc(UjClass *cls, UjInstance *inst) {
     }
 }
 
+static const UjNativeMethod ujNatCls_Object_methods[] = {
+    { "hashCode", "()I", ujNat_Object_hashCode, JAVA_ACC_PUBLIC | JAVA_ACC_NATIVE },
+    { "<init>", "()V", ujNat_Object_Object, JAVA_ACC_PUBLIC | JAVA_ACC_NATIVE },
+};
+
 static const UjNativeClass ujNatCls_Object = {
     "java/lang/Object",
+
     0,
     0,
     NULL,
     NULL,
-    2,
-    {{"hashCode", "()I", ujNat_Object_hashCode,
-      JAVA_ACC_PUBLIC | JAVA_ACC_NATIVE},
-     {"<init>", "()V", ujNat_Object_Object,
-      JAVA_ACC_PUBLIC | JAVA_ACC_NATIVE}}};
+
+    ARRAY_ELEMS(ujNatCls_Object_methods),
+    ujNatCls_Object_methods,
+};
+
+static const UjNativeMethod ujNatCls_MiniString_methods[] = {
+#ifdef UJ_FTR_STRING_FEATURES
+    { "charAt", "(I)C", ujNat_MiniString_charAt, JAVA_ACC_PUBLIC | JAVA_ACC_NATIVE },
+    { "length", "()I", ujNat_MiniString_length, JAVA_ACC_PUBLIC | JAVA_ACC_NATIVE },
+#endif
+    { "XbyteAt_", "(I)B", ujNat_MiniString_XbyteAt_, JAVA_ACC_PUBLIC | JAVA_ACC_NATIVE },
+    { "Xlen_", "()I", ujNat_MiniString_Xlen_, JAVA_ACC_PUBLIC | JAVA_ACC_NATIVE },
+    { "<init>", "([B)V", ujNat_MiniString_init, JAVA_ACC_PUBLIC | JAVA_ACC_NATIVE },
+};
 
 static const UjNativeClass ujNatCls_MiniString = {
     "uj/lang/MiniString",
+
     0,
 #ifdef UJ_OPT_RAM_STRINGS
     4,
@@ -5075,34 +5093,27 @@ static const UjNativeClass ujNatCls_MiniString = {
 #endif
     NULL,
     ujNat_MiniString_instGc,
-#ifdef UJ_FTR_STRING_FEATURES
-    2 +
-#endif
-        3,
-    {
-#ifdef UJ_FTR_STRING_FEATURES
-        {"charAt", "(I)C", ujNat_MiniString_charAt,
-         JAVA_ACC_PUBLIC | JAVA_ACC_NATIVE},
-        {"length", "()I", ujNat_MiniString_length,
-         JAVA_ACC_PUBLIC | JAVA_ACC_NATIVE},
-#endif
-        {"XbyteAt_", "(I)B", ujNat_MiniString_XbyteAt_,
-         JAVA_ACC_PUBLIC | JAVA_ACC_NATIVE},
-        {"Xlen_", "()I", ujNat_MiniString_Xlen_,
-         JAVA_ACC_PUBLIC | JAVA_ACC_NATIVE},
-        {"<init>", "([B)V", ujNat_MiniString_init,
-         JAVA_ACC_PUBLIC | JAVA_ACC_NATIVE}}};
+
+    ARRAY_ELEMS(ujNatCls_MiniString_methods),
+    ujNatCls_MiniString_methods,
+};
+
+static const UjNativeMethod ujNatCls_UJ_methods[] = {
+    { "consolePut", "(C)V", ujNat_RT_consolePut, JAVA_ACC_PUBLIC | JAVA_ACC_NATIVE | JAVA_ACC_STATIC },
+    { "threadCreate", "(Ljava/lang/Runnable;)V", ujNat_RT_threadCreate, JAVA_ACC_PUBLIC | JAVA_ACC_NATIVE | JAVA_ACC_STATIC },
+};
+
 static const UjNativeClass ujNatCls_UJ = {
     "uj/lang/RT",
+
     0,
     0,
     NULL,
     NULL,
-    2,
-    {{"consolePut", "(C)V", ujNat_RT_consolePut,
-      JAVA_ACC_PUBLIC | JAVA_ACC_NATIVE | JAVA_ACC_STATIC},
-     {"threadCreate", "(Ljava/lang/Runnable;)V", ujNat_RT_threadCreate,
-      JAVA_ACC_PUBLIC | JAVA_ACC_NATIVE | JAVA_ACC_STATIC}}};
+
+    ARRAY_ELEMS(ujNatCls_UJ_methods),
+    ujNatCls_UJ_methods,
+};
 
 static UInt8 ujInitBuiltinClasses(UjClass **objectClsP) {
     UjClass *cls;

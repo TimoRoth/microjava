@@ -129,7 +129,7 @@ typedef struct {
     ujNativeGcInstF gcInstF; // called once per gc per object to mark all used handles to 1
 
     UInt16 numMethods;
-    UjNativeMethod methods[];
+    const UjNativeMethod *methods;
 } UjNativeClass;
 
 UInt8 ujRegisterNativeClass(

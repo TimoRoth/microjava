@@ -24,8 +24,8 @@ DOUBLE_SRC  = double64_soft.c
 CC = gcc
 LD = gcc
 
-LDFLAGS += -Wall -Wextra -lm
-CFLAGS  += -std=c11 -fno-strict-aliasing -Wall -Wextra $(VMFEATURES) $(VMOPTS)
+LDFLAGS += -Wall -Wextra -pedantic -lm
+CFLAGS  += -std=c11 -fno-strict-aliasing -Wall -Wextra -pedantic $(VMFEATURES) $(VMOPTS)
 
 all: $(APP)
 

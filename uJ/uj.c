@@ -32,7 +32,7 @@ __attribute__((__const__)) static char isNaN(const float *f) {
                 * Heap compaction (1/2 done?)
                 * Heap handle table growth (is this needed?)
                 * constant initializer support (is this needed with latest JDK [6+] ?)
-                * in class file store a UInt8 hash of name, to speed up findClass (mash searched name, only do string compare if hashes match)
+                * in class file store a uint8_t hash of name, to speed up findClass (mash searched name, only do string compare if hashes match)
                 * keep array types so as to support appropriate throwing of "ArrayStoreException"
 */
 
@@ -95,7 +95,7 @@ __attribute__((__const__)) static char isNaN(const float *f) {
 #define UJ_PC_DONE 0xFFFFFFFFUL // we fell off the end of the code
 #define UJ_PC_BAD  0xFFFFFFFEUL  // invalid PC
 
-static const UInt8 ujPrvAtypeToStrType[] =
+static const uint8_t ujPrvAtypeToStrType[] =
 {
     JAVA_TYPE_BOOL, JAVA_TYPE_CHAR,  JAVA_TYPE_FLOAT, JAVA_TYPE_DOUBLE,
     JAVA_TYPE_BYTE, JAVA_TYPE_SHORT, JAVA_TYPE_INT,   JAVA_TYPE_LONG,
@@ -104,7 +104,7 @@ static const UInt8 ujPrvAtypeToStrType[] =
 typedef struct
 {
     HANDLE holder;
-    UInt16 numHolds;
+    uint16_t numHolds;
 } UjMonitor;
 
 typedef struct UjClass
@@ -115,13 +115,13 @@ typedef struct UjClass
     UjMonitor mon;
 #endif
 
-    UInt8 reserved : 4;
-    UInt8 native : 1;
-    UInt8 ujc : 1;
-    UInt8 mark : 2;
+    uint8_t reserved : 4;
+    uint8_t native : 1;
+    uint8_t ujc : 1;
+    uint8_t mark : 2;
 
 #ifdef UJ_OPT_CLASS_SEARCH
-    UInt8 clsNameHash;
+    uint8_t clsNameHash;
 #endif
 
     union {
@@ -139,17 +139,17 @@ typedef struct UjClass
 
     struct UjClass *supr;
 
-    UInt16 instDataOfst; // offset in instance data to class's instance data
+    uint16_t instDataOfst; // offset in instance data to class's instance data
                          // (before it comes data from superclasses)
-    UInt16 instDataSize; // size of class's instance data (before it comes data
+    uint16_t instDataSize; // size of class's instance data (before it comes data
                          // from superclasses) in instance data
 
-    UInt16 clsDataOfst; // offset in class data to class's data (before it comes
+    uint16_t clsDataOfst; // offset in class data to class's data (before it comes
                         // data from superclasses)
-    UInt16 clsDataSize; // size in class data of class's data (before it comes
+    uint16_t clsDataSize; // size in class data of class's data (before it comes
                         // data from superclasses)
 
-    UInt8 data[];
+    uint8_t data[];
 } UjClass;
 
 typedef struct UjInstance // must begin with UjClass*
@@ -160,7 +160,7 @@ typedef struct UjInstance // must begin with UjClass*
     UjMonitor mon;
 #endif
 
-    UInt8 data[]; // instance data ( array of elements such as: {u8 type, u8 data[]} )
+    uint8_t data[]; // instance data ( array of elements such as: {u8 type, u8 data[]} )
 } UjInstance;
 
 // if a chunk in heap is not an object, its "cls" field is NULL, and the next 8
@@ -172,9 +172,9 @@ typedef struct UjArray // must begin with UjClass*
 {
     UjClass *cls; // NULL for arrays. all objects in the heap must have this as
                   // the first field!
-    UInt8 objType;
+    uint8_t objType;
     UInt24 length;
-    UInt8 data[];
+    uint8_t data[];
 } UjArray;
 
 typedef struct UjThread
@@ -183,10 +183,10 @@ typedef struct UjThread
 
     union {
         struct {
-            UInt8 hasInst : 1; // same as !!instH
-            UInt8 syncronized : 1;
+            uint8_t hasInst : 1; // same as !!instH
+            uint8_t syncronized : 1;
         } access;
-        UInt8 raw;
+        uint8_t raw;
     } flags;
 
     UjClass *cls;
@@ -198,9 +198,9 @@ typedef struct UjThread
     // them again from class file by method index :)
     UInt24 methodStartPc; // direct offset into class file!
 
-    UInt16 spBase;  // we use an empty ascending stack
-    UInt16 spLimit; // also used for "isPtr"
-    UInt16 localsBase;
+    uint16_t spBase;  // we use an empty ascending stack
+    uint16_t spLimit; // also used for "isPtr"
+    uint16_t localsBase;
     uintptr_t stack[];
 } UjThread;
 
@@ -213,17 +213,17 @@ typedef struct UjThread
 
 typedef struct
 {
-    UInt8 type;
+    uint8_t type;
 
     union {
         struct {
-            UInt16 len;
+            uint16_t len;
             const char *str;
         } ptr;
 
         struct {
             UjClass *cls;
-            UInt16 strIdx;
+            uint16_t strIdx;
         } idx;
 
         struct {
@@ -237,8 +237,8 @@ typedef struct
                 UjThread *t;
 
             } from;
-            UInt16 idx;
-            UInt8 offset; // second offset for double deref
+            uint16_t idx;
+            uint8_t offset; // second offset for double deref
 
         } ref;
 
@@ -255,13 +255,13 @@ typedef struct
 static UjClass *gFirstClass = NULL;
 static HANDLE gCurThread = 0;
 static HANDLE gFirstThread = 0;
-static UInt32 gNumInstrs = 0;
+static uint32_t gNumInstrs = 0;
 
 /************************ END  GLOBALS *******************************/
 
-static UInt16 ujCstrlen(const char *s)
+static uint16_t ujCstrlen(const char *s)
 {
-    UInt16 len = 0;
+    uint16_t len = 0;
 
     while (*s++)
         len++;
@@ -269,13 +269,13 @@ static UInt16 ujCstrlen(const char *s)
     return len;
 }
 
-static UInt8 ujThreadPrvRet(UjThread *t, HANDLE threadH);
-static UInt8 ujInitBuiltinClasses(UjClass **objectClassP);
+static uint8_t ujThreadPrvRet(UjThread *t, HANDLE threadH);
+static uint8_t ujInitBuiltinClasses(UjClass **objectClassP);
 
-static Int32 ujThreadReadBE32_ex(void *readD, UInt24 addr) // from class file
+static int32_t ujThreadReadBE32_ex(void *readD, UInt24 addr) // from class file
 {
-    Int32 i32 = 0;
-    UInt8 t8;
+    int32_t i32 = 0;
+    uint8_t t8;
 
     for (t8 = 0; t8 < 4; t8++)
         i32 = (i32 << 8) | ujReadClassByte(readD, addr++);
@@ -286,7 +286,7 @@ static Int32 ujThreadReadBE32_ex(void *readD, UInt24 addr) // from class file
 static UInt24 ujThreadReadBE24_ex(void *readD, UInt24 addr) // from class file
 {
     UInt24 i24 = 0;
-    UInt8 t8;
+    uint8_t t8;
 
     for (t8 = 0; t8 < 3; t8++)
         i24 = (i24 << 8) | ujReadClassByte(readD, addr++);
@@ -294,9 +294,9 @@ static UInt24 ujThreadReadBE24_ex(void *readD, UInt24 addr) // from class file
     return i24;
 }
 
-static Int16 ujThreadReadBE16_ex(void *readD, UInt24 addr) // from class file
+static int16_t ujThreadReadBE16_ex(void *readD, UInt24 addr) // from class file
 {
-    Int16 i16 = 0;
+    int16_t i16 = 0;
 
     i16 = ujReadClassByte(readD, addr++);
     i16 <<= 8;
@@ -305,7 +305,7 @@ static Int16 ujThreadReadBE16_ex(void *readD, UInt24 addr) // from class file
     return i16;
 }
 
-static _INLINE_ Int32 ujThreadReadBE32(UjThread *t, UInt24 addr) // from class file
+static _INLINE_ int32_t ujThreadReadBE32(UjThread *t, UInt24 addr) // from class file
 {
     return ujThreadReadBE32_ex(t->cls->info.java.readD, addr);
 }
@@ -315,12 +315,12 @@ static _INLINE_ UInt24 ujThreadReadBE24(UjThread *t, UInt24 addr) // from class 
     return ujThreadReadBE24_ex(t->cls->info.java.readD, addr);
 }
 
-static _INLINE_ Int16 ujThreadReadBE16(UjThread *t, UInt24 addr) // from class file
+static _INLINE_ int16_t ujThreadReadBE16(UjThread *t, UInt24 addr) // from class file
                                        {
     return ujThreadReadBE16_ex(t->cls->info.java.readD, addr);
 }
 
-static _INLINE_ UInt8 ujThreadPrvFetchClassByte(UjThread *t, UInt24 addr)
+static _INLINE_ uint8_t ujThreadPrvFetchClassByte(UjThread *t, UInt24 addr)
 {
     return ujReadClassByte(t->cls->info.java.readD, addr);
 }
@@ -333,7 +333,7 @@ static UInt24 ujPrvSkipAttribute(void *readD, UInt24 addr)
 #endif
 
 #ifdef UJ_FTR_SYNCHRONIZATION
-static Boolean ujThreadPrvMonEnter(HANDLE h, UjMonitor *mon)
+static bool ujThreadPrvMonEnter(HANDLE h, UjMonitor *mon)
 {
     if (mon->numHolds && (mon->holder != h))
         return false;
@@ -342,7 +342,7 @@ static Boolean ujThreadPrvMonEnter(HANDLE h, UjMonitor *mon)
     return true;
 }
 
-static Boolean ujThreadPrvMonExit(HANDLE h, UjMonitor *mon)
+static bool ujThreadPrvMonExit(HANDLE h, UjMonitor *mon)
 {
     if (mon->numHolds && (mon->holder == h)) {
         mon->numHolds--;
@@ -353,9 +353,9 @@ static Boolean ujThreadPrvMonExit(HANDLE h, UjMonitor *mon)
 #endif
 
 #ifdef UJ_FTR_SUPPORT_CLASS_FORMAT
-static UInt24 ujThreadPrvFindConst_ex_class(void *readD, UInt16 idx)
+static UInt24 ujThreadPrvFindConst_ex_class(void *readD, uint16_t idx)
 {
-    UInt8 type;
+    uint8_t type;
     UInt24 addr = 10;
 
     while (--idx) {
@@ -397,7 +397,7 @@ static UInt24 ujThreadPrvFindConst_ex_class(void *readD, UInt16 idx)
 #endif
 
 #ifdef UJ_FTR_SUPPORT_UJC_FORMAT
-static UInt24 ujThreadPrvFindConst_ex_ujc(void *readD, UInt16 idx)
+static UInt24 ujThreadPrvFindConst_ex_ujc(void *readD, uint16_t idx)
 {
     UInt24 addr = 18 + 2 + (((UInt24)(idx - 1)) << 1) + (idx - 1);
 
@@ -414,7 +414,7 @@ static UInt24 ujThreadPrvFindConst_ex_ujc(void *readD, UInt16 idx)
 }
 #endif
 
-static UInt24 ujThreadPrvFindConst_ex(UjClass *cls, UInt16 idx)
+static UInt24 ujThreadPrvFindConst_ex(UjClass *cls, uint16_t idx)
 {
     if (cls->ujc) {
 #ifdef UJ_FTR_SUPPORT_UJC_FORMAT
@@ -430,18 +430,18 @@ static UInt24 ujThreadPrvFindConst_ex(UjClass *cls, UInt16 idx)
 
 #define ujThreadPrvFindConst(t, idx) ujThreadPrvFindConst_ex(t->cls, idx)
 
-_UNUSED_ static UInt8 ujThreadPrvStrEqualGetChar(UjPrvStrEqualParam *p, UInt16 idx) // get n-th char
+_UNUSED_ static uint8_t ujThreadPrvStrEqualGetChar(UjPrvStrEqualParam *p, uint16_t idx) // get n-th char
 {
     return (p->type == STR_EQ_PAR_TYPE_PTR)
                ? p->data.ptr.str[idx]
                : ujReadClassByte(p->data.adr.readD, p->data.adr.addr + 2 + idx);
 }
 
-static UInt16 ujThreadPrvStrEqualGetLen(UjPrvStrEqualParam *p) // get length
+static uint16_t ujThreadPrvStrEqualGetLen(UjPrvStrEqualParam *p) // get length
 {
     return (p->type == STR_EQ_PAR_TYPE_PTR)
                ? p->data.ptr.len
-               : (UInt16)ujThreadReadBE16_ex(p->data.adr.readD, p->data.adr.addr);
+               : (uint16_t)ujThreadReadBE16_ex(p->data.adr.readD, p->data.adr.addr);
 }
 
 static void ujThreadPrvStrEqualProcessParam(UjPrvStrEqualParam *p) // process to one of two types we support
@@ -493,10 +493,10 @@ static void ujThreadPrvStrEqualProcessParam(UjPrvStrEqualParam *p) // process to
 }
 
 #ifdef UJ_OPT_CLASS_SEARCH
-static UInt8 ujPrvHashString(UjPrvStrEqualParam *p)
+static uint8_t ujPrvHashString(UjPrvStrEqualParam *p)
 {
-    UInt16 L;
-    UInt8 c = 0xCC;
+    uint16_t L;
+    uint8_t c = 0xCC;
 
     ujThreadPrvStrEqualProcessParam(p);
     L = ujThreadPrvStrEqualGetLen(p);
@@ -510,9 +510,9 @@ static UInt8 ujPrvHashString(UjPrvStrEqualParam *p)
 }
 #endif
 
-static Boolean ujThreadPrvStrEqualEx(UjPrvStrEqualParam *p1, UjPrvStrEqualParam *p2)
+static bool ujThreadPrvStrEqualEx(UjPrvStrEqualParam *p1, UjPrvStrEqualParam *p2)
 {
-    UInt16 L;
+    uint16_t L;
 
     ujThreadPrvStrEqualProcessParam(p1);
     ujThreadPrvStrEqualProcessParam(p2);
@@ -533,7 +533,7 @@ static Boolean ujThreadPrvStrEqualEx(UjPrvStrEqualParam *p1, UjPrvStrEqualParam 
 }
 
 #ifdef UJ_FTR_SUPPORT_CLASS_FORMAT
-static Boolean ujThreadPrvStrEqual(UjClass *cls, UInt16 strIdx, UjPrvStrEqualParam *p2)
+static bool ujThreadPrvStrEqual(UjClass *cls, uint16_t strIdx, UjPrvStrEqualParam *p2)
 {
     UjPrvStrEqualParam p1;
 
@@ -550,7 +550,7 @@ static UjClass *ujThreadPrvFindClass(UjPrvStrEqualParam *name)
     UjPrvStrEqualParam p = { 0 };
     UjClass *cls = gFirstClass;
 #ifdef UJ_OPT_CLASS_SEARCH
-    UInt8 nameCrc = ujPrvHashString(name);
+    uint8_t nameCrc = ujPrvHashString(name);
 #endif
 
     while (cls) {
@@ -589,7 +589,7 @@ static UjClass *ujThreadPrvFindClass(UjPrvStrEqualParam *name)
     return NULL;
 }
 
-UInt8 ujRegisterNativeClass(const UjNativeClass *nCls, struct UjClass *super, struct UjClass **clsP)
+uint8_t ujRegisterNativeClass(const UjNativeClass *nCls, struct UjClass *super, struct UjClass **clsP)
 {
 #ifdef UJ_OPT_CLASS_SEARCH
     UjPrvStrEqualParam p;
@@ -628,7 +628,7 @@ UInt8 ujRegisterNativeClass(const UjNativeClass *nCls, struct UjClass *super, st
     return UJ_ERR_NONE;
 }
 
-static UInt8 ujPrvJavaTypeToSize(char type)
+static uint8_t ujPrvJavaTypeToSize(char type)
 {
     switch (type) {
     case JAVA_TYPE_BYTE:
@@ -652,21 +652,21 @@ static UInt8 ujPrvJavaTypeToSize(char type)
     }
 }
 
-UInt8 ujLoadClass(void *readD, UjClass **clsP)
+uint8_t ujLoadClass(void *readD, UjClass **clsP)
 {
     UjClass *cls;
     UjClass *supr = NULL;
     UjPrvStrEqualParam p;
-    UInt16 n, clsDatSz = 0, instDatSz = 0;
+    uint16_t n, clsDatSz = 0, instDatSz = 0;
     UInt24 addr, fields, interfaces;
-    Boolean isUjc = false;
-    Boolean isClassVar;
-    UInt8 type;
+    bool isUjc = false;
+    bool isClassVar;
+    uint8_t type;
 #ifdef UJ_OPT_CLASS_SEARCH
-    UInt8 clsNameHash;
+    uint8_t clsNameHash;
 #endif
 #ifdef UJ_FTR_SUPPORT_CLASS_FORMAT
-    UInt16 numInterfaces;
+    uint16_t numInterfaces;
 #endif
 
     if (ujThreadReadBE16_ex(readD, 0) == UJC_MAGIC) { // UJC file
@@ -718,10 +718,10 @@ UInt8 ujLoadClass(void *readD, UjClass **clsP)
 #else
         return UJ_ERR_INTERNAL;
 #endif
-    } else if ((UInt32)ujThreadReadBE32_ex(readD, 0) == 0xCAFEBABE) { // class
+    } else if ((uint32_t)ujThreadReadBE32_ex(readD, 0) == 0xCAFEBABE) { // class
                                                                       // file
 #ifdef UJ_FTR_SUPPORT_CLASS_FORMAT
-        UInt16 t;
+        uint16_t t;
 
         addr = 10;
 
@@ -872,7 +872,7 @@ UInt8 ujLoadClass(void *readD, UjClass **clsP)
     return UJ_ERR_NONE;
 }
 
-HANDLE ujThreadCreate(UInt16 stackSz)
+HANDLE ujThreadCreate(uint16_t stackSz)
 {
     HANDLE handle;
     UjThread *t;
@@ -901,13 +901,13 @@ HANDLE ujThreadCreate(UInt16 stackSz)
 }
 
 static UInt24 ujThreadPrvGetMethodAddr(UjClass **clsP, UjPrvStrEqualParam *name, UjPrvStrEqualParam *type,
-                                       UInt16 flagsAnd, UInt16 flagsEqEx,
-                                       UInt16 *flagsP) // return offset into class file where code_attribute begins
+                                       uint16_t flagsAnd, uint16_t flagsEqEx,
+                                       uint16_t *flagsP) // return offset into class file where code_attribute begins
 {
     UInt24 addr;
     UjClass *cls = *clsP;
     UjPrvStrEqualParam p;
-    UInt16 n, flags, flagsEq = flagsEqEx & ~FLAG_DONT_SEARCH_SUBCLASSES;
+    uint16_t n, flags, flagsEq = flagsEqEx & ~FLAG_DONT_SEARCH_SUBCLASSES;
 
     while (cls) {
         if (cls->native) { // native class
@@ -934,8 +934,8 @@ static UInt24 ujThreadPrvGetMethodAddr(UjClass **clsP, UjPrvStrEqualParam *name,
         } else if (cls->ujc) { // UJC
 #ifdef UJ_FTR_SUPPORT_UJC_FORMAT
 #ifdef UJ_OPT_CLASS_SEARCH
-            UInt8 nHash = ujPrvHashString(name);
-            UInt8 tHash = ujPrvHashString(type);
+            uint8_t nHash = ujPrvHashString(name);
+            uint8_t tHash = ujPrvHashString(type);
 #endif
 
             addr = cls->info.java.methods;
@@ -980,7 +980,7 @@ static UInt24 ujThreadPrvGetMethodAddr(UjClass **clsP, UjPrvStrEqualParam *name,
 #endif
         } else { // java class
 #ifdef UJ_FTR_SUPPORT_CLASS_FORMAT
-            UInt16 t16;
+            uint16_t t16;
 
             addr = cls->info.java.methods;
             t16 = ujThreadReadBE16_ex(cls->info.java.readD, addr - 2);
@@ -1022,9 +1022,9 @@ static UInt24 ujThreadPrvGetMethodAddr(UjClass **clsP, UjPrvStrEqualParam *name,
     return UJ_PC_BAD;
 }
 
-UInt32 ujThreadDbgGetPc(HANDLE threadH)
+uint32_t ujThreadDbgGetPc(HANDLE threadH)
 {
-    UInt32 ret;
+    uint32_t ret;
     UjThread *t;
 
     t = ujHeapHandleLock(threadH);
@@ -1034,9 +1034,9 @@ UInt32 ujThreadDbgGetPc(HANDLE threadH)
     return ret;
 }
 
-static UInt8 ujThreadPrvGoto(UjThread *t, UjClass *cls, HANDLE objHandle, UInt24 addr)
+static uint8_t ujThreadPrvGoto(UjThread *t, UjClass *cls, HANDLE objHandle, UInt24 addr)
 {
-    UInt16 numLocals = 0;
+    uint16_t numLocals = 0;
 
     if (cls->native) { // native class
 
@@ -1079,13 +1079,13 @@ static UInt8 ujThreadPrvGoto(UjThread *t, UjClass *cls, HANDLE objHandle, UInt24
     }
 }
 
-UInt8 ujThreadGoto(HANDLE threadH, UjClass *cls, const char *methodNamePtr, const char *methodTypePtr)
+uint8_t ujThreadGoto(HANDLE threadH, UjClass *cls, const char *methodNamePtr, const char *methodTypePtr)
 {
     UjPrvStrEqualParam name, type;
     UjThread *t = ujHeapHandleLock(threadH);
     UInt24 addr;
-    UInt16 needFlags = JAVA_ACC_STATIC;
-    UInt8 ret;
+    uint16_t needFlags = JAVA_ACC_STATIC;
+    uint8_t ret;
 
     if (methodNamePtr[0] == '<') {
         // special calls never search subclasses of asked class
@@ -1114,14 +1114,14 @@ out:
     return ret;
 }
 
-Boolean ujCanRun(void)
+bool ujCanRun(void)
 {
     return !!gFirstThread;
 }
 
-_UNUSED_ static int ujThreadPrvPutPtr(UInt8 *ptr, uintptr_t v) // to pointer
+_UNUSED_ static int ujThreadPrvPutPtr(uint8_t *ptr, uintptr_t v) // to pointer
 {
-    const UInt8 *d = (UInt8*)&v;
+    const uint8_t *d = (uint8_t*)&v;
 
     for (size_t i = 0; i < sizeof(v); i++)
         ptr[i] = d[i];
@@ -1129,9 +1129,9 @@ _UNUSED_ static int ujThreadPrvPutPtr(UInt8 *ptr, uintptr_t v) // to pointer
     return sizeof(v);
 }
 
-static void ujThreadPrvPut32(UInt8 *ptr, UInt32 v) // to pointer
+static void ujThreadPrvPut32(uint8_t *ptr, uint32_t v) // to pointer
 {
-    const UInt8 *d = (UInt8*)&v;
+    const uint8_t *d = (uint8_t*)&v;
 
     *ptr++ = *d++;
     *ptr++ = *d++;
@@ -1139,18 +1139,18 @@ static void ujThreadPrvPut32(UInt8 *ptr, UInt32 v) // to pointer
     *ptr = *d;
 }
 
-static void ujThreadPrvPut16(UInt8 *ptr, UInt16 v) // to pointer
+static void ujThreadPrvPut16(uint8_t *ptr, uint16_t v) // to pointer
 {
-    const UInt8 *d = (UInt8*)&v;
+    const uint8_t *d = (uint8_t*)&v;
 
     *ptr++ = *d++;
     *ptr = *d;
 }
 
-_UNUSED_ static uintptr_t ujThreadPrvGetPtr(const UInt8 *ptr) // from pointer
+_UNUSED_ static uintptr_t ujThreadPrvGetPtr(const uint8_t *ptr) // from pointer
 {
     uintptr_t v;
-    UInt8 *d = (UInt8*)&v;
+    uint8_t *d = (uint8_t*)&v;
 
     for (size_t i = 0; i < sizeof(v); i++)
         d[i] = ptr[i];
@@ -1158,10 +1158,10 @@ _UNUSED_ static uintptr_t ujThreadPrvGetPtr(const UInt8 *ptr) // from pointer
     return v;
 }
 
-static UInt32 ujThreadPrvGet32(const UInt8 *ptr) // from pointer
+static uint32_t ujThreadPrvGet32(const uint8_t *ptr) // from pointer
 {
-    UInt32 v;
-    UInt8 *d = (UInt8*)&v;
+    uint32_t v;
+    uint8_t *d = (uint8_t*)&v;
 
     *d++ = *ptr++;
     *d++ = *ptr++;
@@ -1171,10 +1171,10 @@ static UInt32 ujThreadPrvGet32(const UInt8 *ptr) // from pointer
     return v;
 }
 
-static UInt16 ujThreadPrvGet16(const UInt8 *ptr) // from pointer
+static uint16_t ujThreadPrvGet16(const uint8_t *ptr) // from pointer
 {
-    UInt16 v;
-    UInt8 *d = (UInt8*)&v;
+    uint16_t v;
+    uint8_t *d = (uint8_t*)&v;
 
     *d++ = *ptr++;
     *d = *ptr;
@@ -1182,12 +1182,12 @@ static UInt16 ujThreadPrvGet16(const UInt8 *ptr) // from pointer
     return v;
 }
 
-static const UInt8 gShifts[8] = { 1, 2, 4, 8, 16, 32, 64, 128 };
+static const uint8_t gShifts[8] = { 1, 2, 4, 8, 16, 32, 64, 128 };
 
-static _INLINE_ void ujThreadPrvBitSet(UjThread *t, UInt16 offst)
+static _INLINE_ void ujThreadPrvBitSet(UjThread *t, uint16_t offst)
 {
-    UInt8 *p = (UInt8 *)(t->stack + t->spLimit);
-    UInt8 v;
+    uint8_t *p = (uint8_t *)(t->stack + t->spLimit);
+    uint8_t v;
 
     p += (offst >> 3);
     v = gShifts[offst & 7];
@@ -1195,10 +1195,10 @@ static _INLINE_ void ujThreadPrvBitSet(UjThread *t, UInt16 offst)
     *p |= v;
 }
 
-static _INLINE_ void ujThreadPrvBitClear(UjThread *t, UInt16 offst)
+static _INLINE_ void ujThreadPrvBitClear(UjThread *t, uint16_t offst)
 {
-    UInt8 *p = (UInt8 *)(t->stack + t->spLimit);
-    UInt8 v;
+    uint8_t *p = (uint8_t *)(t->stack + t->spLimit);
+    uint8_t v;
 
     p += (offst >> 3);
     v = gShifts[offst & 7];
@@ -1206,10 +1206,10 @@ static _INLINE_ void ujThreadPrvBitClear(UjThread *t, UInt16 offst)
     *p &= ~v;
 }
 
-static _INLINE_ Boolean ujThreadPrvBitGet(UjThread *t, UInt16 offst)
+static _INLINE_ bool ujThreadPrvBitGet(UjThread *t, uint16_t offst)
 {
-    UInt8 *p = (UInt8 *)(t->stack + t->spLimit);
-    UInt8 v;
+    uint8_t *p = (uint8_t *)(t->stack + t->spLimit);
+    uint8_t v;
 
     p += (offst >> 3);
     v = gShifts[offst & 7];
@@ -1217,7 +1217,7 @@ static _INLINE_ Boolean ujThreadPrvBitGet(UjThread *t, UInt16 offst)
     return !!(*p & v);
 }
 
-static Boolean ujThreadPrvPush(UjThread *t, uintptr_t v, Boolean isRef)
+static bool ujThreadPrvPush(UjThread *t, uintptr_t v, bool isRef)
 {
     TL(" stack push %s 0x%08" PRIXPTR "\n", isRef ? "ref" : "int", v);
 
@@ -1232,7 +1232,7 @@ static Boolean ujThreadPrvPush(UjThread *t, uintptr_t v, Boolean isRef)
     return false;
 }
 
-Boolean ujThreadPush(UjThread *t, uintptr_t v, Boolean isRef)
+bool ujThreadPush(UjThread *t, uintptr_t v, bool isRef)
 {
     return ujThreadPrvPush(t, v, isRef);
 }
@@ -1255,7 +1255,7 @@ uintptr_t ujThreadPop(UjThread *t)
 
 #define DUP_FLAG_DONT_COPY 0x40 // apply to "howMany" to not copy or adjust stack afterwards
 
-static Boolean ujThreadPrvDup(UjThread *t, Int8 howManyEx, Int8 howFarBelow) // dup correctly, including "isRef" bits
+static bool ujThreadPrvDup(UjThread *t, int8_t howManyEx, int8_t howFarBelow) // dup correctly, including "isRef" bits
 {
     /*
             The idea here is as follows(stacks shown with top facing right):
@@ -1286,10 +1286,10 @@ static Boolean ujThreadPrvDup(UjThread *t, Int8 howManyEx, Int8 howFarBelow) // 
        howFarBelow" items up "howMany" spots
     */
 
-    UInt16 src;
-    UInt16 dst;
-    UInt16 i;
-    UInt8 howMany = howManyEx & ~DUP_FLAG_DONT_COPY;
+    uint16_t src;
+    uint16_t dst;
+    uint16_t i;
+    uint8_t howMany = howManyEx & ~DUP_FLAG_DONT_COPY;
 
     // step 0: verify stack has space for "howMany" extra elements
 
@@ -1303,7 +1303,7 @@ static Boolean ujThreadPrvDup(UjThread *t, Int8 howManyEx, Int8 howFarBelow) // 
 
     src = t->spBase;
     dst = t->spBase + howMany;
-    for (i = 0; i < (UInt8)(howMany + howFarBelow); i++) {
+    for (i = 0; i < (uint8_t)(howMany + howFarBelow); i++) {
         dst--;
         src--;
         if (ujThreadPrvBitGet(t, src))
@@ -1343,7 +1343,7 @@ static Boolean ujThreadPrvDup(UjThread *t, Int8 howManyEx, Int8 howFarBelow) // 
     return true;
 }
 
-static uintptr_t ujThreadPrvPeek(UjThread *t, UInt8 slots /* 0 is top of stack*/) // peek at stack items without popping
+static uintptr_t ujThreadPrvPeek(UjThread *t, uint8_t slots /* 0 is top of stack*/) // peek at stack items without popping
 {
     TL(" stack peek %u %s -> 0x%08" PRIXPTR "\n", slots,
        ujThreadPrvBitGet(t, t->spBase - (slots + 1)) ? "ref" : "int",
@@ -1352,7 +1352,7 @@ static uintptr_t ujThreadPrvPeek(UjThread *t, UInt8 slots /* 0 is top of stack*/
     return t->stack[t->spBase - (slots + 1)];
 }
 
-static uintptr_t ujThreadPrvLocalLoad(UjThread *t, UInt16 idx)
+static uintptr_t ujThreadPrvLocalLoad(UjThread *t, uint16_t idx)
 {
     TL(" local load %u %s -> 0x%08" PRIXPTR "\n", idx,
        ujThreadPrvBitGet(t, t->localsBase + idx) ? "ref" : "int",
@@ -1361,7 +1361,7 @@ static uintptr_t ujThreadPrvLocalLoad(UjThread *t, UInt16 idx)
     return t->stack[t->localsBase + idx];
 }
 
-static void ujThreadPrvLocalStore(UjThread *t, UInt16 idx, uintptr_t v, Boolean isRef)
+static void ujThreadPrvLocalStore(UjThread *t, uint16_t idx, uintptr_t v, bool isRef)
 {
     TL(" local store %u %s 0x%08" PRIXPTR "\n", idx, isRef ? "ref" : "int", v);
 
@@ -1392,19 +1392,19 @@ static void ujThreadPrvLocalStore(UjThread *t, UInt16 idx, uintptr_t v, Boolean 
     if (!ujThreadPrvPushLong_(t, L))            \
         return UJ_ERR_STACK_SPACE
 
-#define ujThreadPrvPopInt(t)      ((Int32)ujThreadPrvPop(t))
+#define ujThreadPrvPopInt(t)      ((int32_t)ujThreadPrvPop(t))
 #define ujThreadPrvPopRef(t)      ((HANDLE)ujThreadPrvPop(t))
 #define ujThreadPrvPopArrayref(t) ((HANDLE)ujThreadPrvPop(t))
 
-#define ujThreadPrvLocalLoadInt(t, idx) ((Int32)ujThreadPrvLocalLoad(t, idx))
-#define ujThreadPrvLocalLoadRef(t, idx) ((UInt32)ujThreadPrvLocalLoad(t, idx))
+#define ujThreadPrvLocalLoadInt(t, idx) ((int32_t)ujThreadPrvLocalLoad(t, idx))
+#define ujThreadPrvLocalLoadRef(t, idx) ((uint32_t)ujThreadPrvLocalLoad(t, idx))
 
-#define ujThreadPrvLocalStoreInt(t, idx, i)   ujThreadPrvLocalStore(t, idx, (UInt32)i, 0)
-#define ujThreadPrvLocalStoreRef(t, idx, obj) ujThreadPrvLocalStore(t, idx, (UInt32)obj, 1)
+#define ujThreadPrvLocalStoreInt(t, idx, i)   ujThreadPrvLocalStore(t, idx, (uint32_t)i, 0)
+#define ujThreadPrvLocalStoreRef(t, idx, obj) ujThreadPrvLocalStore(t, idx, (uint32_t)obj, 1)
 
 #if defined(UJ_FTR_SUPPORT_DOUBLE)
 
-static Boolean ujThreadPrvPushDouble_(UjThread *t, Double64 d)
+static bool ujThreadPrvPushDouble_(UjThread *t, Double64 d)
 {
     return ujThreadPrvPush(t, d64_getTopWord(d), 0) &&
            ujThreadPrvPush(t, d64_getBottomWord(d), 0);
@@ -1412,7 +1412,7 @@ static Boolean ujThreadPrvPushDouble_(UjThread *t, Double64 d)
 
 static Double64 ujThreadPrvPopDouble(UjThread *t)
 {
-    UInt32 tmp = ujThreadPrvPop(t);
+    uint32_t tmp = ujThreadPrvPop(t);
     return d64_fromHalves(ujThreadPrvPop(t), tmp);
 }
 
@@ -1420,43 +1420,43 @@ static Double64 ujThreadPrvPopDouble(UjThread *t)
 
 #if defined(UJ_FTR_SUPPORT_FLOAT)
 
-static Boolean ujThreadPrvPushFloat_(UjThread *t, UjFloat f)
+static bool ujThreadPrvPushFloat_(UjThread *t, float f)
 {
-    return ujThreadPrvPush(t, *(UInt32 *)&f, 0);
+    return ujThreadPrvPush(t, *(uint32_t *)&f, 0);
 }
 
-static UjFloat ujThreadPrvPopFloat(UjThread *t)
+static float ujThreadPrvPopFloat(UjThread *t)
 {
-    UInt32 tmp = ujThreadPrvPop(t);
-    return *(UjFloat *)&tmp;
+    uint32_t tmp = ujThreadPrvPop(t);
+    return *(float *)&tmp;
 }
 
 #endif
 
 #if defined(UJ_FTR_SUPPORT_LONG) || defined(UJ_FTR_SUPPORT_DOUBLE)
 
-static Boolean ujThreadPrvPushLong_(UjThread *t, Int64 L)
+static bool ujThreadPrvPushLong_(UjThread *t, Int64 L)
 {
     return ujThreadPrvPush(t, u64_get_hi(L), 0) && ujThreadPrvPush(t, u64_64_to_32(L), 0);
 }
 
 static Int64 ujThreadPrvPopLong(UjThread *t)
 {
-    UInt32 lo = ujThreadPrvPop(t);
+    uint32_t lo = ujThreadPrvPop(t);
     Int64 ret = u64_from_halves(ujThreadPrvPop(t), lo);
 
     return ret;
 }
 
-static Int64 ujThreadPrvLocalLoadLong(UjThread *t, UInt16 idx)
+static Int64 ujThreadPrvLocalLoadLong(UjThread *t, uint16_t idx)
 {
-    UInt32 hi = ujThreadPrvLocalLoadInt(t, idx);
+    uint32_t hi = ujThreadPrvLocalLoadInt(t, idx);
     Int64 ret = u64_from_halves(hi, ujThreadPrvLocalLoadInt(t, idx + 1));
 
     return ret;
 }
 
-static void ujThreadPrvLocalStoreLong(UjThread *t, UInt16 idx, Int64 L)
+static void ujThreadPrvLocalStoreLong(UjThread *t, uint16_t idx, Int64 L)
 {
     ujThreadPrvLocalStore(t, idx, u64_get_hi(L), 0);
     ujThreadPrvLocalStore(t, idx + 1, u64_64_to_32(L), 0);
@@ -1464,9 +1464,9 @@ static void ujThreadPrvLocalStoreLong(UjThread *t, UInt16 idx, Int64 L)
 
 #endif
 
-static Int32 ujThreadPrvArrayGetLength(HANDLE arrHandle)
+static int32_t ujThreadPrvArrayGetLength(HANDLE arrHandle)
 {
-    Int32 ret;
+    int32_t ret;
 
     ret = ((UjArray *)ujHeapHandleLock(arrHandle))->length;
     ujHeapHandleRelease(arrHandle);
@@ -1474,9 +1474,9 @@ static Int32 ujThreadPrvArrayGetLength(HANDLE arrHandle)
     return ret;
 }
 
-static Int32 ujThreadPrvArrayGet4B(HANDLE arrHandle, Int32 idx)
+static int32_t ujThreadPrvArrayGet4B(HANDLE arrHandle, int32_t idx)
 {
-    Int32 ret;
+    int32_t ret;
 
     idx <<= 2;
     ret = ujThreadPrvGet32(((UjArray *)ujHeapHandleLock(arrHandle))->data + idx);
@@ -1485,9 +1485,9 @@ static Int32 ujThreadPrvArrayGet4B(HANDLE arrHandle, Int32 idx)
     return ret;
 }
 
-static Int16 ujThreadPrvArrayGet2B(HANDLE arrHandle, Int32 idx)
+static int16_t ujThreadPrvArrayGet2B(HANDLE arrHandle, int32_t idx)
 {
-    Int16 ret;
+    int16_t ret;
 
     idx <<= 1;
     ret = ujThreadPrvGet16(((UjArray *)ujHeapHandleLock(arrHandle))->data + idx);
@@ -1496,9 +1496,9 @@ static Int16 ujThreadPrvArrayGet2B(HANDLE arrHandle, Int32 idx)
     return ret;
 }
 
-static Int8 ujThreadPrvArrayGet1B(HANDLE arrHandle, Int32 idx)
+static int8_t ujThreadPrvArrayGet1B(HANDLE arrHandle, int32_t idx)
 {
-    Int8 ret;
+    int8_t ret;
 
     ret = ((UjArray *)ujHeapHandleLock(arrHandle))->data[idx];
     ujHeapHandleRelease(arrHandle);
@@ -1506,38 +1506,38 @@ static Int8 ujThreadPrvArrayGet1B(HANDLE arrHandle, Int32 idx)
     return ret;
 }
 
-UInt32 ujArrayLen(UInt32 arr) // external use
+uint32_t ujArrayLen(uint32_t arr) // external use
 {
     return ujThreadPrvArrayGetLength((HANDLE)arr);
 }
 
-UInt32 ujArrayGetByte(UInt32 arr, UInt32 idx) // external use
+uint32_t ujArrayGetByte(uint32_t arr, uint32_t idx) // external use
 {
     return ujThreadPrvArrayGet1B((HANDLE)arr, idx);
 }
 
-UInt32 ujArrayGetShort(UInt32 arr, UInt32 idx) // external use
+uint32_t ujArrayGetShort(uint32_t arr, uint32_t idx) // external use
 {
     return ujThreadPrvArrayGet2B((HANDLE)arr, idx);
 }
 
-UInt32 ujArrayGetInt(UInt32 arr, UInt32 idx) // external use
+uint32_t ujArrayGetInt(uint32_t arr, uint32_t idx) // external use
 {
     return ujThreadPrvArrayGet4B((HANDLE)arr, idx);
 }
 
-void *ujArrayRawAccessStart(UInt32 arr)
+void *ujArrayRawAccessStart(uint32_t arr)
 {
     return ((UjArray *)ujHeapHandleLock(arr))->data;
 }
 
-void ujArrayRawAccessFinish(UInt32 arr)
+void ujArrayRawAccessFinish(uint32_t arr)
 {
     ujHeapHandleRelease(arr);
 }
 
 #if defined(UJ_FTR_SUPPORT_LONG) || defined(UJ_FTR_SUPPORT_DOUBLE)
-static Int64 ujThreadPrvArrayGetLong(HANDLE arrHandle, Int32 idx)
+static Int64 ujThreadPrvArrayGetLong(HANDLE arrHandle, int32_t idx)
 {
     Int64 ret;
     UjArray *arr = (UjArray *)ujHeapHandleLock(arrHandle);
@@ -1551,34 +1551,34 @@ static Int64 ujThreadPrvArrayGetLong(HANDLE arrHandle, Int32 idx)
 }
 #endif
 
-#define ujThreadPrvArrayGetInt(arr, idx)   ((Int32)ujThreadPrvArrayGet4B(arr, idx))
+#define ujThreadPrvArrayGetInt(arr, idx)   ((int32_t)ujThreadPrvArrayGet4B(arr, idx))
 #define ujThreadPrvArrayGetRef(arr, idx)   ((HANDLE)ujThreadPrvArrayGet4B(arr, idx))
-#define ujThreadPrvArrayGetByte(arr, idx)  ((Int8)ujThreadPrvArrayGet1B(arr, idx))
-#define ujThreadPrvArrayGetShort(arr, idx) ((Int16)ujThreadPrvArrayGet2B(arr, idx))
-#define ujThreadPrvArrayGetChar(arr, idx)  ((UInt16)ujThreadPrvArrayGet2B(arr, idx))
+#define ujThreadPrvArrayGetByte(arr, idx)  ((int8_t)ujThreadPrvArrayGet1B(arr, idx))
+#define ujThreadPrvArrayGetShort(arr, idx) ((int16_t)ujThreadPrvArrayGet2B(arr, idx))
+#define ujThreadPrvArrayGetChar(arr, idx)  ((uint16_t)ujThreadPrvArrayGet2B(arr, idx))
 
-static void ujThreadPrvArraySet4B(HANDLE arrHandle, Int32 idx, UInt32 v)
+static void ujThreadPrvArraySet4B(HANDLE arrHandle, int32_t idx, uint32_t v)
 {
     idx <<= 2;
     ujThreadPrvPut32(((UjArray *)ujHeapHandleLock(arrHandle))->data + idx, v);
     ujHeapHandleRelease(arrHandle);
 }
 
-static void ujThreadPrvArraySet2B(HANDLE arrHandle, Int32 idx, UInt16 v)
+static void ujThreadPrvArraySet2B(HANDLE arrHandle, int32_t idx, uint16_t v)
 {
     idx <<= 1;
     ujThreadPrvPut16(((UjArray *)ujHeapHandleLock(arrHandle))->data + idx, v);
     ujHeapHandleRelease(arrHandle);
 }
 
-static void ujThreadPrvArraySet1B(HANDLE arrHandle, Int32 idx, UInt8 v)
+static void ujThreadPrvArraySet1B(HANDLE arrHandle, int32_t idx, uint8_t v)
 {
     ((UjArray *)ujHeapHandleLock(arrHandle))->data[idx] = v;
     ujHeapHandleRelease(arrHandle);
 }
 
 #if defined(UJ_FTR_SUPPORT_LONG) || defined(UJ_FTR_SUPPORT_DOUBLE)
-static void ujThreadPrvArraySetLong(HANDLE arrHandle, Int32 idx, UInt64 val)
+static void ujThreadPrvArraySetLong(HANDLE arrHandle, int32_t idx, UInt64 val)
 {
     UjArray *arr = (UjArray *)ujHeapHandleLock(arrHandle);
 
@@ -1590,13 +1590,13 @@ static void ujThreadPrvArraySetLong(HANDLE arrHandle, Int32 idx, UInt64 val)
 }
 #endif
 
-#define ujThreadPrvArraySetInt(arr, idx, i)    ujThreadPrvArraySet4B(arr, idx, (UInt32)i)
-#define ujThreadPrvArraySetRef(arr, idx, obj)  ujThreadPrvArraySet4B(arr, idx, (UInt32)obj)
+#define ujThreadPrvArraySetInt(arr, idx, i)    ujThreadPrvArraySet4B(arr, idx, (uint32_t)i)
+#define ujThreadPrvArraySetRef(arr, idx, obj)  ujThreadPrvArraySet4B(arr, idx, (uint32_t)obj)
 #define ujThreadPrvArraySetChar(arr, idx, ch)  ujThreadPrvArraySet2B(arr, idx, ch)
 #define ujThreadPrvArraySetShort(arr, idx, sh) ujThreadPrvArraySet2B(arr, idx, sh)
 #define ujThreadPrvArraySetByte(arr, idx, b)   ujThreadPrvArraySet1B(arr, idx, b)
 
-static UInt8 ujThreadPrvArrayBoundsCheck(HANDLE arrHandle, Int32 idx)
+static uint8_t ujThreadPrvArrayBoundsCheck(HANDLE arrHandle, int32_t idx)
 {
     if (!arrHandle)
         return UJ_ERR_NULL_POINTER;
@@ -1606,14 +1606,14 @@ static UInt8 ujThreadPrvArrayBoundsCheck(HANDLE arrHandle, Int32 idx)
     return UJ_ERR_NONE;
 }
 
-static UInt8 ujThreadPushRetInfo(UjThread *t) // push all that we need to come back here using a return
+static uint8_t ujThreadPushRetInfo(UjThread *t) // push all that we need to come back here using a return
 {
     // XXX: make sure THREAD_RET_INFO_SZ is correct, or else...
 
     // we push: localsBase, cls/inst, methodStartPc, method, pc (as offset form
     // methodStart pc)  [we combine the last 2 into a single U32) we use top bit
     // of methodStartPc to indicate if we have instance (else we have class)
-    UInt32 combined;
+    uint32_t combined;
 
     // we need to push: localsBase(16 bit), cls/inst( <= 32-bit),
     // methodStartPc(24-bit), pc (24-bit), flags(8-bit) how we do it:
@@ -1646,10 +1646,10 @@ static UInt8 ujThreadPushRetInfo(UjThread *t) // push all that we need to come b
     return UJ_ERR_NONE;
 }
 
-static UInt8 ujThreadPrvRet(UjThread *t, _UNUSED_ HANDLE threadH) // the opposite of the above
+static uint8_t ujThreadPrvRet(UjThread *t, _UNUSED_ HANDLE threadH) // the opposite of the above
 {
     UjInstance *inst;
-    Int32 combined;
+    int32_t combined;
     uintptr_t combined_ptr;
 
     // no matter where sp is (stack may be non-empty), restore it to original
@@ -1670,7 +1670,7 @@ static UInt8 ujThreadPrvRet(UjThread *t, _UNUSED_ HANDLE threadH) // the opposit
     } else {                // we have levels to return to
 #ifdef UJ_FTR_SYNCHRONIZATION
         if (t->flags.access.syncronized) { // release the monitor
-            UInt8 ret;
+            uint8_t ret;
             if (t->flags.access.hasInst) {
                 inst = ujHeapHandleLock(t->instH);
                 ret = ujThreadPrvMonExit(threadH, &inst->mon);
@@ -1708,12 +1708,12 @@ static UInt8 ujThreadPrvRet(UjThread *t, _UNUSED_ HANDLE threadH) // the opposit
     return UJ_ERR_NONE;
 }
 
-static void ujThreadPrvJumpIfNeeded(UjThread *t, Boolean needed) {
+static void ujThreadPrvJumpIfNeeded(UjThread *t, bool needed) {
     TL(" jump on cond %s at pc 0x%06X\n", needed ? "TRUE" : "FALSE", t->pc);
 
     if (needed) { // jump there
         t->pc += ujThreadReadBE16(t, t->pc);
-        t->pc--; // we cnanot combine this and next instr due to Int16's range.
+        t->pc--; // we cnanot combine this and next instr due to int16_t's range.
                  // Think about (0x8000 - 1)
     } else {
         t->pc += 2; // skip offset and go on
@@ -1722,9 +1722,9 @@ static void ujThreadPrvJumpIfNeeded(UjThread *t, Boolean needed) {
     TL(" jumped to pc 0x%06X\n", t->pc);
 }
 
-static _INLINE_ UInt16 ujThreadPrvGetOffset(UjThread *t, Boolean wide)
+static _INLINE_ uint16_t ujThreadPrvGetOffset(UjThread *t, bool wide)
 {
-    UInt16 t16;
+    uint16_t t16;
 
     t16 = wide ? ujThreadReadBE16(t, t->pc) : ujThreadPrvFetchClassByte(t, t->pc);
     t->pc += wide ? 2 : 1;
@@ -1732,10 +1732,10 @@ static _INLINE_ UInt16 ujThreadPrvGetOffset(UjThread *t, Boolean wide)
     return t16;
 }
 
-static UInt32 ujThreadPrvReadConst32(UjThread *t, UInt16 idx, UInt8 *typeP)
+static uint32_t ujThreadPrvReadConst32(UjThread *t, uint16_t idx, uint8_t *typeP)
 {
-    UInt32 addr;
-    UInt8 type;
+    uint32_t addr;
+    uint8_t type;
 
     addr = ujThreadPrvFindConst(t, idx);
     type = ujThreadPrvFetchClassByte(t, addr++);
@@ -1758,7 +1758,7 @@ static UInt32 ujThreadPrvReadConst32(UjThread *t, UInt16 idx, UInt8 *typeP)
 }
 
 #if defined(UJ_FTR_SUPPORT_LONG) || defined(UJ_FTR_SUPPORT_DOUBLE)
-static UInt64 ujThreadPrvReadConst64(UjThread *t, UInt16 idx)
+static UInt64 ujThreadPrvReadConst64(UjThread *t, uint16_t idx)
 {
     UInt24 addr;
 
@@ -1768,7 +1768,7 @@ static UInt64 ujThreadPrvReadConst64(UjThread *t, UInt16 idx)
 }
 #endif
 
-static UInt8 ujThreadPrvNewArray(char type, Int32 len, HANDLE *arrP)
+static uint8_t ujThreadPrvNewArray(char type, int32_t len, HANDLE *arrP)
 {                               // remember to zero contents
     HANDLE handle;
     UjArray *arr;
@@ -1794,14 +1794,14 @@ static UInt8 ujThreadPrvNewArray(char type, Int32 len, HANDLE *arrP)
     return UJ_ERR_NONE;
 }
 
-static UInt8 ujThreadPrvMultiNewArrayHelper(UjThread *t, UInt24 type,
-                                            UInt8 thisDim, UInt8 totalDim,
+static uint8_t ujThreadPrvMultiNewArrayHelper(UjThread *t, UInt24 type,
+                                            uint8_t thisDim, uint8_t totalDim,
                                             HANDLE *arrP)
 {
-    Int32 i, numElem = ujThreadPrvPeek(t, thisDim);
+    int32_t i, numElem = ujThreadPrvPeek(t, thisDim);
     char typeByte = ujThreadPrvFetchClassByte(t, type + totalDim - thisDim);
     HANDLE arr, sub;
-    UInt8 t8;
+    uint8_t t8;
 
     if (numElem < 0)
         return UJ_ERR_NEG_ARR_SZ;
@@ -1833,9 +1833,9 @@ static UInt8 ujThreadPrvMultiNewArrayHelper(UjThread *t, UInt24 type,
     return UJ_ERR_NONE;
 }
 
-static UInt8 ujThreadPrvHandleMultiNewArray(UjThread *t, UInt16 typeIdx, UInt8 numDim, HANDLE *arrP)
+static uint8_t ujThreadPrvHandleMultiNewArray(UjThread *t, uint16_t typeIdx, uint8_t numDim, HANDLE *arrP)
 {
-    UInt8 ret;
+    uint8_t ret;
     UInt24 typeAddr;
 
     if (!t->cls->ujc) {
@@ -1848,7 +1848,7 @@ static UInt8 ujThreadPrvHandleMultiNewArray(UjThread *t, UInt16 typeIdx, UInt8 n
 
     /// UInt24 typeAddr = ujThreadPrvFindConst(t, typeIdx) + 3;	//string itself
 
-    // UInt32 ujThreadPrvPeek(UjThread* t, UInt8 slots/* 0 is top of stack*/)
+    // uint32_t ujThreadPrvPeek(UjThread* t, uint8_t slots/* 0 is top of stack*/)
     // we create the arrays from first dimension to last, but the sizes are
     // pushed in reverse order, so we ust use peek to get them (also we need to
     // remember to pop them later
@@ -1881,14 +1881,14 @@ static HANDLE ujThreadPrvNewInstance(UjClass *cls)
     return handle;
 }
 
-static UInt8 ujPrvNewStringObj(HANDLE *hP);
+static uint8_t ujPrvNewStringObj(HANDLE *hP);
 
-UInt16 ujStringGetBytes(HANDLE handle, UInt8 *buf, UInt32 bufsize)
+uint16_t ujStringGetBytes(HANDLE handle, uint8_t *buf, uint32_t bufsize)
 {
     UjInstance *inst;
     UjClass *cls;
-    UInt32 extra;
-    UInt16 sz, i;
+    uint32_t extra;
+    uint16_t sz, i;
 
     inst = ujHeapHandleLock(handle);
 
@@ -1913,7 +1913,7 @@ UInt16 ujStringGetBytes(HANDLE handle, UInt8 *buf, UInt32 bufsize)
             buf[i] = 0;
         }
     } else {
-        UInt8 *ptr = ujHeapHandleLock(extra);
+        uint8_t *ptr = ujHeapHandleLock(extra);
         sz = ujThreadPrvGet16(ptr);
         ptr += 2;
 
@@ -1930,11 +1930,11 @@ UInt16 ujStringGetBytes(HANDLE handle, UInt8 *buf, UInt32 bufsize)
     return sz + 1;
 }
 
-UInt8 ujStringFromBytes(HANDLE *handleP, UInt8 *str, UInt16 len)
+uint8_t ujStringFromBytes(HANDLE *handleP, uint8_t *str, uint16_t len)
 {
     HANDLE stringData;
-    UInt8 ofst, ret;
-    UInt8 *dst;
+    uint8_t ofst, ret;
+    uint8_t *dst;
     UjInstance *inst;
 
     if (!len)
@@ -1980,8 +1980,8 @@ void ujDbgPrintJavaString(HANDLE handle)
 {
     UjInstance *inst;
     UjClass *cls;
-    UInt32 extra;
-    UInt16 sz;
+    uint32_t extra;
+    uint16_t sz;
 
     inst = ujHeapHandleLock(handle);
 
@@ -2005,7 +2005,7 @@ void ujDbgPrintJavaString(HANDLE handle)
                     ujReadClassByte(cls->info.java.readD, extra++));
         fprintf(stderr, "'\n");
     } else {
-        UInt8 *ptr = ujHeapHandleLock(extra);
+        uint8_t *ptr = ujHeapHandleLock(extra);
         sz = ujThreadPrvGet16(ptr);
         ptr += 2;
 
@@ -2018,14 +2018,14 @@ void ujDbgPrintJavaString(HANDLE handle)
     }
 }
 
-void ujDbgPrintString(UjClass *cls, UInt16 idx)
+void ujDbgPrintString(UjClass *cls, uint16_t idx)
 {
     UInt24 addr = ujThreadPrvFindConst_ex(
         cls, cls->ujc
                  ? idx
                  : ujThreadReadBE16_ex(cls->info.java.readD,
                                        1 + ujThreadPrvFindConst_ex(cls, idx)));
-    UInt16 len = ujThreadReadBE16_ex(cls->info.java.readD, addr + 1);
+    uint16_t len = ujThreadReadBE16_ex(cls->info.java.readD, addr + 1);
     addr += 3;
 
     fprintf(stderr, "\"");
@@ -2047,7 +2047,7 @@ void ujDbgPrintClass(UjClass *cls)
 }
 #endif
 
-static UInt8 ujPrvNewStringObj(HANDLE *hP)
+static uint8_t ujPrvNewStringObj(HANDLE *hP)
 {
     UjPrvStrEqualParam p;
     static UjClass *cls = NULL;
@@ -2070,9 +2070,9 @@ static UInt8 ujPrvNewStringObj(HANDLE *hP)
     return UJ_ERR_NONE;
 }
 
-static UInt8 ujThreadPrvNewConstString(UjThread *t, UInt24 addr, HANDLE *handleP)
+static uint8_t ujThreadPrvNewConstString(UjThread *t, UInt24 addr, HANDLE *handleP)
 {
-    UInt8 ret;
+    uint8_t ret;
     UjInstance *inst;
 
     ret = ujPrvNewStringObj(handleP);
@@ -2084,8 +2084,8 @@ static UInt8 ujThreadPrvNewConstString(UjThread *t, UInt24 addr, HANDLE *handleP
 
 #ifdef UJ_OPT_RAM_STRINGS
     HANDLE stringData;
-    UInt8 *dst;
-    UInt16 len;
+    uint8_t *dst;
+    uint16_t len;
 
     len = ujThreadReadBE16(t, addr);
     addr += 2;
@@ -2114,7 +2114,7 @@ static UInt8 ujThreadPrvNewConstString(UjThread *t, UInt24 addr, HANDLE *handleP
     return UJ_ERR_NONE;
 }
 
-static void ujThreadProcessTrippleRef(UjThread *t, UInt16 idx,
+static void ujThreadProcessTrippleRef(UjThread *t, uint16_t idx,
                                       UjPrvStrEqualParam *clsI,
                                       UjPrvStrEqualParam *nameI,
                                       UjPrvStrEqualParam *typeI)
@@ -2169,15 +2169,15 @@ static void ujThreadProcessTrippleRef(UjThread *t, UInt16 idx,
     }
 }
 
-static UInt8 ujThreadPrvInvoke(UjThread *t, _UNUSED_ HANDLE threadH, UInt8 numParams, UInt8 invokeType, UInt8 pcBytes)
+static uint8_t ujThreadPrvInvoke(UjThread *t, _UNUSED_ HANDLE threadH, uint8_t numParams, uint8_t invokeType, uint8_t pcBytes)
 {
     UjPrvStrEqualParam p1, p2, p3;
     UjClass *cls = NULL;
     HANDLE objRef = 0;
     UInt24 addr;
-    UInt16 len, nameIdx;
-    UInt8 ret;
-    Boolean isSyncNow = false;
+    uint16_t len, nameIdx;
+    uint8_t ret;
+    bool isSyncNow = false;
 
     if (numParams) {
         nameIdx = numParams - 1;
@@ -2360,7 +2360,7 @@ static UInt8 ujThreadPrvInvoke(UjThread *t, _UNUSED_ HANDLE threadH, UInt8 numPa
     return ret;
 }
 
-static UjClass *ujThreadPrvClassFromRef(UjClass *cls, UInt16 classDescrIdx)
+static UjClass *ujThreadPrvClassFromRef(UjClass *cls, uint16_t classDescrIdx)
 {
     UjPrvStrEqualParam p;
 
@@ -2382,7 +2382,7 @@ static UjClass *ujThreadPrvClassFromRef(UjClass *cls, UInt16 classDescrIdx)
     return ujThreadPrvFindClass(&p);
 }
 
-static UInt32 ujThreadPrvNewObj(UjThread *t, UInt16 classDescrIdx, HANDLE *handleP)
+static uint32_t ujThreadPrvNewObj(UjThread *t, uint16_t classDescrIdx, HANDLE *handleP)
 {
     UjClass *cls = ujThreadPrvClassFromRef(t->cls, classDescrIdx);
     if (!cls)
@@ -2395,18 +2395,18 @@ static UInt32 ujThreadPrvNewObj(UjThread *t, UInt16 classDescrIdx, HANDLE *handl
     return UJ_ERR_NONE;
 }
 
-static UInt8 ujThreadPrvAccessClass(UjThread *t, char knownType, UInt16 descrIdx_or_ofst, UInt8 flags)
+static uint8_t ujThreadPrvAccessClass(UjThread *t, char knownType, uint16_t descrIdx_or_ofst, uint8_t flags)
 {                                                                                      // see UJ_ACCESS_PUT, UJ_ACCESS_FIELD
     UjPrvStrEqualParam p1, p2, p3;
     UjClass *cls;
-    UInt16 ofst, wantedFlag = JAVA_ACC_STATIC, numFields;
+    uint16_t ofst, wantedFlag = JAVA_ACC_STATIC, numFields;
     UInt24 addr;
     HANDLE handle = 0;
-    UInt8 *ptr;
-    UInt8 sz = 0;
+    uint8_t *ptr;
+    uint8_t sz = 0;
     char type;
 #ifdef UJ_OPT_CLASS_SEARCH
-    UInt8 wantedNameHash = 0, fieldNameHash = 0;
+    uint8_t wantedNameHash = 0, fieldNameHash = 0;
 #endif
 
     TL(" performing class access on descr %u at pc 0x%06X with sp=%u\n",
@@ -2503,7 +2503,7 @@ static UInt8 ujThreadPrvAccessClass(UjThread *t, char knownType, UInt16 descrIdx
 #endif
             } else { // java class
 #ifdef UJ_FTR_SUPPORT_CLASS_FORMAT
-                UInt16 n = ujThreadReadBE16_ex(cls->info.java.readD, addr + 6);
+                uint16_t n = ujThreadReadBE16_ex(cls->info.java.readD, addr + 6);
                 addr += 8;
                 while (n--)
                     addr = ujPrvSkipAttribute(cls->info.java.readD, addr);
@@ -2571,17 +2571,17 @@ static UInt8 ujThreadPrvAccessClass(UjThread *t, char knownType, UInt16 descrIdx
         case JAVA_TYPE_BYTE:
         case JAVA_TYPE_BOOL:
 
-            ujThreadPrvPushInt(t, (Int32)(Int8)*ptr);
+            ujThreadPrvPushInt(t, (int32_t)(int8_t)*ptr);
             break;
 
         case JAVA_TYPE_SHORT:
 
-            ujThreadPrvPushInt(t, (Int32)(Int16)ujThreadPrvGet16(ptr));
+            ujThreadPrvPushInt(t, (int32_t)(int16_t)ujThreadPrvGet16(ptr));
             break;
 
         case JAVA_TYPE_CHAR:
 
-            ujThreadPrvPushInt(t, (UInt32)(UInt16)ujThreadPrvGet16(ptr));
+            ujThreadPrvPushInt(t, (uint32_t)(uint16_t)ujThreadPrvGet16(ptr));
             break;
 
         case JAVA_TYPE_INT:
@@ -2615,9 +2615,9 @@ static UInt8 ujThreadPrvAccessClass(UjThread *t, char knownType, UInt16 descrIdx
     return UJ_ERR_NONE;
 }
 
-static UInt8 ujThreadPrvInstanceof(UjThread *t, UInt16 descrIdx, HANDLE objHandle)
+static uint8_t ujThreadPrvInstanceof(UjThread *t, uint16_t descrIdx, HANDLE objHandle)
 {
-    Boolean isIface;
+    bool isIface;
     UjClass *wantedCls;
     UjClass *cls;
 
@@ -2662,7 +2662,7 @@ static UInt8 ujThreadPrvInstanceof(UjThread *t, UInt16 descrIdx, HANDLE objHandl
                                   // time
 
                 UInt24 addr;
-                UInt16 i, N;
+                uint16_t i, N;
                 UjClass *tc = NULL;
 
                 cls->mark = 2;
@@ -2709,13 +2709,13 @@ static UInt8 ujThreadPrvInstanceof(UjThread *t, UInt16 descrIdx, HANDLE objHandl
 }
 
 #ifdef UJ_FTR_SUPPORT_EXCEPTIONS
-static UInt8 ujThreadPrvThrow(UjThread *t, HANDLE threadH, HANDLE excH)
+static uint8_t ujThreadPrvThrow(UjThread *t, HANDLE threadH, HANDLE excH)
 {
     do {
-        UInt16 pcOfst = t->pc - t->methodStartPc;
+        uint16_t pcOfst = t->pc - t->methodStartPc;
         UInt24 addr = 0;
-        UInt16 handler, i = 0, typ, numExcEntries = 0;
-        UInt8 ret;
+        uint16_t handler, i = 0, typ, numExcEntries = 0;
+        uint8_t ret;
 
         if (t->cls->ujc) {
 #ifdef UJ_FTR_SUPPORT_UJC_FORMAT
@@ -2752,8 +2752,8 @@ static UInt8 ujThreadPrvThrow(UjThread *t, HANDLE threadH, HANDLE excH)
 
         // step 3: check the exception table for handlers
         for (i = 0; i < numExcEntries; i++, addr += 8) {
-            if ((UInt16)ujThreadReadBE16(t, addr) < pcOfst &&
-                (UInt16)ujThreadReadBE16(t, addr + 2) >=
+            if ((uint16_t)ujThreadReadBE16(t, addr) < pcOfst &&
+                (uint16_t)ujThreadReadBE16(t, addr + 2) >=
                     pcOfst) { // range match (we pass in new pc, so it's not as
                               // you'd expect)
 
@@ -2784,30 +2784,30 @@ static UInt8 ujThreadPrvThrow(UjThread *t, HANDLE threadH, HANDLE excH)
 }
 #endif
 
-UInt32 ujGetNumInstrs(void)
+uint32_t ujGetNumInstrs(void)
 {
     return gNumInstrs;
 }
 
-static UInt8 ujThreadPrvInstr(HANDLE threadH, UjThread *t) // return success of execution
+static uint8_t ujThreadPrvInstr(HANDLE threadH, UjThread *t) // return success of execution
 {
 #if defined(UJ_FTR_SUPPORT_LONG) || defined(UJ_FTR_SUPPORT_DOUBLE)
     Int64 i64, v64;
 #endif
 #if defined(UJ_FTR_SUPPORT_FLOAT)
-    UjFloat uf = 0.0f, uf2 = 0.0f;
+    float uf = 0.0f, uf2 = 0.0f;
 #endif
 #if defined(UJ_FTR_SUPPORT_DOUBLE)
     Double64 ud, ud2;
 #endif
-    UInt8 ret, instr;
-    UInt16 t16, v16;
-    Int32 i32, v32, t32;
+    uint8_t ret, instr;
+    uint16_t t16, v16;
+    int32_t i32, v32, t32;
     HANDLE h, h2;
 #if defined(UJ_FTR_SYNCHRONIZATION)
     UjInstance *obj;
 #endif
-    Boolean wide = false;
+    bool wide = false;
 
     gNumInstrs++;
 
@@ -2840,7 +2840,7 @@ instr_start:
     case 0x07:
     case 0x08:
 
-        ujThreadPrvPushInt(t, ((Int8)instr) - 3);
+        ujThreadPrvPushInt(t, ((int8_t)instr) - 3);
         break;
 
     case 0x09: // lconst_X
@@ -2876,7 +2876,7 @@ instr_start:
 
     case 0x10: // bipush
 
-        ujThreadPrvPushInt(t, (Int8)ujThreadPrvFetchClassByte(t, t->pc++));
+        ujThreadPrvPushInt(t, (int8_t)ujThreadPrvFetchClassByte(t, t->pc++));
         break;
 
     case 0x11: // sipush
@@ -3179,7 +3179,7 @@ instr_start:
         ret = ujThreadPrvArrayBoundsCheck(h, i32);
         if (ret != UJ_ERR_NONE)
             goto out;
-        ujThreadPrvArraySetByte(h, i32, (Int8)instr);
+        ujThreadPrvArraySetByte(h, i32, (int8_t)instr);
         break;
 
     case 0x55: // castore
@@ -3201,7 +3201,7 @@ instr_start:
         ret = ujThreadPrvArrayBoundsCheck(h, i32);
         if (ret != UJ_ERR_NONE)
             goto out;
-        ujThreadPrvArraySetShort(h, i32, (Int16)t16);
+        ujThreadPrvArraySetShort(h, i32, (int16_t)t16);
         break;
 
     case 0x57: // pop
@@ -3517,7 +3517,7 @@ instr_start:
 
         case 2: // ushr
 
-            i32 = ((UInt32)i32) >> ((UInt32)v32);
+            i32 = ((uint32_t)i32) >> ((uint32_t)v32);
             break;
 
         case 3: // and
@@ -3594,9 +3594,9 @@ instr_start:
             v16 = ujThreadReadBE16(t, t->pc);
             t->pc += 2;
         } else {
-            v16 = (Int16)(Int8)ujThreadPrvFetchClassByte(t, t->pc++);
+            v16 = (int16_t)(int8_t)ujThreadPrvFetchClassByte(t, t->pc++);
         }
-        ujThreadPrvLocalStoreInt(t, t16, ujThreadPrvLocalLoadInt(t, t16) + (Int16)v16);
+        ujThreadPrvLocalStoreInt(t, t16, ujThreadPrvLocalLoadInt(t, t16) + (int16_t)v16);
         break;
 
     case 0x85: // i2l
@@ -3611,7 +3611,7 @@ instr_start:
     case 0x86: // i2f
 
 #if defined(UJ_FTR_SUPPORT_FLOAT)
-        ujThreadPrvPushFloat(t, (UjFloat)ujThreadPrvPopInt(t));
+        ujThreadPrvPushFloat(t, (float)ujThreadPrvPopInt(t));
 #else
         goto invalid_instr;
 #endif
@@ -3644,9 +3644,9 @@ instr_start:
             i64 = u64_sub(u64_zero(), i64);
             instr = 0;
         }
-        uf = (UjFloat)u64_get_hi(i64);
+        uf = (float)u64_get_hi(i64);
         uf *= 4294967296.0F;
-        uf += (UjFloat)u64_64_to_32(i64);
+        uf += (float)u64_64_to_32(i64);
         if (!instr)
             uf = -uf;
 
@@ -3701,10 +3701,10 @@ instr_start:
                 uf = -uf;
             }
 
-            uf2 = i32 = (Int32)(uf / 4294967296.0);
+            uf2 = i32 = (int32_t)(uf / 4294967296.0);
             uf -= uf2 * 4294967296.0;
 
-            i64 = u64_from_halves(i32, (UInt32)uf);
+            i64 = u64_from_halves(i32, (uint32_t)uf);
             if (!instr)
                 i64 = u64_sub(u64_zero(), i64);
         }
@@ -3752,17 +3752,17 @@ instr_start:
 
     case 0x91: // i2b
 
-        ujThreadPrvPushInt(t, (Int8)ujThreadPrvPopInt(t));
+        ujThreadPrvPushInt(t, (int8_t)ujThreadPrvPopInt(t));
         break;
 
     case 0x92: // i2c
 
-        ujThreadPrvPushInt(t, (UInt32)(UInt16)ujThreadPrvPopInt(t));
+        ujThreadPrvPushInt(t, (uint32_t)(uint16_t)ujThreadPrvPopInt(t));
         break;
 
     case 0x93: // i2s
 
-        ujThreadPrvPushInt(t, (Int16)ujThreadPrvPopInt(t));
+        ujThreadPrvPushInt(t, (int16_t)ujThreadPrvPopInt(t));
         break;
 
     case 0x94: // lcmp
@@ -4274,13 +4274,13 @@ invalid_instr:
     return UJ_ERR_INVALID_OPCODE;
 }
 
-UInt8 ujInstr(void) // return UJ_ERR_*
+uint8_t ujInstr(void) // return UJ_ERR_*
 {
 
     HANDLE h;
     UjThread *t;
-    UInt8 ret, i;
-    Boolean died = false;
+    uint8_t ret, i;
+    bool died = false;
 
     t = ujHeapHandleLock(h = gCurThread);
 
@@ -4311,11 +4311,11 @@ UInt8 ujInstr(void) // return UJ_ERR_*
     return ret;
 }
 
-UInt8 ujThreadDestroy(HANDLE threadH)
+uint8_t ujThreadDestroy(HANDLE threadH)
 {
     HANDLE *handleP = &gFirstThread;
     HANDLE handleToUnlock = 0;
-    UInt8 ret = UJ_ERR_INTERNAL;
+    uint8_t ret = UJ_ERR_INTERNAL;
 
     while (*handleP && *handleP != threadH) {
         if (handleToUnlock)
@@ -4335,7 +4335,7 @@ UInt8 ujThreadDestroy(HANDLE threadH)
     return ret;
 }
 
-UInt8 ujInit(UjClass **objectClsP)
+uint8_t ujInit(UjClass **objectClsP)
 {
     gNumInstrs = 0;
     gFirstThread = 0;
@@ -4344,11 +4344,11 @@ UInt8 ujInit(UjClass **objectClsP)
     return ujInitBuiltinClasses(objectClsP);
 }
 
-UInt8 ujInitAllClasses(void)
+uint8_t ujInitAllClasses(void)
 {
     HANDLE threadH = 0;
     UjClass *cls = gFirstClass;
-    UInt8 ret;
+    uint8_t ret;
 
     while (cls) {
         if (!threadH)
@@ -4412,8 +4412,8 @@ ujGcPrvMarkClass(UjClass *cls, UjInstance *inst) // if inst is NULL, mark static
             }
         } else { // java class
             UInt24 addr = cls->info.java.fields;
-            UInt16 numFields, wantedFlag = inst ? 0 : JAVA_ACC_STATIC;
-            UInt8 *ptr;
+            uint16_t numFields, wantedFlag = inst ? 0 : JAVA_ACC_STATIC;
+            uint8_t *ptr;
             char type = 0;
 
             ptr = inst ? (inst->data + cls->instDataOfst)
@@ -4455,7 +4455,7 @@ ujGcPrvMarkClass(UjClass *cls, UjInstance *inst) // if inst is NULL, mark static
 #endif
                 } else {
 #ifdef UJ_FTR_SUPPORT_CLASS_FORMAT
-                    UInt16 n = ujThreadReadBE16_ex(cls->info.java.readD, addr + 6);
+                    uint16_t n = ujThreadReadBE16_ex(cls->info.java.readD, addr + 6);
                     addr += 8;
                     while (n--)
                         addr = ujPrvSkipAttribute(cls->info.java.readD, addr);
@@ -4472,7 +4472,7 @@ ujGcPrvMarkClass(UjClass *cls, UjInstance *inst) // if inst is NULL, mark static
     }
 }
 
-static void *ujGcPrvLock(HANDLE handle, Boolean *needsReleaseP)
+static void *ujGcPrvLock(HANDLE handle, bool *needsReleaseP)
 {
     void *ret;
 
@@ -4484,14 +4484,14 @@ static void *ujGcPrvLock(HANDLE handle, Boolean *needsReleaseP)
     return ujHeapHandleLock(handle);
 }
 
-UInt8 ujGC(void)
+uint8_t ujGC(void)
 {
     UjThread *th;
     UjClass *cls;
     HANDLE handle, h2;
-    UInt16 t16;
-    UInt8 t8;
-    Boolean needsRelease;
+    uint16_t t16;
+    uint8_t t8;
+    bool needsRelease;
     UjInstance *inst;
 
     // step 1 for class vars
@@ -4548,7 +4548,7 @@ UInt8 ujGC(void)
                 ujHeapHandleRelease(handle);
         } else { // something that isn't an object - handle that
 
-            UInt32 t;
+            uint32_t t;
             HANDLE h;
 
             t8 = ((UjArray *)inst)->objType;
@@ -4585,21 +4585,21 @@ UInt8 ujGC(void)
    at start, pop later (easiest)
 */
 
-static UInt8 ujNat_Object_hashCode(UjThread *t, _UNUSED_ UjClass *cls)
+static uint8_t ujNat_Object_hashCode(UjThread *t, _UNUSED_ UjClass *cls)
 {
     ujThreadPrvPushInt(t, ujThreadPrvPopRef(t)); // must be done since it is no longer a ref
                                                  // and should't impede GC's work
     return UJ_ERR_NONE;
 }
 
-static UInt8 ujNat_Object_Object(UjThread *t, _UNUSED_ UjClass *cls)
+static uint8_t ujNat_Object_Object(UjThread *t, _UNUSED_ UjClass *cls)
 {
     ujThreadPrvPop(t); // pop and do nothing
     return UJ_ERR_NONE;
 }
 
-typedef UInt8 (*ujNat_MiniString_ConstF)(UjThread *t, UjClass *cls, UInt24 addr, UInt32 extra);
-typedef UInt8 (*ujNat_MiniString_RamF)(UjThread *t, UInt8 *dataP, UInt32 extra);
+typedef uint8_t (*ujNat_MiniString_ConstF)(UjThread *t, UjClass *cls, UInt24 addr, uint32_t extra);
+typedef uint8_t (*ujNat_MiniString_RamF)(UjThread *t, uint8_t *dataP, uint32_t extra);
 
 #ifdef UJ_OPT_RAM_STRINGS
 #define ujNat_MiniString_genericF(t, cls, cF, rF, extra) \
@@ -4609,13 +4609,13 @@ typedef UInt8 (*ujNat_MiniString_RamF)(UjThread *t, UInt8 *dataP, UInt32 extra);
     ujNat_MiniString_genericF_(t, cls, cF, rF, extra)
 #endif
 
-static UInt8 ujNat_MiniString_genericF_(UjThread *t, UjClass *cls, ujNat_MiniString_ConstF cF, ujNat_MiniString_RamF rF, UInt32 extra)
+static uint8_t ujNat_MiniString_genericF_(UjThread *t, UjClass *cls, ujNat_MiniString_ConstF cF, ujNat_MiniString_RamF rF, uint32_t extra)
 {
     HANDLE handle = ujThreadPrvPopRef(t);
     UjInstance *inst = ujHeapHandleLock(handle);
     UjClass *strCls;
-    UInt32 strData;
-    UInt8 v;
+    uint32_t strData;
+    uint8_t v;
 
 #ifdef UJ_OPT_RAM_STRINGS
     strCls = NULL;
@@ -4639,7 +4639,7 @@ static UInt8 ujNat_MiniString_genericF_(UjThread *t, UjClass *cls, ujNat_MiniStr
 }
 
 #ifndef UJ_OPT_RAM_STRINGS
-static UInt8 ujNat_MiniString_prv_class_XbyteAt_(UjThread *t, UjClass *strCls, UInt24 addr, UInt32 extra)
+static uint8_t ujNat_MiniString_prv_class_XbyteAt_(UjThread *t, UjClass *strCls, UInt24 addr, uint32_t extra)
 {
     ujThreadPrvPushInt(t,
                        ujReadClassByte(strCls->info.java.readD, addr + extra));
@@ -4648,14 +4648,14 @@ static UInt8 ujNat_MiniString_prv_class_XbyteAt_(UjThread *t, UjClass *strCls, U
 }
 #endif
 
-static UInt8 ujNat_MiniString_prv_ram_XbyteAt_(UjThread *t, UInt8 *dataP, UInt32 extra)
+static uint8_t ujNat_MiniString_prv_ram_XbyteAt_(UjThread *t, uint8_t *dataP, uint32_t extra)
 {
     ujThreadPrvPushInt(t, dataP[extra]);
 
     return UJ_ERR_NONE;
 }
 
-static UInt8 ujNat_MiniString_XbyteAt_(UjThread *t, UjClass *cls)
+static uint8_t ujNat_MiniString_XbyteAt_(UjThread *t, UjClass *cls)
 {
     return ujNat_MiniString_genericF(
         t, cls, ujNat_MiniString_prv_class_XbyteAt_,
@@ -4663,7 +4663,7 @@ static UInt8 ujNat_MiniString_XbyteAt_(UjThread *t, UjClass *cls)
 }
 
 #ifndef UJ_OPT_RAM_STRINGS
-static UInt8 ujNat_MiniString_prv_class_Xlen_(UjThread *t, UjClass *strCls, UInt24 addr, _UNUSED_ UInt32 extra)
+static uint8_t ujNat_MiniString_prv_class_Xlen_(UjThread *t, UjClass *strCls, UInt24 addr, _UNUSED_ uint32_t extra)
 {
     ujThreadPrvPushInt(t, ujThreadReadBE16_ex(strCls->info.java.readD, addr));
 
@@ -4671,14 +4671,14 @@ static UInt8 ujNat_MiniString_prv_class_Xlen_(UjThread *t, UjClass *strCls, UInt
 }
 #endif
 
-static UInt8 ujNat_MiniString_prv_ram_Xlen_(UjThread *t, UInt8 *dataP, _UNUSED_ UInt32 extra)
+static uint8_t ujNat_MiniString_prv_ram_Xlen_(UjThread *t, uint8_t *dataP, _UNUSED_ uint32_t extra)
 {
     ujThreadPrvPushInt(t, ujThreadPrvGet16(dataP));
 
     return UJ_ERR_NONE;
 }
 
-static UInt8 ujNat_MiniString_Xlen_(UjThread *t, UjClass *cls)
+static uint8_t ujNat_MiniString_Xlen_(UjThread *t, UjClass *cls)
 {
     return ujNat_MiniString_genericF(t, cls, ujNat_MiniString_prv_class_Xlen_,
                                      ujNat_MiniString_prv_ram_Xlen_, 0);
@@ -4687,10 +4687,10 @@ static UInt8 ujNat_MiniString_Xlen_(UjThread *t, UjClass *cls)
 #ifdef UJ_FTR_STRING_FEATURES
 
 #ifndef UJ_OPT_RAM_STRINGS
-static UInt8 ujNat_MiniString_prv_class_charAt(UjThread *t, UjClass *strCls, UInt24 addr, UInt32 idx)
+static uint8_t ujNat_MiniString_prv_class_charAt(UjThread *t, UjClass *strCls, UInt24 addr, uint32_t idx)
 {
-    UInt16 L = ujThreadReadBE16_ex(strCls->info.java.readD, addr);
-    UInt8 b, len;
+    uint16_t L = ujThreadReadBE16_ex(strCls->info.java.readD, addr);
+    uint8_t b, len;
 
     addr += 2;
 
@@ -4738,10 +4738,10 @@ static UInt8 ujNat_MiniString_prv_class_charAt(UjThread *t, UjClass *strCls, UIn
 }
 #endif
 
-static UInt8 ujNat_MiniString_prv_ram_charAt(UjThread *t, UInt8 *dataP, UInt32 idx)
+static uint8_t ujNat_MiniString_prv_ram_charAt(UjThread *t, uint8_t *dataP, uint32_t idx)
 {
-    UInt16 L = ujThreadPrvGet16(dataP);
-    UInt8 b, len;
+    uint16_t L = ujThreadPrvGet16(dataP);
+    uint8_t b, len;
 
     dataP += 2;
 
@@ -4788,7 +4788,7 @@ static UInt8 ujNat_MiniString_prv_ram_charAt(UjThread *t, UInt8 *dataP, UInt32 i
     return UJ_ERR_NONE;
 }
 
-static UInt8 ujNat_MiniString_charAt(UjThread *t, UjClass *cls)
+static uint8_t ujNat_MiniString_charAt(UjThread *t, UjClass *cls)
 {
     return ujNat_MiniString_genericF(t, cls, ujNat_MiniString_prv_class_charAt,
                                      ujNat_MiniString_prv_ram_charAt,
@@ -4796,11 +4796,11 @@ static UInt8 ujNat_MiniString_charAt(UjThread *t, UjClass *cls)
 }
 
 #ifndef UJ_OPT_RAM_STRINGS
-static UInt8 ujNat_MiniString_prv_class_length(UjThread *t, UjClass *strCls, UInt24 addr, _UNUSED_ UInt32 extra)
+static uint8_t ujNat_MiniString_prv_class_length(UjThread *t, UjClass *strCls, UInt24 addr, _UNUSED_ uint32_t extra)
 {
-    UInt16 L = ujThreadReadBE16_ex(strCls->info.java.readD, addr);
-    UInt8 b, len;
-    UInt32 ret = 0;
+    uint16_t L = ujThreadReadBE16_ex(strCls->info.java.readD, addr);
+    uint8_t b, len;
+    uint32_t ret = 0;
 
     addr += 2;
 
@@ -4824,11 +4824,11 @@ static UInt8 ujNat_MiniString_prv_class_length(UjThread *t, UjClass *strCls, UIn
 }
 #endif
 
-static UInt8 ujNat_MiniString_prv_ram_length(UjThread *t, UInt8 *dataP, _UNUSED_ UInt32 extra)
+static uint8_t ujNat_MiniString_prv_ram_length(UjThread *t, uint8_t *dataP, _UNUSED_ uint32_t extra)
 {
-    UInt16 L = ujThreadPrvGet16(dataP);
-    UInt8 b, len;
-    UInt32 ret = 0;
+    uint16_t L = ujThreadPrvGet16(dataP);
+    uint8_t b, len;
+    uint32_t ret = 0;
 
     dataP += 2;
 
@@ -4851,20 +4851,20 @@ static UInt8 ujNat_MiniString_prv_ram_length(UjThread *t, UInt8 *dataP, _UNUSED_
     return UJ_ERR_NONE;
 }
 
-static UInt8 ujNat_MiniString_length(UjThread *t, UjClass *cls)
+static uint8_t ujNat_MiniString_length(UjThread *t, UjClass *cls)
 {
     return ujNat_MiniString_genericF(t, cls, ujNat_MiniString_prv_class_length,
                                      ujNat_MiniString_prv_ram_length, 0);
 }
 #endif
 
-static UInt8 ujNat_MiniString_init(UjThread *t, UjClass *cls)
+static uint8_t ujNat_MiniString_init(UjThread *t, UjClass *cls)
 {
     HANDLE objHandle = (HANDLE)ujThreadPrvPeek(t, 1);
     HANDLE arrayHandle = (HANDLE)ujThreadPrvPeek(t, 0);
-    Int32 i, len = ujThreadPrvArrayGetLength(arrayHandle);
-    UInt8 *data;
-    UInt8 ofst;
+    int32_t i, len = ujThreadPrvArrayGetLength(arrayHandle);
+    uint8_t *data;
+    uint8_t ofst;
     UjInstance *obj;
     HANDLE handle;
 
@@ -4887,7 +4887,7 @@ static UInt8 ujNat_MiniString_init(UjThread *t, UjClass *cls)
 #else
     ofst = ujThreadPrvPutPtr(obj->data + cls->instDataOfst, 0);
 #endif
-    ujThreadPrvPut32(obj->data + cls->instDataOfst + ofst, (UInt32)handle);
+    ujThreadPrvPut32(obj->data + cls->instDataOfst + ofst, (uint32_t)handle);
     ujHeapHandleRelease(objHandle);
 
     ujThreadPrvPop(t); // pop off our params
@@ -4896,7 +4896,7 @@ static UInt8 ujNat_MiniString_init(UjThread *t, UjClass *cls)
     return UJ_ERR_NONE;
 }
 
-static UInt8 ujNat_RT_consolePut(UjThread *t, _UNUSED_ UjClass *myCls)
+static uint8_t ujNat_RT_consolePut(UjThread *t, _UNUSED_ UjClass *myCls)
 {
     _UNUSED_ char c = ujThreadPop(t);
     ujLog("%c", c);
@@ -4904,14 +4904,14 @@ static UInt8 ujNat_RT_consolePut(UjThread *t, _UNUSED_ UjClass *myCls)
     return UJ_ERR_NONE;
 }
 
-static UInt8 ujNat_RT_threadCreate(UjThread *oldT, _UNUSED_ UjClass *myCls)
+static uint8_t ujNat_RT_threadCreate(UjThread *oldT, _UNUSED_ UjClass *myCls)
 {
     HANDLE handle;
     UjInstance *inst;
     UInt24 addr;
     UjClass *cls;
     HANDLE threadH;
-    UInt8 ret;
+    uint8_t ret;
     UjThread *t;
     UjPrvStrEqualParam name, type;
 
@@ -4951,7 +4951,7 @@ static void ujNat_MiniString_instGc(UjClass *cls, UjInstance *inst)
 {
     UjClass *strCls;
     HANDLE h;
-    UInt8 ofst;
+    uint8_t ofst;
 
 #ifdef UJ_OPT_RAM_STRINGS
     strCls = NULL;
@@ -5031,10 +5031,10 @@ static const UjNativeClass ujNatCls_UJ = {
     ujNatCls_UJ_methods,
 };
 
-static UInt8 ujInitBuiltinClasses(UjClass **objectClsP)
+static uint8_t ujInitBuiltinClasses(UjClass **objectClsP)
 {
     UjClass *cls;
-    UInt8 ret;
+    uint8_t ret;
 
     ret = ujRegisterNativeClass(&ujNatCls_Object, NULL, &cls);
     if (ret != UJ_ERR_NONE)

@@ -9,14 +9,14 @@
 #include <unistd.h>
 #include <string.h>
 
-UInt8 ujReadClassByte(void *userData, UInt32 offset) {
+uint8_t ujReadClassByte(void *userData, uint32_t offset) {
     int i;
-    UInt8 v;
+    uint8_t v;
     FILE *f = (FILE *)userData;
     //char path[1024];
     //char result[1024];
 
-    if ((UInt32)ftell(f) != offset) {
+    if ((uint32_t)ftell(f) != offset) {
         i = fseek(f, offset, SEEK_SET);
         if (i == -1) {
             fprintf(stderr, "Failed to seek to offset %" PRIu32 ", errno=%d\n", offset,
@@ -53,9 +53,9 @@ void ujLog(const char *fmtStr, ...) {
 #endif
 
 int main(int argc, char **argv) {
-    UInt32 threadH;
-    Boolean done;
-    UInt8 ret;
+    uint32_t threadH;
+    bool done;
+    uint8_t ret;
     UjClass *mainClass = NULL;
     int i;
 

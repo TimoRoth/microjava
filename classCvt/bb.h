@@ -12,32 +12,32 @@ struct BB;
 
 typedef struct{
 
-	UInt8 type;
-	UInt8 wide;
+	uint8_t type;
+	uint8_t wide;
 	
-	UInt32 numBytes;
-	UInt8 bytes[8];
+	uint32_t numBytes;
+	uint8_t bytes[8];
 
-	UInt32 destLen;		//0 2 or 4 for no, short, and long pointers respectively
-	UInt32 destOrigAddr;	//original address of destination
+	uint32_t destLen;		//0 2 or 4 for no, short, and long pointers respectively
+	uint32_t destOrigAddr;	//original address of destination
 	
 	struct{
 	
-		UInt32 first; 		//unused for lookup
-		UInt32 numCases;
-		UInt32* matchVals;	//unused for table
+		uint32_t first; 		//unused for lookup
+		uint32_t numCases;
+		uint32_t* matchVals;	//unused for table
 			
-		UInt32* initialDestAddrs;
+		uint32_t* initialDestAddrs;
 		
 		//this gets resolved later and cannot be used by the pass function!
-		Int32* destOffsets; //numCases+1, where least is the default addr
+		int32_t* destOffsets; //numCases+1, where least is the default addr
 		struct BB** dests;
 		
 	}switches;
 
 	//these gets resolved later and cannot be used by the pass function!
 	
-	Int32 finalOffset;	//resolved to be correct
+	int32_t finalOffset;	//resolved to be correct
 	struct BB* jmpDest;	//calculated at end (final address of destination)
 
 }Instr;
@@ -45,16 +45,16 @@ typedef struct{
 
 
 //parse code into blocks (code pointer must remain valid after this call!)
-void bbInit(UInt8* code, UInt32 len);
+void bbInit(uint8_t* code, uint32_t len);
 
 //add exception info
-void bbAddExc(UInt16 startpc, UInt16 endpc, UInt16 handler);
+void bbAddExc(uint16_t startpc, uint16_t endpc, uint16_t handler);
 
 //final checks before optimization passes (initial code pointer guaranteed not used after this)
 void bbFinishLoading();
 
 //replacement func type
-typedef void (*BbPassF)(Instr* instrs, UInt32 numInstrs, void* userData);
+typedef void (*BbPassF)(Instr* instrs, uint32_t numInstrs, void* userData);
 //do a pass over all blocks of this method
 void bbPass(BbPassF pF, void* userData);
 
@@ -62,8 +62,8 @@ void bbPass(BbPassF pF, void* userData);
 void bbFinalizeChanges();
 
 //export
-UInt32 bbExport(UInt8* buf);	//resutn size, buf may be NULL
-void bbGetExc(UInt32 idx, UInt16* startP, UInt16* endP, UInt16* handlerP);
+uint32_t bbExport(uint8_t* buf);	//resutn size, buf may be NULL
+void bbGetExc(uint32_t idx, uint16_t* startP, uint16_t* endP, uint16_t* handlerP);
 
 //cleanup
 void bbDestroy();

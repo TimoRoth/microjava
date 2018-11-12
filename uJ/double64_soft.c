@@ -5,18 +5,18 @@
 
 #ifdef COMPILER_HAS_DOUBLE
 
-Double64 d64_fromHalves(UInt32 top, UInt32 bottom) {
+Double64 d64_fromHalves(uint32_t top, uint32_t bottom) {
     Double64 a;
 
-    ((UInt32 *)&a)[1] = top;
-    ((UInt32 *)&a)[0] = bottom;
+    ((uint32_t *)&a)[1] = top;
+    ((uint32_t *)&a)[0] = bottom;
 
     return a;
 }
 
 Double64 d64_froml(Int64 l) {
     Double64 a;
-    Boolean neg = false;
+    bool neg = false;
 
     if (i64_isNeg(l)) {
         neg = true;
@@ -39,8 +39,8 @@ Int64 d64_tol(Double64 d) {
         return u64_from_halves(0x80000000, 0x00000000);
     else {
         Int64 r;
-        Int32 top;
-        Boolean neg = false;
+        int32_t top;
+        bool neg = false;
 
         if (d < 0) {
             neg = true;
@@ -57,7 +57,7 @@ Int64 d64_tol(Double64 d) {
     }
 }
 
-Int32 d64_toi(Double64 d) {
+int32_t d64_toi(Double64 d) {
     if (d64_isnan(d))
         return 0;
     else if (d >= 2147483647.0)
@@ -65,8 +65,8 @@ Int32 d64_toi(Double64 d) {
     else if (d <= -2147483648.0)
         return 0x80000000;
     else {
-        Int32 r;
-        Boolean neg = false;
+        int32_t r;
+        bool neg = false;
 
         if (d < 0) {
             neg = true;
@@ -105,7 +105,7 @@ static void d64_prvLLsub(UInt64 aT, UInt64 aB, UInt64 bT, UInt64 bB, UInt64 *rT,
         *rT = u64_add32(*rT, 1);
 }
 
-static void d64_prvLLshl(UInt64 aT, UInt64 aB, UInt16 bits, UInt64 *rT,
+static void d64_prvLLshl(UInt64 aT, UInt64 aB, uint16_t bits, UInt64 *rT,
                          UInt64 *rB) {
     if (bits >= 128) {
         *rT = u64_zero();
@@ -121,7 +121,7 @@ static void d64_prvLLshl(UInt64 aT, UInt64 aB, UInt16 bits, UInt64 *rT,
     *rB = u64_shl(aB, bits);
 }
 
-static void d64_prvLLshr(UInt64 aT, UInt64 aB, UInt16 bits, UInt64 *rT,
+static void d64_prvLLshr(UInt64 aT, UInt64 aB, uint16_t bits, UInt64 *rT,
                          UInt64 *rB) {
     if (bits >= 128) {
         *rT = u64_zero();
@@ -185,9 +185,9 @@ static void d64_prvLLdiv(UInt64 aT, UInt64 aB, UInt64 bT, UInt64 bB,
     *rBP = rB;
 }
 
-static UInt8 d64_prvLLclz(UInt64 aT, UInt64 aB) {
-    UInt32 v;
-    UInt8 ret;
+static uint8_t d64_prvLLclz(UInt64 aT, UInt64 aB) {
+    uint32_t v;
+    uint8_t ret;
 
     if ((v = u64_get_hi(aT)) != 0) {
         ret = 0;
@@ -207,8 +207,8 @@ static UInt8 d64_prvLLclz(UInt64 aT, UInt64 aB) {
     return ret;
 }
 
-static Int16 d64_prvGetExp(UInt32 top, Boolean raw) {
-    Int16 ret = (top >> 20UL) & 0x7FF;
+static int16_t d64_prvGetExp(uint32_t top, bool raw) {
+    int16_t ret = (top >> 20UL) & 0x7FF;
 
     if (!raw) {
         if (!ret)
@@ -220,7 +220,7 @@ static Int16 d64_prvGetExp(UInt32 top, Boolean raw) {
 }
 
 static Int64 d64_prvGetMant(Double64 a) {
-    UInt32 top = a.top & 0x000FFFFFUL;
+    uint32_t top = a.top & 0x000FFFFFUL;
     Int64 v;
 
     if (d64_prvGetExp(a.top, true))
@@ -239,19 +239,19 @@ Double64 d64_neg(Double64 a) {
     return a;
 }
 
-Boolean d64_isNeg(Double64 a) { return (a.top & 0x80000000UL) != 0; }
+bool d64_isNeg(Double64 a) { return (a.top & 0x80000000UL) != 0; }
 
-Boolean d64_isnan(Double64 a) {
+bool d64_isnan(Double64 a) {
     return (((a.top >> 20UL) & 0x7FF) == 0x7FF) && !a.bottom &&
            !(a.top & 0x000FFFFFUL);
 }
 
-Boolean d64_isinf(Double64 a) {
+bool d64_isinf(Double64 a) {
     return (((a.top >> 20UL) & 0x7FF) == 0x7FF) &&
            (a.bottom || (a.top & 0x000FFFFFUL));
 }
 
-Boolean d64_isEq(Double64 a, Double64 b) {
+bool d64_isEq(Double64 a, Double64 b) {
     if (d64_isnan(a) || d64_isnan(b))
         return false;
     if (d64_isZero(a) && d64_isZero(b))
@@ -259,7 +259,7 @@ Boolean d64_isEq(Double64 a, Double64 b) {
     return a.top == b.top && a.bottom == b.bottom;
 }
 
-Boolean d64_isGt(Double64 a, Double64 b) {
+bool d64_isGt(Double64 a, Double64 b) {
     if (d64_isnan(a) || d64_isnan(b))
         return false;
 
@@ -271,7 +271,7 @@ Boolean d64_isGt(Double64 a, Double64 b) {
     return i64_isNeg(u64_sub(d64_prvGetMant(b), d64_prvGetMant(a)));
 }
 
-Boolean d64_isZero(Double64 a) { return !a.bottom && !(a.top & 0x7FFFFFFFUL); }
+bool d64_isZero(Double64 a) { return !a.bottom && !(a.top & 0x7FFFFFFFUL); }
 
 Double64 d64_add(Double64 a, Double64 b) {
     if (d64_isnan(a) || d64_isnan(b))
@@ -291,8 +291,8 @@ Double64 d64_add(Double64 a, Double64 b) {
 
         Int64 am = d64_prvGetMant(a);
         Int64 bm = d64_prvGetMant(b);
-        Int16 ae = d64_prvGetExp(a.top, false);
-        Int16 be = d64_prvGetExp(b.top, false);
+        int16_t ae = d64_prvGetExp(a.top, false);
+        int16_t be = d64_prvGetExp(b.top, false);
 
         // convert to same exponent
         if (ae > be) {
@@ -336,7 +336,7 @@ Double64 d64_add(Double64 a, Double64 b) {
             }
 
             ae += 0x3FF;
-            a.top |= ((UInt32)(ae) << 20UL);
+            a.top |= ((uint32_t)(ae) << 20UL);
             a.top |= u64_get_hi(am) & 0x000FFFFFUL;
             a.bottom = u64_64_to_32(am);
 
@@ -345,9 +345,9 @@ Double64 d64_add(Double64 a, Double64 b) {
     }
 }
 
-static Double64 d64_prvLLtoDbl(UInt64 rT, UInt64 rB, Int16 e) {
+static Double64 d64_prvLLtoDbl(UInt64 rT, UInt64 rB, int16_t e) {
     Double64 a;
-    Int16 z;
+    int16_t z;
 
     // we want a CLZ of 75
     z = d64_prvLLclz(rT, rB);
@@ -372,7 +372,7 @@ static Double64 d64_prvLLtoDbl(UInt64 rT, UInt64 rB, Int16 e) {
             e += 0x3FF;
             if (!(u64_get_hi(rB) & 0x100000UL) && (e == 1))
                 e = 0;
-            a.top = ((UInt32)e) << 20UL;
+            a.top = ((uint32_t)e) << 20UL;
             a.top |= u64_get_hi(rB) & ~0x100000UL;
             a.bottom = u64_64_to_32(rB);
         }
@@ -385,7 +385,7 @@ Double64 d64_mul(Double64 a, Double64 b) {
     if (d64_isnan(a) || d64_isnan(b))
         return a;
     else {
-        Boolean neg = false;
+        bool neg = false;
 
         if (a.top & 0x80000000UL) {
             neg = !neg;
@@ -404,7 +404,7 @@ Double64 d64_mul(Double64 a, Double64 b) {
             a = d64_zero();
         else {
             UInt64 rT, rB;
-            Int16 e =
+            int16_t e =
                 d64_prvGetExp(a.top, false) + d64_prvGetExp(b.top, false) - 52;
 
             d64_prvLLmul(d64_prvGetMant(a), d64_prvGetMant(b), &rT, &rB);
@@ -421,7 +421,7 @@ Double64 d64_div(Double64 a, Double64 b) {
     if (d64_isnan(a) || d64_isnan(b))
         return a;
     else {
-        Boolean neg = false;
+        bool neg = false;
 
         if (a.top & 0x80000000UL) {
             neg = !neg;
@@ -444,7 +444,7 @@ Double64 d64_div(Double64 a, Double64 b) {
         } else if (d64_isZero(a) || d64_isinf(b))
             a = d64_zero();
         else {
-            Int16 e =
+            int16_t e =
                 d64_prvGetExp(a.top, false) - d64_prvGetExp(b.top, false) - 12;
             UInt64 rT, rB;
 
@@ -459,14 +459,14 @@ Double64 d64_div(Double64 a, Double64 b) {
     }
 }
 
-UInt32 d64_getTopWord(Double64 d) { return d.top; }
+uint32_t d64_getTopWord(Double64 d) { return d.top; }
 
-UInt32 d64_getBottomWord(Double64 d) { return d.bottom; }
+uint32_t d64_getBottomWord(Double64 d) { return d.bottom; }
 
 Double64 d64_floor(Double64 a) {
     if (!d64_isinf(a)) {
-        Boolean neg = d64_isNeg(a);
-        Int16 exp = d64_prvGetExp(a.top, false);
+        bool neg = d64_isNeg(a);
+        int16_t exp = d64_prvGetExp(a.top, false);
         if (exp < 0)
             return d64_isNeg(a) ? d64_zero() : d64_neg(d64_zero());
 
@@ -474,9 +474,9 @@ Double64 d64_floor(Double64 a) {
             exp = 52 - exp;
             if (exp >= 32) {
                 a.bottom = 0;
-                a.top &= (0xFFFFFFFFUL << (UInt32)exp);
+                a.top &= (0xFFFFFFFFUL << (uint32_t)exp);
             } else {
-                a.bottom &= (0xFFFFFFFFUL << (UInt32)exp);
+                a.bottom &= (0xFFFFFFFFUL << (uint32_t)exp);
             }
         }
 
@@ -488,7 +488,7 @@ Double64 d64_floor(Double64 a) {
 
 Double64 d64_froml(Int64 l) {
     Double64 a = {0, 0};
-    Int16 e = 63;
+    int16_t e = 63;
 
     if (i64_isNeg(l)) {
         a.top = 0x80000000UL;
@@ -502,7 +502,7 @@ Double64 d64_froml(Int64 l) {
         l = u64_shl(l, 1);
 
         e += 0x3FF;
-        a.top |= ((UInt32)e) << 20UL;
+        a.top |= ((uint32_t)e) << 20UL;
         a.top |= u64_get_hi(l) >> 12UL;
         a.bottom = (u64_get_hi(l) << 20UL) | (u64_64_to_32(l) >> 12UL);
     }
@@ -510,13 +510,13 @@ Double64 d64_froml(Int64 l) {
     return a;
 }
 
-UjFloat d64_tof(Double64 a) {
+float d64_tof(Double64 a) {
     if (d64_isnan(a))
         return 0.0 / 0.0;
     else {
-        Int16 exp = d64_prvGetExp(a.top, false);
-        UjFloat ret;
-        Boolean neg = false;
+        int16_t exp = d64_prvGetExp(a.top, false);
+        float ret;
+        bool neg = false;
 
         if (exp > 126)
             ret = 1.0 / 0.0;
@@ -553,8 +553,8 @@ UjFloat d64_tof(Double64 a) {
                 } else {
                     exp = 0;
                 }
-                *(UInt32 *)&ret = u64_64_to_32(m) & ~0x00800000UL;
-                *(UInt32 *)&ret |= (((UInt32)exp) << 23UL) & 0x7F800000UL;
+                *(uint32_t *)&ret = u64_64_to_32(m) & ~0x00800000UL;
+                *(uint32_t *)&ret |= (((uint32_t)exp) << 23UL) & 0x7F800000UL;
             }
         }
 
@@ -564,16 +564,16 @@ UjFloat d64_tof(Double64 a) {
     }
 }
 
-Int32 d64_toi(Double64 a) {
+int32_t d64_toi(Double64 a) {
     if (d64_isnan(a))
         return 0;
     else {
-        Int16 exp = d64_prvGetExp(a.top, false);
+        int16_t exp = d64_prvGetExp(a.top, false);
         if (exp < 0)
             return 0;
         else {
-            UInt32 ret;
-            Boolean neg = false;
+            uint32_t ret;
+            bool neg = false;
 
             if (d64_isNeg(a)) {
                 neg = true;
@@ -607,12 +607,12 @@ Int64 d64_tol(Double64 a) {
     if (d64_isnan(a))
         return u64_zero();
     else {
-        Int16 exp = d64_prvGetExp(a.top, false);
+        int16_t exp = d64_prvGetExp(a.top, false);
         if (exp < 0)
             return u64_zero();
         else {
             UInt64 ret;
-            Boolean neg = false;
+            bool neg = false;
 
             if (d64_isNeg(a)) {
                 neg = true;
@@ -643,12 +643,12 @@ Int64 d64_tol(Double64 a) {
     }
 }
 
-Double64 d64_fromf(UjFloat fv) {
+Double64 d64_fromf(float fv) {
     Double64 d;
-    UInt32 f = *(UInt32 *)&fv;
-    Int16 exp;
+    uint32_t f = *(uint32_t *)&fv;
+    int16_t exp;
 
-    exp = (Int16)(UInt8)(f >> 23UL);
+    exp = (int16_t)(uint8_t)(f >> 23UL);
     d.top = f & 0x80000000UL;
 
     f &= 0x007FFFFFUL;
@@ -672,20 +672,20 @@ Double64 d64_fromf(UjFloat fv) {
         if (exp == 0xFF) {
             exp = 0x400;
         } else {
-            exp = (Int8)(exp - 0x7F);
+            exp = (int8_t)(exp - 0x7F);
         }
     }
     exp += 0x3FF;
-    d.top |= ((UInt32)(exp & 0x7FF)) << 20UL;
+    d.top |= ((uint32_t)(exp & 0x7FF)) << 20UL;
     d.top |= f >> 3UL;
     d.bottom = f << 29UL;
 
     return d;
 }
 
-Double64 d64_fromi(Int32 i) {
+Double64 d64_fromi(int32_t i) {
     Double64 a = {0, 0};
-    Int16 e = 31;
+    int16_t e = 31;
 
     if (i < 0) {
         a.top = 0x80000000UL;
@@ -699,15 +699,15 @@ Double64 d64_fromi(Int32 i) {
         i <<= 1UL;
 
         e += 0x3FF;
-        a.top |= ((UInt32)e) << 20UL;
-        a.top |= ((UInt32)i) >> 12UL;
+        a.top |= ((uint32_t)e) << 20UL;
+        a.top |= ((uint32_t)i) >> 12UL;
         a.bottom = i << 20;
     }
 
     return a;
 }
 
-Double64 d64_fromHalves(UInt32 top, UInt32 bottom) {
+Double64 d64_fromHalves(uint32_t top, uint32_t bottom) {
     Double64 a;
 
     a.top = top;
@@ -722,7 +722,7 @@ Double64 d64_nan(void) {
     return a;
 }
 
-Double64 d64_inf(Boolean pos) {
+Double64 d64_inf(bool pos) {
     Double64 a = {0x7FF00000UL, 0x00000000UL};
 
     if (!pos)

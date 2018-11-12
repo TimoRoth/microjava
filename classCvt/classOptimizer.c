@@ -9,10 +9,10 @@
 
 
 
-static void dumpcode(const char* name, const UInt8* code, UInt32 codeLen,
-		JavaExceptionTableEntry* excs, UInt32 numExcs){
+static void dumpcode(const char* name, const uint8_t* code, uint32_t codeLen,
+		JavaExceptionTableEntry* excs, uint32_t numExcs){
 
-	UInt32 i;
+	uint32_t i;
 	
 	fprintf(stderr, "%s:", name);
 	
@@ -35,25 +35,25 @@ static void dumpcode(const char* name, const UInt8* code, UInt32 codeLen,
 }
 
 
-Boolean classOptimizerPrvHandleLocals(JavaClass* c, Boolean isField, UInt8 instr, UInt16 idx, UInt8* dstP){	///aaa
+bool classOptimizerPrvHandleLocals(JavaClass* c, bool isField, uint8_t instr, uint16_t idx, uint8_t* dstP){	///aaa
 
 	static const char* invokeType[] = {"virtual", "special", "static", "interface", "dynamic"};
-	UInt16 clsIdx, nameTypeIdx, nameIdx, typeIdx, num;
+	uint16_t clsIdx, nameTypeIdx, nameIdx, typeIdx, num;
 	JavaMethodOrField** pp;
-	UInt16* t;
+	uint16_t* t;
 	
 	
-	t = (UInt16*)(c->constantPool[idx - 1] + 1);
+	t = (uint16_t*)(c->constantPool[idx - 1] + 1);
 	clsIdx = t[0];
 	nameTypeIdx = t[1];
-	t = (UInt16*)(c->constantPool[nameTypeIdx - 1] + 1);
+	t = (uint16_t*)(c->constantPool[nameTypeIdx - 1] + 1);
 	nameIdx = t[0];
 	typeIdx = t[1];
 
 
 	if(clsIdx == c->thisClass){	//this field access
 	
-		UInt16 i;
+		uint16_t i;
 		
 		if(isField){
 			
@@ -87,10 +87,10 @@ Boolean classOptimizerPrvHandleLocals(JavaClass* c, Boolean isField, UInt8 instr
 		else{
 
 			JavaString* js;
-			UInt16 len;
+			uint16_t len;
 			const char* cp;
-			Boolean inArray = false;
-			UInt16 nParams = 0;
+			bool inArray = false;
+			uint16_t nParams = 0;
 			
 			js = (JavaString*)(c->constantPool[typeIdx - 1] + 1);
 			len = js->len;
@@ -155,10 +155,10 @@ Boolean classOptimizerPrvHandleLocals(JavaClass* c, Boolean isField, UInt8 instr
 	return false;
 }
 
-static void bbOptimizationPassF(Instr* instrs, UInt32 numInstr, void *userData){
+static void bbOptimizationPassF(Instr* instrs, uint32_t numInstr, void *userData){
 
-	UInt32 i;
-	UInt16 idx;
+	uint32_t i;
+	uint16_t idx;
 	Instr* instr = instrs;
 	JavaClass* c = (JavaClass*)userData;
 	
@@ -180,7 +180,7 @@ static void bbOptimizationPassF(Instr* instrs, UInt32 numInstr, void *userData){
 		handle_ldc:
 				if(c->constantPool[idx - 1]->type != JAVA_CONST_TYPE_STR_REF){
 					
-					UInt32 d = *(UInt32*)(c->constantPool[idx - 1] + 1);
+					uint32_t d = *(uint32_t*)(c->constantPool[idx - 1] + 1);
 					
 					instr->type = INSTR_TYPE_PUSH_RAW;
 					instr->numBytes = 4;
@@ -227,10 +227,10 @@ static void bbOptimizationPassF(Instr* instrs, UInt32 numInstr, void *userData){
 	}
 }
 
-static void bbMarkConstantsPassF(Instr* instrs, UInt32 numInstr, void *userData){
+static void bbMarkConstantsPassF(Instr* instrs, uint32_t numInstr, void *userData){
 
-	UInt32 i;
-	UInt16 idx;
+	uint32_t i;
+	uint16_t idx;
 	Instr* instr = instrs;
 	JavaClass* c = (JavaClass*)userData;
 	
@@ -279,12 +279,12 @@ static void bbMarkConstantsPassF(Instr* instrs, UInt32 numInstr, void *userData)
 	}
 }
 
-static void bbFixConstantsPassF(Instr* instrs, UInt32 numInstr, void *userData){
+static void bbFixConstantsPassF(Instr* instrs, uint32_t numInstr, void *userData){
 
-	UInt16* constantFMap = userData;
+	uint16_t* constantFMap = userData;
 	Instr* instr = instrs;
-	UInt16 idx;
-	UInt32 i;
+	uint16_t idx;
+	uint32_t i;
 	
 	for(i = 0; i < numInstr; i++, instr++){
 		
@@ -331,9 +331,9 @@ static void bbFixConstantsPassF(Instr* instrs, UInt32 numInstr, void *userData){
 	}	
 }
 
-static void classOptPrvRemapAttrs(JavaAttribute** attributes,UInt16 numAttr, const UInt16* constantFMap){
+static void classOptPrvRemapAttrs(JavaAttribute** attributes,uint16_t numAttr, const uint16_t* constantFMap){
 	
-	UInt16 j;
+	uint16_t j;
 	
 	for(j = 0; j < numAttr; j++){
 		
@@ -350,18 +350,18 @@ void classOptimize(JavaClass* c){
 
 	JavaMethodOrField* m;
 	JavaAttribute* attrib;
-	UInt16 i, j, k, clsOfst = 0, instOfst = 0, newNumConsts, newDirectConsts = 1;
-	UInt16* constantFMap = NULL;
-	UInt16* constantRMap = NULL;
-	Boolean codeFound;
-	UInt8 sz;
+	uint16_t i, j, k, clsOfst = 0, instOfst = 0, newNumConsts, newDirectConsts = 1;
+	uint16_t* constantFMap = NULL;
+	uint16_t* constantRMap = NULL;
+	bool codeFound;
+	uint8_t sz;
 
 	//calculate fields' offsets
 	{
 		for(i = 0; i < c->numFields; i++){
 	
 			JavaString* s;
-			UInt16* ofstP;
+			uint16_t* ofstP;
 	
 			ofstP = (c->fields[i]->accessFlags & ACCESS_FLAG_STATIC) ? &clsOfst : &instOfst;
 			
@@ -413,9 +413,9 @@ void classOptimize(JavaClass* c){
 				attrib = m->attributes[j];
 				if(attrib->type == J_ATTR_TYPE_CODE){
 	
-					UInt16 idx;
+					uint16_t idx;
 					JavaAttribute* newCode;
-					UInt32 len;
+					uint32_t len;
 						
 					if(codeFound){
 						fprintf(stderr, "Multiple code attributes not supported in a single method\n");
@@ -483,13 +483,13 @@ void classOptimize(JavaClass* c){
 	//mark other used resources as such
 	{
 		//account for "this", "supr", interfaces's STRING names (not class refs themselves)
-		c->constantPool[*(UInt16*)(c->constantPool[c->thisClass - 1] + 1) - 1]->used = true;
-		c->constantPool[*(UInt16*)(c->constantPool[c->thisClass - 1] + 1) - 1]->directUsed = true;
+		c->constantPool[*(uint16_t*)(c->constantPool[c->thisClass - 1] + 1) - 1]->used = true;
+		c->constantPool[*(uint16_t*)(c->constantPool[c->thisClass - 1] + 1) - 1]->directUsed = true;
 	
 		if(c->superClass){
 	
-			c->constantPool[*(UInt16*)(c->constantPool[c->superClass - 1] + 1) - 1]->used = true;
-			c->constantPool[*(UInt16*)(c->constantPool[c->superClass - 1] + 1) - 1]->directUsed = true;
+			c->constantPool[*(uint16_t*)(c->constantPool[c->superClass - 1] + 1) - 1]->used = true;
+			c->constantPool[*(uint16_t*)(c->constantPool[c->superClass - 1] + 1) - 1]->directUsed = true;
 		}
 		
 		//accound for interfaces
@@ -528,7 +528,7 @@ void classOptimize(JavaClass* c){
 			
 			if(c->constantPool[i]->type == JAVA_CONST_TYPE_CLASS || c->constantPool[i]->type == JAVA_CONST_TYPE_STR_REF){
 			
-				cn = c->constantPool[((UInt16*)(c->constantPool[i] + 1))[0] - 1];
+				cn = c->constantPool[((uint16_t*)(c->constantPool[i] + 1))[0] - 1];
 				
 				if(!cn->used){
 					cn->used = true;
@@ -537,18 +537,18 @@ void classOptimize(JavaClass* c){
 			if(c->constantPool[i]->type == JAVA_CONST_TYPE_FIELD || c->constantPool[i]->type == JAVA_CONST_TYPE_METHOD ||
 				c->constantPool[i]->type == JAVA_CONST_TYPE_INTERFACE || c->constantPool[i]->type == JAVA_CONST_TYPE_NAME_TYPE_INFO){
 			
-				UInt16 t;
+				uint16_t t;
 				
-				cn = c->constantPool[((UInt16*)(c->constantPool[i] + 1))[0] - 1];	//class ref
-				cn = c->constantPool[((UInt16*)(cn + 1))[0] - 1];			//utf8 str (class)
+				cn = c->constantPool[((uint16_t*)(c->constantPool[i] + 1))[0] - 1];	//class ref
+				cn = c->constantPool[((uint16_t*)(cn + 1))[0] - 1];			//utf8 str (class)
 				if(!cn->used){
 					cn->used = true;
 				}
 				
-				cn = c->constantPool[((UInt16*)(c->constantPool[i] + 1))[1] - 1];	//name type info
-				t = ((UInt16*)(cn + 1))[1];
+				cn = c->constantPool[((uint16_t*)(c->constantPool[i] + 1))[1] - 1];	//name type info
+				t = ((uint16_t*)(cn + 1))[1];
 				
-				cn = c->constantPool[((UInt16*)(cn + 1))[0] - 1];			//utf8 str (name)
+				cn = c->constantPool[((uint16_t*)(cn + 1))[0] - 1];			//utf8 str (name)
 				if(!cn->used){
 					cn->used = true;
 				}
@@ -572,10 +572,10 @@ void classOptimize(JavaClass* c){
 	
 	//reorder constants
 	{
-		UInt16 j;
+		uint16_t j;
 		
-		constantFMap = malloc(sizeof(UInt16[c->constantPoolSz]));
-		constantRMap = malloc(sizeof(UInt16[c->constantPoolSz]));
+		constantFMap = malloc(sizeof(uint16_t[c->constantPoolSz]));
+		constantRMap = malloc(sizeof(uint16_t[c->constantPoolSz]));
 		if(!constantFMap || !constantRMap){
 		
 			fprintf(stderr," failed to allocate constant map(s)\n");
@@ -637,7 +637,7 @@ void classOptimize(JavaClass* c){
 				if(attrib->type == J_ATTR_TYPE_CODE){
 	
 					JavaAttribute* newCode;
-					UInt32 len;
+					uint32_t len;
 						
 					if(DEBUG) dumpcode("BEFORE", attrib->data.code.code, attrib->data.code.codeLen,
 							attrib->data.code.exceptions, attrib->data.code.numExceptions);
@@ -693,10 +693,10 @@ void classOptimize(JavaClass* c){
 	{
 		//account for "this", "supr" (the strings they indirectly point to, not the ClassRefs they directly point to)
 		// in this process we re-point them to no longer be indirect
-		c->thisClass = constantFMap[*(UInt16*)(c->constantPool[c->thisClass - 1] + 1)];
+		c->thisClass = constantFMap[*(uint16_t*)(c->constantPool[c->thisClass - 1] + 1)];
 		if(c->superClass){
 	
-			c->superClass = constantFMap[*(UInt16*)(c->constantPool[c->superClass - 1] + 1)];
+			c->superClass = constantFMap[*(uint16_t*)(c->constantPool[c->superClass - 1] + 1)];
 		}
 		
 		//account for interfaces
@@ -735,13 +735,13 @@ void classOptimize(JavaClass* c){
 				
 			if(c->constantPool[i]->type == JAVA_CONST_TYPE_CLASS || c->constantPool[i]->type == JAVA_CONST_TYPE_STR_REF){
 			
-				*(UInt16*)(c->constantPool[i] + 1) = constantFMap[*(UInt16*)(c->constantPool[i] + 1)];
+				*(uint16_t*)(c->constantPool[i] + 1) = constantFMap[*(uint16_t*)(c->constantPool[i] + 1)];
 			}
 			if(c->constantPool[i]->type == JAVA_CONST_TYPE_FIELD || c->constantPool[i]->type == JAVA_CONST_TYPE_METHOD ||
 				c->constantPool[i]->type == JAVA_CONST_TYPE_INTERFACE || c->constantPool[i]->type == JAVA_CONST_TYPE_NAME_TYPE_INFO){
 			
-				((UInt16*)(c->constantPool[i] + 1))[0] = constantFMap[((UInt16*)(c->constantPool[i] + 1))[0]];
-				((UInt16*)(c->constantPool[i] + 1))[1] = constantFMap[((UInt16*)(c->constantPool[i] + 1))[1]];
+				((uint16_t*)(c->constantPool[i] + 1))[0] = constantFMap[((uint16_t*)(c->constantPool[i] + 1))[0]];
+				((uint16_t*)(c->constantPool[i] + 1))[1] = constantFMap[((uint16_t*)(c->constantPool[i] + 1))[1]];
 			}
 		}	
 	}

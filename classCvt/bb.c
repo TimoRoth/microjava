@@ -17,7 +17,7 @@ typedef struct{
 
 	LLN list;
 
-	UInt32 start;
+	uint32_t start;
 
 }QueueNode;
 
@@ -26,14 +26,14 @@ typedef struct BB{
 	LLN list;
 
 	//initial values
-	UInt32 initialAddr;
-	UInt32 initialLen;
+	uint32_t initialAddr;
+	uint32_t initialLen;
 
 	//final values
-	UInt32 addr;
-	UInt32 len;
+	uint32_t addr;
+	uint32_t len;
 
-	UInt32 numInstr;
+	uint32_t numInstr;
 	Instr* instrs;		//separate array to aid in resizing
 
 }BB;
@@ -42,9 +42,9 @@ typedef struct ExcEntry{
 
 	LLN list;
 
-	UInt32 initialStart;
-	UInt32 initialEnd;
-	UInt32 initialHandler;
+	uint32_t initialStart;
+	uint32_t initialEnd;
+	uint32_t initialHandler;
 
 	BB* start;
 	BB* end;
@@ -59,14 +59,14 @@ LLN bbList;
 LLN excList;
 LLN Q;
 
-static const UInt8* gCode;
-static UInt32 gCodeLen;
+static const uint8_t* gCode;
+static uint32_t gCodeLen;
 
 
-static void bbPrvInsertAddr(UInt32 addr);
+static void bbPrvInsertAddr(uint32_t addr);
 
 
-void* alloc(UInt32 sz){
+void* alloc(uint32_t sz){
 
 	void* ret;
 
@@ -91,10 +91,10 @@ void mfree(void* ptr){
 	}
 }
 
-static BB* bbPrvDisasm(const UInt8* code, UInt32 pos, UInt32 len){
+static BB* bbPrvDisasm(const uint8_t* code, uint32_t pos, uint32_t len){
 
-	UInt32 pc = pos;
-	UInt32 t1, t2, t3;
+	uint32_t pc = pos;
+	uint32_t t1, t2, t3;
 	BB* bb = alloc(sizeof(BB));
 	char wide = 0;
 
@@ -106,12 +106,12 @@ static BB* bbPrvDisasm(const UInt8* code, UInt32 pos, UInt32 len){
 
 	while(pc < pos + len){
 
-		UInt32 initialPC = pc;
-		UInt32 extraSz = 0;
+		uint32_t initialPC = pc;
+		uint32_t extraSz = 0;
 		signed short ofst16;
 		signed long ofst32;
 		Instr* i = realloc(bb->instrs, sizeof(Instr[bb->numInstr + 1]));
-		UInt32 j, wideHandled = 1;
+		uint32_t j, wideHandled = 1;
 
 		if(!i){
 
@@ -224,8 +224,8 @@ static BB* bbPrvDisasm(const UInt8* code, UInt32 pos, UInt32 len){
 				i->switches.first = t1;
 
 				//alloc tables
-				i->switches.initialDestAddrs = alloc(sizeof(UInt32[i->switches.numCases + 1]));
-				i->switches.destOffsets = alloc(sizeof(Int32[i->switches.numCases + 1]));
+				i->switches.initialDestAddrs = alloc(sizeof(uint32_t[i->switches.numCases + 1]));
+				i->switches.destOffsets = alloc(sizeof(int32_t[i->switches.numCases + 1]));
 				i->switches.dests = alloc(sizeof(BB*[i->switches.numCases + 1]));
 				
 				//fill tables as needed
@@ -274,9 +274,9 @@ static BB* bbPrvDisasm(const UInt8* code, UInt32 pos, UInt32 len){
 				i->switches.numCases = t1;
 
 				//alloc tables
-				i->switches.matchVals = alloc(sizeof(UInt32[i->switches.numCases]));
-				i->switches.initialDestAddrs = alloc(sizeof(UInt32[i->switches.numCases + 1]));
-				i->switches.destOffsets = alloc(sizeof(Int32[i->switches.numCases + 1]));
+				i->switches.matchVals = alloc(sizeof(uint32_t[i->switches.numCases]));
+				i->switches.initialDestAddrs = alloc(sizeof(uint32_t[i->switches.numCases + 1]));
+				i->switches.destOffsets = alloc(sizeof(int32_t[i->switches.numCases + 1]));
 				i->switches.dests = alloc(sizeof(BB*[i->switches.numCases + 1]));
 				
 				//fill tables as needed
@@ -449,7 +449,7 @@ static void bbPrvInstrFree(Instr* i){
 	mfree(i->switches.initialDestAddrs);
 }
 
-static void bbPrvInstrExportWrite32(UInt8** bufP, Int32 val){
+static void bbPrvInstrExportWrite32(uint8_t** bufP, int32_t val){
 
 	if(!*bufP) return;
 
@@ -459,11 +459,11 @@ static void bbPrvInstrExportWrite32(UInt8** bufP, Int32 val){
 	*(*bufP)++ = val;
 }
 
-static UInt32 bbPrvInstrExport(const Instr* i, UInt8* buf, UInt32 pc){	//return len
+static uint32_t bbPrvInstrExport(const Instr* i, uint8_t* buf, uint32_t pc){	//return len
 
-	UInt8 padBytes;
-	UInt32 j;
-	UInt32 len = 1;	//instr itself
+	uint8_t padBytes;
+	uint32_t j;
+	uint32_t len = 1;	//instr itself
 	
 	
 	if(DBG) fprintf(stderr, "exporting %s %02X (nb=%" PRIu32 ")->", i->wide ? "wide" : "", i->type, i->numBytes);
@@ -565,7 +565,7 @@ static UInt32 bbPrvInstrExport(const Instr* i, UInt8* buf, UInt32 pc){	//return 
 #define FIND_CONTAINING_OR_NEXT		1
 #define FIND_EXACT_ADDR			2
 
-static BB* bbPrvFind(UInt32 addr, UInt8 findType){	//find BB containing given adr (or next one after it)
+static BB* bbPrvFind(uint32_t addr, uint8_t findType){	//find BB containing given adr (or next one after it)
 
 	LLN* n = &bbList;
 
@@ -595,9 +595,9 @@ static BB* bbPrvFind(UInt32 addr, UInt8 findType){	//find BB containing given ad
 	return 0;
 }
 
-static void bbTruncate(BB* bb, UInt32 newLen){	//not not call this anytime if addr != initialAddr (after code size changes) as it will mess up tableswitch/lookupswitch
+static void bbTruncate(BB* bb, uint32_t newLen){	//not not call this anytime if addr != initialAddr (after code size changes) as it will mess up tableswitch/lookupswitch
 
-	UInt32 len = 0;
+	uint32_t len = 0;
 
 	if(DBG) fprintf(stderr, "Truncating 0x%" PRIX32 "+0x%" PRIX32 " to len 0x%" PRIX32 "\n", bb->initialAddr, bb->initialLen, newLen);
 
@@ -613,7 +613,7 @@ static void bbTruncate(BB* bb, UInt32 newLen){	//not not call this anytime if ad
 	}
 	else{
 		Instr* i = bb->instrs;
-		UInt32 instrsLeft = bb->numInstr;
+		uint32_t instrsLeft = bb->numInstr;
 
 		while(len < newLen && instrsLeft){
 
@@ -647,7 +647,7 @@ static void bbPrvRun(){
 	QueueNode* n;
 	BB* bb;
 	BB* bbNew;
-	UInt32 len;
+	uint32_t len;
 
 	while((lli = Q.next) != &Q){
 
@@ -690,7 +690,7 @@ static void bbPrvRun(){
 	}
 }
 
-static void bbPrvInsertAddr(UInt32 addr){
+static void bbPrvInsertAddr(uint32_t addr){
 
 	QueueNode* n;
 
@@ -700,7 +700,7 @@ static void bbPrvInsertAddr(UInt32 addr){
 	llInsertAfter(Q.prev, &n->list);	//inserts at end
 }
 
-void bbInit(UInt8* code, UInt32 len){
+void bbInit(uint8_t* code, uint32_t len){
 
 	llInit(&bbList);
 	llInit(&excList);
@@ -722,7 +722,7 @@ void bbInit(UInt8* code, UInt32 len){
 	}
 }
 
-void bbAddExc(UInt16 startpc, UInt16 endpc, UInt16 handler){
+void bbAddExc(uint16_t startpc, uint16_t endpc, uint16_t handler){
 
 	ExcEntry* ee = alloc(sizeof(ExcEntry));
 
@@ -741,7 +741,7 @@ void bbAddExc(UInt16 startpc, UInt16 endpc, UInt16 handler){
 
 void bbFinishLoading(){
 
-	UInt32 wantedAddr;
+	uint32_t wantedAddr;
 	BB* dst;
 	LLN* n;
 
@@ -750,7 +750,7 @@ void bbFinishLoading(){
 	while(n != &bbList){
 
 		BB* bb = (BB*)n;
-		UInt32 i, j;
+		uint32_t i, j;
 		
 		n = n->next;
 
@@ -818,9 +818,9 @@ void bbPass(BbPassF pf, void* userData){
 	}
 }
 
-static UInt32 bbPrvExportOneBlock(BB* bb, UInt8* buf, UInt32 pc){
+static uint32_t bbPrvExportOneBlock(BB* bb, uint8_t* buf, uint32_t pc){
 	
-	UInt32 i, len = 0, iL;
+	uint32_t i, len = 0, iL;
 	
 	for(i = 0; i < bb->numInstr; i++){
 
@@ -835,7 +835,7 @@ static UInt32 bbPrvExportOneBlock(BB* bb, UInt8* buf, UInt32 pc){
 void bbFinalizeChanges(){
 
 	LLN* n;
-	UInt32 i, pc = 0, len = 0;
+	uint32_t i, pc = 0, len = 0;
 
 	//recalc lengths and addresses of blocks
 	n = bbList.next;
@@ -865,7 +865,7 @@ void bbFinalizeChanges(){
 				
 				if(bb->instrs[i].destLen == 2){	//check offset fits
 				
-					Int32 t = bb->instrs[i].finalOffset >> 15;
+					int32_t t = bb->instrs[i].finalOffset >> 15;
 					
 					if(t && t != -1){
 					
@@ -876,7 +876,7 @@ void bbFinalizeChanges(){
 			}
 			else if(bb->instrs[i].type == INSTR_TYPE_TABLESWITCH || bb->instrs[i].type == INSTR_TYPE_LOOKUPSWITCH){
 			
-				UInt32 j;
+				uint32_t j;
 				
 				for(j = 0; j <= bb->instrs[i].switches.numCases; j++){
 				
@@ -890,10 +890,10 @@ void bbFinalizeChanges(){
 }
 
 //export
-UInt32 bbExport(UInt8* buf){
+uint32_t bbExport(uint8_t* buf){
 
 	LLN* n;
-	UInt32 bL, len = 0;
+	uint32_t bL, len = 0;
 
 	n = bbList.next;
 	while(n != &bbList){
@@ -907,10 +907,10 @@ UInt32 bbExport(UInt8* buf){
 	return len;
 }
 
-void bbGetExc(UInt32 idx, UInt16* startP, UInt16* endP, UInt16* handlerP){
+void bbGetExc(uint32_t idx, uint16_t* startP, uint16_t* endP, uint16_t* handlerP){
 
 	LLN* n;
-	UInt32 idxOrig = idx;
+	uint32_t idxOrig = idx;
 
 	n = excList.next;
 	while(n != &excList){
@@ -956,7 +956,7 @@ void bbDestroy(){
 	while(n != &bbList){
 
 		BB* bb = (BB*)n;
-		UInt32 i;
+		uint32_t i;
 
 		n = n->next;
 

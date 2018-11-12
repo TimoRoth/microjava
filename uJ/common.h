@@ -8,21 +8,9 @@
 #include <inttypes.h>
 #include <stdalign.h>
 
-typedef int8_t Int8;
-typedef int16_t Int16;
-typedef int32_t Int32;
-typedef uint8_t UInt8;
-typedef uint16_t UInt16;
-typedef uint32_t UInt32;
-typedef unsigned char Boolean;
-typedef float UjFloat;
+// Special type. Some AVR chips actually have a 24bit type.
 typedef uint32_t UInt24;
 
-#define true 1
-#define false 0
-#ifndef NULL
-#define NULL 0
-#endif
 #ifndef NAN
 #define NAN (0.0f / 0.0f)
 #endif

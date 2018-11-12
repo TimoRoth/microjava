@@ -6,7 +6,7 @@
 
 //notes: all integers stored in class files are big-endian
 
-typedef UInt16 classImporterReadF(void* paramP);
+typedef uint16_t classImporterReadF(void* paramP);
 #define CLASS_IMPORT_READ_F_FAIL	0x1000
 
 JavaClass* classImport(classImporterReadF readF, void* readD);

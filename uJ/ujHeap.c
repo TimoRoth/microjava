@@ -15,38 +15,38 @@
 #endif
 
 #if UJ_HEAP_SZ <= (1 << 8)
-#define SIZE UInt8
+#define SIZE uint8_t
 #elif UJ_HEAP_SZ <= (1 << 16)
-#define SIZE UInt16
+#define SIZE uint16_t
 #elif UJ_HEAP_SZ <= (1 << 24)
 #define SIZE UInt24
 #elif UJ_HEAP_SZ <= (1 << 32)
-#define SIZE UInt32
+#define SIZE uint32_t
 #else
 #error "heap too big!"
 #endif
 
 #define INITIAL_NUM_HANDLES UJ_HEAP_SZ / 8 / sizeof(SIZE)
 
-static UInt8 _HEAP_ATTRS_ __attribute__((aligned(HEAP_ALIGN)))
+static uint8_t _HEAP_ATTRS_ __attribute__((aligned(HEAP_ALIGN)))
 gHeap[UJ_HEAP_SZ];
 
 typedef struct {
     HANDLE numHandles; // handles are at start of heap
-    UInt8 data[] __attribute__((aligned(HANDLE_SZ)));
+    uint8_t data[] __attribute__((aligned(HANDLE_SZ)));
 
 } UjHeapHdr;
 
 typedef struct {
     SIZE size;
 
-    UInt8 free : 1;
-    UInt8 lock : 1;
-    UInt8 mark : 2;
-    UInt8 wsze : 4; // wasted size (already included in "size") XXX:
+    uint8_t free : 1;
+    uint8_t lock : 1;
+    uint8_t mark : 2;
+    uint8_t wsze : 4; // wasted size (already included in "size") XXX:
                     // ASSERT(CHUNK_HDR_SZ < (1 << wsze))
 
-    UInt8 data[] __attribute__((aligned(HEAP_ALIGN)));
+    uint8_t data[] __attribute__((aligned(HEAP_ALIGN)));
 
 } UjHeapChunk;
 
@@ -69,7 +69,7 @@ static UjHeapChunk *ujHeapPrvGetFirstChunk(void) {
 static UjHeapChunk *ujHeapPrvGetNextChunk(UjHeapChunk *c) {
     c = (UjHeapChunk *)(c->data + c->size);
 
-    if ((UInt8 *)c >= gHeap + UJ_HEAP_SZ)
+    if ((uint8_t *)c >= gHeap + UJ_HEAP_SZ)
         c = NULL;
 
     return c;
@@ -118,8 +118,8 @@ void ujHeapDebug(void) {
     SIZE i;
 
     pr(stderr, " %u handles, data begins at 0x%08tX (0x%08tX)\n", hdr->numHandles,
-       (UInt8 *)(handleTable + hdr->numHandles) - hdr->data,
-       (UInt8 *)ujHeapPrvGetFirstChunk() - hdr->data);
+       (uint8_t *)(handleTable + hdr->numHandles) - hdr->data,
+       (uint8_t *)ujHeapPrvGetFirstChunk() - hdr->data);
 
     for (i = 0; i < hdr->numHandles; i++) {
         if (handleTable[i]) {
@@ -133,13 +133,13 @@ void ujHeapDebug(void) {
         pr(stderr,
            "CHUNK @ 0x%08lX: datap = 0x%08lX, 0x%lX size (%d waste), %slocked, "
            "%sfree %u mark",
-           (unsigned long)((UInt8 *)chk - gHeap),
-           (unsigned long)((UInt8 *)chk->data - gHeap),
+           (unsigned long)((uint8_t *)chk - gHeap),
+           (unsigned long)((uint8_t *)chk->data - gHeap),
            (unsigned long)chk->size, chk->free ? 0 : chk->wsze,
            chk->lock ? "" : "un", chk->free ? "" : "not ", chk->mark);
         if (!chk->free) {
             SIZE t;
-            UInt8 b, v, x = 5;
+            uint8_t b, v, x = 5;
 
             for (t = 0; t < chk->size - chk->wsze; t++) {
                 v = chk->data[t];
@@ -201,8 +201,8 @@ static void ujHeapPrvFreeChunk(UjHeapChunk *chk, UjHeapChunk *prev) {
     }
 }
 
-static UjHeapChunk *ujHeapPrvAllocChunk(UInt16 sz) {
-    UInt8 *ret;
+static UjHeapChunk *ujHeapPrvAllocChunk(uint16_t sz) {
+    uint8_t *ret;
     UjHeapChunk *chk = ujHeapPrvGetFirstChunk();
     UjHeapChunk *fit = NULL;
 
@@ -273,7 +273,7 @@ static void ujHeapPrvCompact(void) {
         pp = f;
         p = pp ? ujHeapPrvGetNextChunk(pp) : ujHeapPrvGetFirstChunk();
         c = ujHeapPrvGetNextChunk(p);
-        f = (UjHeapChunk *)(((UInt8 *)p) + CHUNK_HDR_SZ + c->size + p->wsze);
+        f = (UjHeapChunk *)(((uint8_t *)p) + CHUNK_HDR_SZ + c->size + p->wsze);
 
         // now: c is free chunk, p is unlocked nonfree hcunk before p, pp is
         // chunk before p or NULL if p is first, f is where new p will be
@@ -294,20 +294,20 @@ static void ujHeapPrvCompact(void) {
         f->size -= f->wsze;
 
         // now update handle table
-        pos = (UInt8 *)p - gHeap;
+        pos = (uint8_t *)p - gHeap;
         for (i = 0; i < hdr->numHandles; i++) {
             if (handleTable[i] == pos) {
                 TL(" compact updating chunk %u from 0x%08X to 0x%08tX\n", i + 1,
-                   handleTable[i], (UInt8 *)f - gHeap);
-                handleTable[i] = (UInt8 *)f - gHeap;
+                   handleTable[i], (uint8_t *)f - gHeap);
+                handleTable[i] = (uint8_t *)f - gHeap;
                 break;
             }
         }
 
         if (i == hdr->numHandles) {
             pe("Handle repoint fail");
-            // fprintf(stderr," for 0x%08X -> 0x%08X\n", (UInt8*)p - gHeap,
-            // (UInt8*)f
+            // fprintf(stderr," for 0x%08X -> 0x%08X\n", (uint8_t*)p - gHeap,
+            // (uint8_t*)f
             // - gHeap);
         }
 
@@ -324,7 +324,7 @@ static void ujHeapPrvCompact(void) {
     }
 }
 
-HANDLE ujHeapHandleNew(UInt16 sz) {
+HANDLE ujHeapHandleNew(uint16_t sz) {
     UjHeapHdr *hdr = (UjHeapHdr *)gHeap;
     SIZE *handleTable = (SIZE *)hdr->data;
     UjHeapChunk *chk = NULL;
@@ -371,7 +371,7 @@ HANDLE ujHeapHandleNew(UInt16 sz) {
 
     // pr(stderr, "HEAP: handle.new (%d) sz=%d\n", i + 1, sz);
 
-    handleTable[i] = (UInt8 *)chk - gHeap;
+    handleTable[i] = (uint8_t *)chk - gHeap;
 
     TL("Done allocating new handle with size %u -> (%d, 0x%08X)\n", sz, i + 1,
        handleTable[i]);
@@ -384,7 +384,7 @@ HANDLE ujHeapHandleNew(UInt16 sz) {
    will fragment heap. calling it before vm runs is ok, since it will allocate
    all at end safely.
 */
-void *ujHeapAllocNonmovable(UInt16 sz) {
+void *ujHeapAllocNonmovable(uint16_t sz) {
     HANDLE h = ujHeapHandleNew(
         sz); // use this to allocae since it will triger GC as needed
     UjHeapHdr *hdr = (UjHeapHdr *)gHeap;
@@ -541,7 +541,7 @@ void ujHeapFreeUnmarked(void) {
 #endif
 }
 
-HANDLE ujHeapFirstMarked(UInt8 markVal) {
+HANDLE ujHeapFirstMarked(uint8_t markVal) {
     UjHeapHdr *hdr = (UjHeapHdr *)gHeap;
     SIZE *handleTable = (SIZE *)hdr->data;
     HANDLE t;
@@ -554,7 +554,7 @@ HANDLE ujHeapFirstMarked(UInt8 markVal) {
     return 0;
 }
 
-void ujHeapMark(HANDLE handle, UInt8 mark) {
+void ujHeapMark(HANDLE handle, uint8_t mark) {
     UjHeapHdr *hdr = (UjHeapHdr *)gHeap;
     SIZE *handleTable = (SIZE *)hdr->data;
     UjHeapChunk *chk = (UjHeapChunk *)(gHeap + handleTable[handle - 1]);
@@ -569,7 +569,7 @@ void ujHeapMark(HANDLE handle, UInt8 mark) {
         chk->mark = mark;
 }
 
-UInt8 ujHeapGetMark(HANDLE handle) {
+uint8_t ujHeapGetMark(HANDLE handle) {
     UjHeapHdr *hdr = (UjHeapHdr *)gHeap;
     SIZE *handleTable = (SIZE *)hdr->data;
 

@@ -6,18 +6,18 @@
 
 typedef struct{
 
-	UInt16 magic;		//UJC_MAGIC
-	UInt16 clsName;		//constant index
-	UInt16 suprClsName;	//constant index
-	UInt16 flags;		//java flags
+	uint16_t magic;		//UJC_MAGIC
+	uint16_t clsName;		//constant index
+	uint16_t suprClsName;	//constant index
+	uint16_t flags;		//java flags
 
 	UInt24 interfaces;	//pointer into data store
 	UInt24 methods;		//pointer into data store
 	UInt24 fields;		//pointer into data store
 
-	UInt8 clsNameHash;	//hash of class name
+	uint8_t clsNameHash;	//hash of class name
 
-	UInt8 data[];		//data store
+	uint8_t data[];		//data store
 	
 }UjcClass;
 
@@ -25,9 +25,9 @@ typedef struct{
 
 typedef struct {
 	
-	UInt16 flags;		//0x00
-	UInt8 nameHash;		//0x02: hash of name for quicker matching
-	UInt8 typeHash;		//0x03: hash of type for quicker matching
+	uint16_t flags;		//0x00
+	uint8_t nameHash;		//0x02: hash of name for quicker matching
+	uint8_t typeHash;		//0x03: hash of type for quicker matching
 	
 	UInt24 nameAddr;	//0x04: pointer to string in constant area
 	UInt24 typeAddr;	//0x07: pointer to string in constant area
@@ -38,9 +38,9 @@ typedef struct {
 
 typedef struct {
 
-	UInt16 flags;
-	UInt8 nameHash;		//hash of name for quicker matching
-	UInt8 typeHash;		//hash of type for quicker matching
+	uint16_t flags;
+	uint8_t nameHash;		//hash of name for quicker matching
+	uint8_t typeHash;		//hash of type for quicker matching
 	UInt24 nameAddr;	//pointer to string in constant area
 	UInt24 typeAddr;	//pointer to string in constant area
 
@@ -48,46 +48,46 @@ typedef struct {
 
 typedef struct{
 
-	UInt16 numConstants;	//off by one just like java
+	uint16_t numConstants;	//off by one just like java
 	UInt24 constantAddrs;	//pointers to data in ocnstant area
 	
 }UjcConstantRefs;
 
 typedef struct{
 
-	UInt16 numInterfaces;
+	uint16_t numInterfaces;
 	UInt24 interfaces[];	//pointers to strings in constant area
 
 }UjcInterfaces;
 
 typedef struct{
 
-	UInt16 numMethods;
+	uint16_t numMethods;
 	UjcMethod methods[];
 
 }UjcMethods;
 
 typedef struct{
 	
-	UInt16 numFields;
+	uint16_t numFields;
 	UjcField fields[];
 
 }UjcFields;
 
 typedef struct{
 	
-	UInt8 type;
-	UInt8 data[];
+	uint8_t type;
+	uint8_t data[];
 
 }UjcConstant;
 
 /* method storage in data area:
 
 	excStruct excs [numExcs]
-	UInt16 numExcs;
-	UInt16 locals;
-	UInt16 stackSz;
-	UInt8 code[]		<----- code pointer points here
+	uint16_t numExcs;
+	uint16_t locals;
+	uint16_t stackSz;
+	uint8_t code[]		<----- code pointer points here
 
 
 */

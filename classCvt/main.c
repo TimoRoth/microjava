@@ -14,7 +14,7 @@
 
 #define ALLOC_SPECIAL_VAL_ZERO_SZ_CHUNK	((void*)-1)
 
-void* natAlloc(UInt16 sz){
+void* natAlloc(uint16_t sz){
 
 	return sz ? malloc(sz) : ALLOC_SPECIAL_VAL_ZERO_SZ_CHUNK;
 }
@@ -24,9 +24,9 @@ void natFree(void* ptr){
 	if(ptr && ptr != ALLOC_SPECIAL_VAL_ZERO_SZ_CHUNK) free(ptr);	
 }
 
-void natMemZero(void* ptr, UInt16 len){
+void natMemZero(void* ptr, uint16_t len){
 
-	UInt8* p = ptr;
+	uint8_t* p = ptr;
 	
 	while(len--) *p++ = 0;	
 }
@@ -37,11 +37,11 @@ void err(const char* str){
 }
 
 
-UInt16 classReadF(_UNUSED_ void* ptr){
+uint16_t classReadF(_UNUSED_ void* ptr){
 	
 	int c = getchar();
 
-	return (c == EOF) ? CLASS_IMPORT_READ_F_FAIL : (UInt16)(UInt8)c;
+	return (c == EOF) ? CLASS_IMPORT_READ_F_FAIL : (uint16_t)(uint8_t)c;
 }
 
 int main(_UNUSED_ int argc, _UNUSED_ char** argv){
@@ -49,7 +49,7 @@ int main(_UNUSED_ int argc, _UNUSED_ char** argv){
 	JavaClass* cls;
 	
 	
-	if(sizeof(UInt64) != 8 || sizeof(UInt32) != 4 || sizeof(UInt16) != 2 || sizeof(UInt8) != 1){
+	if(sizeof(uint64_t) != 8 || sizeof(uint32_t) != 4 || sizeof(uint16_t) != 2 || sizeof(uint8_t) != 1){
 	
 		fprintf(stderr, "Type megafail!\n");
 		return -1;

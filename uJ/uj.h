@@ -5,7 +5,7 @@
 #include "ujHeap.h"
 
 // callback types
-UInt8 ujReadClassByte(void *userData, UInt32 offset);
+uint8_t ujReadClassByte(void *userData, uint32_t offset);
 
 #ifdef UJ_LOG
 void ujLog(const char *fmtStr, ...);
@@ -48,20 +48,20 @@ typedef struct UjClass UjClass;
 typedef struct UjThread UjThread;
 typedef struct UjInstance UjInstance;
 
-UInt8 ujInit(UjClass **objectClsP);
+uint8_t ujInit(UjClass **objectClsP);
 
-UInt8 ujLoadClass(void *readD, UjClass **clsP);
+uint8_t ujLoadClass(void *readD, UjClass **clsP);
 
-UInt8 ujInitAllClasses(void);
+uint8_t ujInitAllClasses(void);
 
-HANDLE ujThreadCreate(UInt16 stackSz /*zero for default*/);
-UInt32 ujThreadDbgGetPc(HANDLE threadH);
-UInt8 ujThreadGoto(HANDLE threadH, UjClass *cls, const char *methodNamePtr, const char *methodTypePtr); // static call only (used to call main or some such thing)
-Boolean ujCanRun(void);
-UInt8 ujInstr(void); // return UJ_ERR_*
-UInt8 ujThreadDestroy(HANDLE threadH);
-UInt8 ujGC(void); // called by heap manager
-UInt32 ujGetNumInstrs(void);
+HANDLE ujThreadCreate(uint16_t stackSz /*zero for default*/);
+uint32_t ujThreadDbgGetPc(HANDLE threadH);
+uint8_t ujThreadGoto(HANDLE threadH, UjClass *cls, const char *methodNamePtr, const char *methodTypePtr); // static call only (used to call main or some such thing)
+bool ujCanRun(void);
+uint8_t ujInstr(void); // return UJ_ERR_*
+uint8_t ujThreadDestroy(HANDLE threadH);
+uint8_t ujGC(void); // called by heap manager
+uint32_t ujGetNumInstrs(void);
 
 // some flags
 #define JAVA_ACC_PUBLIC       0x0001 // Declared public; may be accessed from outside its package.
@@ -76,19 +76,19 @@ UInt32 ujGetNumInstrs(void);
 #define JAVA_ACC_STRICT       0x0800 // Declared strictfp; floating-point mode is FP-strict
 
 uintptr_t ujThreadPop(UjThread *t);
-Boolean ujThreadPush(UjThread *t, uintptr_t v, Boolean isRef);
-UInt32 ujArrayLen(UInt32 arr);
-UInt32 ujArrayGetByte(UInt32 arr, UInt32 idx);
-UInt32 ujArrayGetShort(UInt32 arr, UInt32 idx);
-UInt32 ujArrayGetInt(UInt32 arr, UInt32 idx);
-void *ujArrayRawAccessStart(UInt32 arr);
-void ujArrayRawAccessFinish(UInt32 arr);
-UInt16 ujStringGetBytes(HANDLE handle, UInt8 *buf, UInt32 bufsize);
-UInt8 ujStringFromBytes(HANDLE *handleP, UInt8 *str, UInt16 len); // if len is 0 str is assumed to be 0 terminated
+bool ujThreadPush(UjThread *t, uintptr_t v, bool isRef);
+uint32_t ujArrayLen(uint32_t arr);
+uint32_t ujArrayGetByte(uint32_t arr, uint32_t idx);
+uint32_t ujArrayGetShort(uint32_t arr, uint32_t idx);
+uint32_t ujArrayGetInt(uint32_t arr, uint32_t idx);
+void *ujArrayRawAccessStart(uint32_t arr);
+void ujArrayRawAccessFinish(uint32_t arr);
+uint16_t ujStringGetBytes(HANDLE handle, uint8_t *buf, uint32_t bufsize);
+uint8_t ujStringFromBytes(HANDLE *handleP, uint8_t *str, uint16_t len); // if len is 0 str is assumed to be 0 terminated
 
 // native classes
 
-typedef UInt8 (*ujNativeMethodF)(UjThread *, UjClass *);
+typedef uint8_t (*ujNativeMethodF)(UjThread *, UjClass *);
 typedef void (*ujNativeGcInstF)(UjClass *cls, UjInstance *inst);
 typedef void (*ujNativeGcClsF)(UjClass *cls);
 
@@ -96,21 +96,21 @@ typedef struct {
     const char *name;
     const char *type;
     ujNativeMethodF func;
-    UInt16 flags;
+    uint16_t flags;
 } UjNativeMethod;
 
 typedef struct {
     const char *clsName;
-    UInt16 clsDatSz;
-    UInt16 instDatSz;
+    uint16_t clsDatSz;
+    uint16_t instDatSz;
 
     ujNativeGcClsF gcClsF; // called once per gc to mark all used handles to level 1
     ujNativeGcInstF gcInstF; // called once per gc per object to mark all used handles to 1
 
-    UInt16 numMethods;
+    uint16_t numMethods;
     const UjNativeMethod *methods;
 } UjNativeClass;
 
-UInt8 ujRegisterNativeClass(const UjNativeClass *nCls /*references and must remain valid forever*/, UjClass *super, UjClass **clsP);
+uint8_t ujRegisterNativeClass(const UjNativeClass *nCls /*references and must remain valid forever*/, UjClass *super, UjClass **clsP);
 
 #endif

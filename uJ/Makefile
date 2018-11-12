@@ -43,6 +43,6 @@ double64.o: double64_soft.o
 	cp $< $@
 
 clean:
-	rm -f *.o
+	rm -f $(APP) *.o
 
 .PHONY: all clean

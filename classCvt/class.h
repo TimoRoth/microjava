@@ -34,38 +34,38 @@
 
 typedef struct{
 
-	UInt16 start_pc;
-	UInt16 end_pc;
-	UInt16 handler_pc;
-	UInt16 catchType;
+	uint16_t start_pc;
+	uint16_t end_pc;
+	uint16_t handler_pc;
+	uint16_t catchType;
 
 }JavaExceptionTableEntry;
 
 typedef struct {
 		
-	UInt16 maxStack;	//in elements
-	UInt16 maxLocals;	//in elements
+	uint16_t maxStack;	//in elements
+	uint16_t maxLocals;	//in elements
 	
-	UInt16 numExceptions;	//num entries in exception table
+	uint16_t numExceptions;	//num entries in exception table
 	JavaExceptionTableEntry* exceptions;
 	
-	UInt16 numAttributes;
+	uint16_t numAttributes;
 	struct JavaAttribute** attributes;
 	
-	UInt32 codeLen;
-	UInt8 code[];
+	uint32_t codeLen;
+	uint8_t code[];
 
 }JavaCodeAttr;
 
 typedef struct JavaAttribute{
 
-	UInt16 nameIdx;
-	UInt8 type;
+	uint16_t nameIdx;
+	uint8_t type;
 	union{
 		struct{
 			
-			UInt32 len;
-			UInt8 data[];
+			uint32_t len;
+			uint8_t data[];
 		}generic;
 		
 		JavaCodeAttr code;
@@ -75,29 +75,29 @@ typedef struct JavaAttribute{
 
 typedef struct{
 
-	UInt8 type;			//see JAVA_CONST_TYPE_NAME_TYPE_* constants
-	Boolean used;
-	Boolean directUsed;
+	uint8_t type;			//see JAVA_CONST_TYPE_NAME_TYPE_* constants
+	bool used;
+	bool directUsed;
 	//...
 	
 }JavaConstant;
 
 typedef struct{
 
-	UInt16 accessFlags;
-	UInt16 nameIdx;
-	UInt16 descrIdx;
-	UInt16 numAttr;
+	uint16_t accessFlags;
+	uint16_t nameIdx;
+	uint16_t descrIdx;
+	uint16_t numAttr;
 	JavaAttribute** attributes;
 
-	UInt16 offset;
+	uint16_t offset;
 	char type;
 
 }JavaMethodOrField;
 
 typedef struct{
 
-	UInt16 len;
+	uint16_t len;
 	UInt24 addr;	//used later
 	char data[];	//not null-terminated
 
@@ -118,29 +118,29 @@ typedef struct{
 
 typedef struct{
 
-	UInt16 constantPoolSz;
+	uint16_t constantPoolSz;
 	
 	/* if these are not equal to the above, STRICT ordering of cunstant must exist: first addressable, then just placed, then neither */
-	UInt16 addressblConstantPoolSz;	//export constant address as if we had only this many
-	UInt16 placedConstantPoolSz;	//export constant data as if we had only this many
+	uint16_t addressblConstantPoolSz;	//export constant address as if we had only this many
+	uint16_t placedConstantPoolSz;	//export constant data as if we had only this many
 	
 	JavaConstant** constantPool;	//constantPoolSz - 1 items (index starts at 1)
 	
-	UInt16 accessFlags;		//see ACCESS_FLAG_* constants
+	uint16_t accessFlags;		//see ACCESS_FLAG_* constants
 	
-	UInt16 thisClass;		//index into constant pool
-	UInt16 superClass;		//index into constant pool or 0 (if this class is Object class only)
+	uint16_t thisClass;		//index into constant pool
+	uint16_t superClass;		//index into constant pool or 0 (if this class is Object class only)
 	
-	UInt16 numInterfaces;
-	UInt16* interfaces;		//numInterfaces items
+	uint16_t numInterfaces;
+	uint16_t* interfaces;		//numInterfaces items
 	
-	UInt16 numFields;
+	uint16_t numFields;
 	JavaMethodOrField** fields;	//numFields items
 	
-	UInt16 numMethods;
+	uint16_t numMethods;
 	JavaMethodOrField** methods;	//numMethods items
 	
-	UInt16 numAttributes;
+	uint16_t numAttributes;
 	JavaAttribute** attributes;	//numAttributes items
 
 }JavaClass;

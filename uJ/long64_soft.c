@@ -2,7 +2,7 @@
 
 #if defined(UJ_FTR_SUPPORT_LONG) || defined(UJ_FTR_SUPPORT_DOUBLE)
 
-UInt64 u64_from_halves(UInt32 hi, UInt32 lo) {
+UInt64 u64_from_halves(uint32_t hi, uint32_t lo) {
     UInt64 r;
 
     r.lo = lo;
@@ -11,7 +11,7 @@ UInt64 u64_from_halves(UInt32 hi, UInt32 lo) {
     return r;
 }
 
-UInt64 u64_32_to_64(UInt32 v) {
+UInt64 u64_32_to_64(uint32_t v) {
     UInt64 r;
 
     r.hi = 0;
@@ -20,9 +20,9 @@ UInt64 u64_32_to_64(UInt32 v) {
     return r;
 }
 
-UInt32 u64_64_to_32(UInt64 v) { return v.lo; }
+uint32_t u64_64_to_32(UInt64 v) { return v.lo; }
 
-UInt32 u64_get_hi(UInt64 v) { return v.hi; }
+uint32_t u64_get_hi(UInt64 v) { return v.hi; }
 
 UInt64 u64_add(UInt64 a, UInt64 b) {
     UInt64 r;
@@ -35,7 +35,7 @@ UInt64 u64_add(UInt64 a, UInt64 b) {
     return r;
 }
 
-UInt64 u64_add32(UInt64 a, UInt32 b) {
+UInt64 u64_add32(UInt64 a, uint32_t b) {
     UInt64 r;
 
     r.lo = a.lo + b;
@@ -54,9 +54,9 @@ UInt64 u64_mul(UInt64 a, UInt64 b) {
                 32));
 }
 
-UInt64 u64_umul3232(UInt32 a, UInt32 b) {
+UInt64 u64_umul3232(uint32_t a, uint32_t b) {
     UInt64 r;
-    UInt32 ah, al, bh, bl;
+    uint32_t ah, al, bh, bl;
 
     ah = a >> 16UL;
     al = a & 0xFFFFUL;
@@ -71,8 +71,8 @@ UInt64 u64_umul3232(UInt32 a, UInt32 b) {
     return r;
 }
 
-UInt64 u64_smul3232(Int32 a, Int32 b) {
-    Boolean negative = false;
+UInt64 u64_smul3232(int32_t a, int32_t b) {
+    bool negative = false;
     UInt64 r;
 
     if (a < 0) {
@@ -96,7 +96,7 @@ UInt64 u64_smul3232(Int32 a, Int32 b) {
     return r;
 }
 
-UInt64 u64_ashr(UInt64 v, UInt16 bits) {
+UInt64 u64_ashr(UInt64 v, uint16_t bits) {
     UInt64 a = v;
 
     if (bits >= 64) {
@@ -116,13 +116,13 @@ UInt64 u64_ashr(UInt64 v, UInt16 bits) {
         bits -= 32;
     }
 
-    a.lo = (a.lo >> ((UInt32)bits)) | (a.hi << (32UL - ((UInt32)bits)));
-    a.hi = ((Int32)a.hi) >> ((UInt32)bits);
+    a.lo = (a.lo >> ((uint32_t)bits)) | (a.hi << (32UL - ((uint32_t)bits)));
+    a.hi = ((int32_t)a.hi) >> ((uint32_t)bits);
 
     return a;
 }
 
-UInt64 u64_shr(UInt64 v, UInt16 bits) {
+UInt64 u64_shr(UInt64 v, uint16_t bits) {
     UInt64 a = v;
 
     if (bits >= 64) {
@@ -135,13 +135,13 @@ UInt64 u64_shr(UInt64 v, UInt16 bits) {
         bits -= 32;
     }
 
-    a.lo = (a.lo >> ((UInt32)bits)) | (a.hi << (32UL - ((UInt32)bits)));
-    a.hi >>= ((UInt32)bits);
+    a.lo = (a.lo >> ((uint32_t)bits)) | (a.hi << (32UL - ((uint32_t)bits)));
+    a.hi >>= ((uint32_t)bits);
 
     return a;
 }
 
-UInt64 u64_shl(UInt64 v, UInt16 bits) {
+UInt64 u64_shl(UInt64 v, uint16_t bits) {
     UInt64 a = v;
 
     if (bits >= 64) {
@@ -154,8 +154,8 @@ UInt64 u64_shl(UInt64 v, UInt16 bits) {
         bits -= 32;
     }
 
-    a.hi = (a.hi << ((UInt32)bits)) | (a.lo >> (32UL - ((UInt32)bits)));
-    a.lo <<= ((UInt32)bits);
+    a.hi = (a.hi << ((uint32_t)bits)) | (a.lo >> (32UL - ((uint32_t)bits)));
+    a.lo <<= ((uint32_t)bits);
 
     return a;
 }
@@ -169,9 +169,9 @@ UInt64 i64_xtnd32(UInt64 v) {
     return a;
 }
 
-Boolean u64_isZero(UInt64 a) { return a.lo == 0 && a.hi == 0; }
+bool u64_isZero(UInt64 a) { return a.lo == 0 && a.hi == 0; }
 
-Boolean i64_isNeg(Int64 a) { return (a.hi & 0x80000000UL) != 0UL; }
+bool i64_isNeg(Int64 a) { return (a.hi & 0x80000000UL) != 0UL; }
 
 UInt64 u64_inc(UInt64 v) {
     UInt64 a = v;
@@ -229,10 +229,10 @@ UInt64 u64_sub(UInt64 a, UInt64 b) {
     return u64_add(a, bn);
 }
 
-static UInt64 u64_divmod(UInt64 a, UInt64 b, Boolean div) {
+static UInt64 u64_divmod(UInt64 a, UInt64 b, bool div) {
     UInt64 ret = u64_zero();
     UInt64 mask = u64_32_to_64(1);
-    UInt8 numShifts = 0;
+    uint8_t numShifts = 0;
 
     while (i64_isNeg(u64_sub(b, a)) && (numShifts < 63)) { // while b < a
 
@@ -259,8 +259,8 @@ UInt64 u64_div(UInt64 a, UInt64 b) { return u64_divmod(a, b, true); }
 UInt64 u64_mod(UInt64 a, UInt64 b) { return u64_divmod(a, b, false); }
 
 Int64 i64_div(Int64 a, Int64 b) {
-    Boolean a_neg = false;
-    Boolean b_neg = false;
+    bool a_neg = false;
+    bool b_neg = false;
 
     if (i64_isNeg(a)) {
         a_neg = true;
@@ -280,7 +280,7 @@ Int64 i64_div(Int64 a, Int64 b) {
 }
 
 Int64 i64_mod(Int64 a, Int64 b) {
-    Boolean a_neg = false;
+    bool a_neg = false;
 
     if (i64_isNeg(a)) {
         a_neg = true;

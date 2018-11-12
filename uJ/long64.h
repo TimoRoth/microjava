@@ -13,28 +13,28 @@ typedef int64_t Int64;
 #else
 
 typedef struct {
-    UInt32 hi, lo;
+    uint32_t hi, lo;
 } UInt64;
 
 typedef UInt64 Int64;
 
 #endif
 
-UInt64 u64_from_halves(UInt32 hi, UInt32 lo);
-UInt64 u64_32_to_64(UInt32 v);
-UInt32 u64_64_to_32(UInt64 v);
-UInt32 u64_get_hi(UInt64 v);
+UInt64 u64_from_halves(uint32_t hi, uint32_t lo);
+UInt64 u64_32_to_64(uint32_t v);
+uint32_t u64_64_to_32(UInt64 v);
+uint32_t u64_get_hi(UInt64 v);
 UInt64 u64_add(UInt64 a, UInt64 b);
 UInt64 u64_mul(UInt64 a, UInt64 b);
-UInt64 u64_umul3232(UInt32 a, UInt32 b);
-UInt64 u64_smul3232(Int32 a, Int32 b);
-UInt64 u64_ashr(UInt64 a, UInt16 bits);
-UInt64 u64_shr(UInt64 a, UInt16 bits);
-UInt64 u64_shl(UInt64 a, UInt16 bits);
-UInt64 u64_add32(UInt64 a, UInt32 b);
+UInt64 u64_umul3232(uint32_t a, uint32_t b);
+UInt64 u64_smul3232(int32_t a, int32_t b);
+UInt64 u64_ashr(UInt64 a, uint16_t bits);
+UInt64 u64_shr(UInt64 a, uint16_t bits);
+UInt64 u64_shl(UInt64 a, uint16_t bits);
+UInt64 u64_add32(UInt64 a, uint32_t b);
 UInt64 i64_xtnd32(UInt64 a);
-Boolean u64_isZero(UInt64 a);
-Boolean i64_isNeg(Int64 a);
+bool u64_isZero(UInt64 a);
+bool i64_isNeg(Int64 a);
 UInt64 u64_inc(UInt64 a);
 UInt64 u64_zero(void);
 UInt64 u64_sub(UInt64 a, UInt64 b);

@@ -40,13 +40,13 @@
 
 typedef struct{
 
-	const UInt8* ptr;
-	UInt32 left;
+	const uint8_t* ptr;
+	uint32_t left;
 	
 }FakeReaderData;
 
 
-UInt16 fakeReaderReadF(void* paramP){
+uint16_t fakeReaderReadF(void* paramP){
 
 	FakeReaderData* d = paramP;
 	
@@ -58,25 +58,25 @@ UInt16 fakeReaderReadF(void* paramP){
 	return CLASS_IMPORT_READ_F_FAIL;
 }
 
-Boolean classImportPrvReadU16(classImporterReadF readF, void* readD, UInt16* ptrP){
+bool classImportPrvReadU16(classImporterReadF readF, void* readD, uint16_t* ptrP){
 
-	UInt16 readFret;
-	UInt8 byte, t;
+	uint16_t readFret;
+	uint8_t byte, t;
 	
 	GETBYTE;
 	t = byte;
 	GETBYTE;
-	*ptrP = (((UInt16)t) << 8) | byte;
+	*ptrP = (((uint16_t)t) << 8) | byte;
 	return true;
 
 fail:
 	return false;
 }
 
-Boolean classImportPrvReadU32(classImporterReadF readF, void* readD, UInt32* ptrP){
+bool classImportPrvReadU32(classImporterReadF readF, void* readD, uint32_t* ptrP){
 
-	UInt16 readFret;
-	UInt8 byte, i;
+	uint16_t readFret;
+	uint8_t byte, i;
 	
 	*ptrP = 0;
 	
@@ -91,19 +91,19 @@ fail:
 	return false;
 }
 
-UInt16 readBE16(const UInt8* p){
+uint16_t readBE16(const uint8_t* p){
 
-	UInt16 ret = 0;
+	uint16_t ret = 0;
 	
 	ret = *p++;
 	ret <<= 8;
 	return ret + *p;
 }
 
-UInt32 readBE32(const UInt8* p){
+uint32_t readBE32(const uint8_t* p){
 
-	UInt32 ret = 0;
-	UInt8 i;
+	uint32_t ret = 0;
+	uint8_t i;
 
 	for(i = 0; i < 4; i++){
 		
@@ -116,8 +116,8 @@ UInt32 readBE32(const UInt8* p){
 
 static JavaConstant* classImportPrvReadConstant(classImporterReadF readF, void* readD){
 	JavaConstant* ret = NULL;
-	UInt16 readFret, tmp16 = 0, tmp16b;
-	UInt8 type, byte, i;
+	uint16_t readFret, tmp16 = 0, tmp16b;
+	uint8_t type, byte, i;
 	
 	
 	GETBYTE;	//ret the tag
@@ -140,21 +140,21 @@ static JavaConstant* classImportPrvReadConstant(classImporterReadF readF, void* 
 		
 		case JAVA_CONST_TYPE_INT:
 			
-			ret = natAlloc(sizeof(JavaConstant) + sizeof(UInt32));
+			ret = natAlloc(sizeof(JavaConstant) + sizeof(uint32_t));
 			if(!ret) ERR("Failed to alloc int");
-			if(!classImportPrvReadU32(readF, readD, (UInt32*)(ret + 1))) ERR("Failed to read int val");
+			if(!classImportPrvReadU32(readF, readD, (uint32_t*)(ret + 1))) ERR("Failed to read int val");
 			break;
 
 		case JAVA_CONST_TYPE_LONG:
 			
-			ret = natAlloc(sizeof(JavaConstant) + sizeof(UInt64));
+			ret = natAlloc(sizeof(JavaConstant) + sizeof(uint64_t));
 			if(!ret) ERR("Failed to alloc long");
-			*(UInt64*)(ret + 1) = 0;
+			*(uint64_t*)(ret + 1) = 0;
 			for(i = 0; i < 8; i++){
 				
 				GETBYTE;
-				(*(UInt64*)(ret + 1)) <<= 8;
-				(*(UInt64*)(ret + 1)) += byte;
+				(*(uint64_t*)(ret + 1)) <<= 8;
+				(*(uint64_t*)(ret + 1)) += byte;
 			}
 			break;
 		
@@ -165,7 +165,7 @@ static JavaConstant* classImportPrvReadConstant(classImporterReadF readF, void* 
 			for(i = 0; i < 4; i++){
 				
 				GETBYTE;
-				((UInt8*)(ret + 1))[3-i] = byte;
+				((uint8_t*)(ret + 1))[3-i] = byte;
 			}
 			break;
 			
@@ -176,16 +176,16 @@ static JavaConstant* classImportPrvReadConstant(classImporterReadF readF, void* 
 			for(i = 0; i < 8; i++){
 				
 				GETBYTE;
-				((UInt8*)(ret + 1))[7 - i] = byte;
+				((uint8_t*)(ret + 1))[7 - i] = byte;
 			}
 			break;
 			
 		case JAVA_CONST_TYPE_CLASS:
 		case JAVA_CONST_TYPE_STR_REF:
 			
-			ret = natAlloc(sizeof(JavaConstant) + sizeof(UInt16));
+			ret = natAlloc(sizeof(JavaConstant) + sizeof(uint16_t));
 			if(!ret) ERR("Failed to alloc class/strRef");
-			if(!classImportPrvReadU16(readF, readD, (UInt16*)(ret + 1))) ERR("Failed to read class/strRef ref");
+			if(!classImportPrvReadU16(readF, readD, (uint16_t*)(ret + 1))) ERR("Failed to read class/strRef ref");
 			break;
 
 		case JAVA_CONST_TYPE_FIELD:
@@ -193,10 +193,10 @@ static JavaConstant* classImportPrvReadConstant(classImporterReadF readF, void* 
 		case JAVA_CONST_TYPE_INTERFACE:
 		case JAVA_CONST_TYPE_NAME_TYPE_INFO:
 			
-			ret = natAlloc(sizeof(JavaConstant) + sizeof(UInt16[2]));
+			ret = natAlloc(sizeof(JavaConstant) + sizeof(uint16_t[2]));
 			if(!ret) ERR("Failed to alloc field/method/interface/typenameinfo");
-			if(!classImportPrvReadU16(readF, readD, ((UInt16*)(ret + 1)) + 0)) ERR("Failed to read field/method/interface/typenameinfo ref1");
-			if(!classImportPrvReadU16(readF, readD, ((UInt16*)(ret + 1)) + 1)) ERR("Failed to read field/method/interface/typenameinfo ref2");
+			if(!classImportPrvReadU16(readF, readD, ((uint16_t*)(ret + 1)) + 0)) ERR("Failed to read field/method/interface/typenameinfo ref1");
+			if(!classImportPrvReadU16(readF, readD, ((uint16_t*)(ret + 1)) + 1)) ERR("Failed to read field/method/interface/typenameinfo ref2");
 			break;
 
 		default:
@@ -216,7 +216,7 @@ fail:
 #define READ_Xex(xc, xn, xt, xf, obj)									\
 													\
 		do{											\
-			UInt8 i;									\
+			uint8_t i;									\
 			if(!classImportPrvReadU16(readF, readD, &obj xc)) ERR("Failed to read " #xc);	\
 			obj xn = natAlloc(obj xc * sizeof(xt*));					\
 			if(!obj xn) ERR("failed to allocate " #xn" array");				\
@@ -233,11 +233,11 @@ fail:
 static JavaAttribute* classImportPrvReadAttribute(classImporterReadF readF, void* readD){
 
 	JavaAttribute* ret = NULL;
-	UInt16 readFret;
-	UInt8 byte;
-	UInt16 name;
-	UInt32 len;
-	UInt8* ptr;
+	uint16_t readFret;
+	uint8_t byte;
+	uint16_t name;
+	uint32_t len;
+	uint8_t* ptr;
 	
 	if(!classImportPrvReadU16(readF, readD, &name)) ERR("Failed to read attribute name");
 	if(!classImportPrvReadU32(readF, readD, &len)) ERR("Failed to read attribute length");
@@ -262,9 +262,9 @@ fail:
 	return NULL;		
 }
 
-static UInt16 classImportPrvReadInterface(classImporterReadF readF, void* readD){
+static uint16_t classImportPrvReadInterface(classImporterReadF readF, void* readD){
 
-	UInt16 ret = 0;
+	uint16_t ret = 0;
 	
 	if(!classImportPrvReadU16(readF, readD, &ret)) ERR("Failed to read attribute name");
 	
@@ -310,8 +310,8 @@ void classProcessAttributes(JavaClass* c, JavaAttribute** attribP){
 	void* readD = &rd;
 	JavaConstant* jc;
 	JavaString* js;
-	UInt32 t;
-	UInt16 i;
+	uint32_t t;
+	uint16_t i;
 	
 
 	jc = CLASS_CONSTANT(c, attrib->nameIdx);
@@ -321,7 +321,7 @@ void classProcessAttributes(JavaClass* c, JavaAttribute** attribP){
 	if(js->len == 4 && js->data[0] == 'C' && js->data[1] == 'o' && js->data[2] == 'd' && js->data[3] == 'e'){
 	
 		JavaAttribute* na;
-		UInt32 codeLen;
+		uint32_t codeLen;
 		
 		codeLen = readBE32(attrib->data.generic.data + 4);
 		na = natAlloc(sizeof(JavaAttribute) + codeLen);
@@ -364,11 +364,11 @@ fail:
 
 JavaClass* classImport(classImporterReadF readF, void* readD){
 
-	static const UInt8 classMagic[] = {0xCA, 0xFE, 0xBA, 0xBE};
+	static const uint8_t classMagic[] = {0xCA, 0xFE, 0xBA, 0xBE};
 	JavaClass* ret = NULL;
-	UInt16 readFret;
-	UInt8 byte;
-	UInt16 i, j;
+	uint16_t readFret;
+	uint8_t byte;
+	uint16_t i, j;
 	
 	for(i = 0; i < 4; i++){
 		
@@ -406,7 +406,7 @@ JavaClass* classImport(classImporterReadF readF, void* readD){
 	if(!classImportPrvReadU16(readF, readD, &ret->thisClass)) ERR("Failed to read thisClass");
 	if(!classImportPrvReadU16(readF, readD, &ret->superClass)) ERR("Failed to read superClass");
 	
-	READ_X(numInterfaces, interfaces, UInt16, classImportPrvReadInterface);
+	READ_X(numInterfaces, interfaces, uint16_t, classImportPrvReadInterface);
 	READ_X(numFields, fields, JavaMethodOrField, classImportPrvReadField);
 	READ_X(numMethods, methods, JavaMethodOrField, classImportPrvReadMethod);
 	READ_X(numAttributes, attributes, JavaAttribute, classImportPrvReadAttribute);
@@ -444,11 +444,11 @@ fail:
 	return NULL;
 }
 
-static void classDumpAttribute(JavaClass* c, JavaAttribute* attrib, UInt8 indents){
+static void classDumpAttribute(JavaClass* c, JavaAttribute* attrib, uint8_t indents){
 
 	JavaConstant* jc;
-	UInt16 i;
-	UInt32 j;
+	uint16_t i;
+	uint32_t j;
 
 	for(i = 0; i < indents; i++) LOG("\t");
 	LOG("{\n");
@@ -535,11 +535,11 @@ fail:
 	LOG("}\n");
 }
 
-static void classDumpConstant(JavaClass* c, UInt16 idx, UInt8 indent){
+static void classDumpConstant(JavaClass* c, uint16_t idx, uint8_t indent){
 
 	JavaConstant* jc = c->constantPool[idx];
-	UInt16 t;
-	UInt8 i;
+	uint16_t t;
+	uint8_t i;
 	
 	if(jc->type == JAVA_CONST_TYPE_INVALID) return;
 	
@@ -555,7 +555,7 @@ static void classDumpConstant(JavaClass* c, UInt16 idx, UInt8 indent){
 			
 		case JAVA_CONST_TYPE_INT:		//4 bytes
 			
-			LOG("INT %ld\n", *(Int32*)(jc + 1));
+			LOG("INT %ld\n", *(int32_t*)(jc + 1));
 			break;
 		
 		case JAVA_CONST_TYPE_FLOAT:		//4 bytes
@@ -583,8 +583,8 @@ static void classDumpConstant(JavaClass* c, UInt16 idx, UInt8 indent){
 			LOG("STR_REF ");
 		
 	single_ref:
-			LOG(" {%u} ", *(UInt16*)(jc + 1));
-			jc = CLASS_CONSTANT(c, *(UInt16*)(jc + 1));
+			LOG(" {%u} ", *(uint16_t*)(jc + 1));
+			jc = CLASS_CONSTANT(c, *(uint16_t*)(jc + 1));
 			if(jc->type != JAVA_CONST_TYPE_STRING) ERR("class/strref does not point to a string type");
 			logUtf8Str("'" , (JavaString*)(jc + 1), "'\n");
 			break;
@@ -604,13 +604,13 @@ static void classDumpConstant(JavaClass* c, UInt16 idx, UInt8 indent){
 			LOG("INTERFACE METHOD ");
 			
 	tripple_ref:
-			LOG("{%u, %u} ", ((UInt16*)(jc + 1))[0], ((UInt16*)(jc + 1))[1]);
-			t = ((UInt16*)(jc + 1))[1];
+			LOG("{%u, %u} ", ((uint16_t*)(jc + 1))[0], ((uint16_t*)(jc + 1))[1]);
+			t = ((uint16_t*)(jc + 1))[1];
 			
-			jc = CLASS_CONSTANT(c, ((UInt16*)(jc + 1))[0]);
+			jc = CLASS_CONSTANT(c, ((uint16_t*)(jc + 1))[0]);
 			if(jc->type != JAVA_CONST_TYPE_CLASS) ERR("tripple ref[0] does not point to a class type");
 			
-			jc = CLASS_CONSTANT(c, ((UInt16*)(jc + 1))[0]);
+			jc = CLASS_CONSTANT(c, ((uint16_t*)(jc + 1))[0]);
 			if(jc->type != JAVA_CONST_TYPE_STRING) ERR("class[0] does not point to a string type");
 			
 			logUtf8Str("" , (JavaString*)(jc + 1), ".");
@@ -623,13 +623,13 @@ static void classDumpConstant(JavaClass* c, UInt16 idx, UInt8 indent){
 		case JAVA_CONST_TYPE_NAME_TYPE_INFO:	//4 bytes (jc + 1)
 			
 			LOG("NAME/TYPE info ");
-			LOG("{%u, %u} ", ((UInt16*)(jc + 1))[0], ((UInt16*)(jc + 1))[1]);
+			LOG("{%u, %u} ", ((uint16_t*)(jc + 1))[0], ((uint16_t*)(jc + 1))[1]);
 			
 		double_ref:
 		
-			t = ((UInt16*)(jc + 1))[1];
+			t = ((uint16_t*)(jc + 1))[1];
 			
-			jc = CLASS_CONSTANT(c, ((UInt16*)(jc + 1))[0]);
+			jc = CLASS_CONSTANT(c, ((uint16_t*)(jc + 1))[0]);
 			if(jc->type != JAVA_CONST_TYPE_STRING) ERR("nametypeinfo[0] does not point to a string type");
 			logUtf8Str("" , (JavaString*)(jc + 1), " ");
 			
@@ -641,14 +641,14 @@ static void classDumpConstant(JavaClass* c, UInt16 idx, UInt8 indent){
 fail:;
 }
 
-static void classDumpInterface(JavaClass* c, UInt16 iface, UInt8 indents){
+static void classDumpInterface(JavaClass* c, uint16_t iface, uint8_t indents){
 
 	JavaConstant* jc;
-	UInt16 i;
+	uint16_t i;
 	
 	jc = CLASS_CONSTANT(c, iface);
 	if(jc->type != JAVA_CONST_TYPE_CLASS) ERR("iface does not point to a class type");
-	i = *(UInt16*)(jc + 1);
+	i = *(uint16_t*)(jc + 1);
 	jc = CLASS_CONSTANT(c, i);
 	if(jc->type != JAVA_CONST_TYPE_STRING) ERR("iface class name does not point to a string");
 	
@@ -659,10 +659,10 @@ static void classDumpInterface(JavaClass* c, UInt16 iface, UInt8 indents){
 fail:;
 }
 
-static void classDumpMethodOrField(JavaClass* c, JavaMethodOrField* method, UInt8 indents, const char* type){
+static void classDumpMethodOrField(JavaClass* c, JavaMethodOrField* method, uint8_t indents, const char* type){
 	(void)type;
 	JavaConstant* jc;
-	UInt16 i;
+	uint16_t i;
 	
 	for(i = 0; i < indents; i++) LOG("\t");
 	LOG("%s{\n", type);
@@ -693,12 +693,12 @@ fail:
 }
 
 
-static void classDumpField(JavaClass* c, JavaMethodOrField* field, UInt8 indents){
+static void classDumpField(JavaClass* c, JavaMethodOrField* field, uint8_t indents){
 
 	classDumpMethodOrField(c, field, indents, "field");
 }
 
-static void classDumpMethod(JavaClass* c, JavaMethodOrField* method, UInt8 indents){
+static void classDumpMethod(JavaClass* c, JavaMethodOrField* method, uint8_t indents){
 
 	classDumpMethodOrField(c, method, indents, "method");
 }
@@ -707,14 +707,14 @@ static void classDumpMethod(JavaClass* c, JavaMethodOrField* method, UInt8 inden
 void classDump(JavaClass* c){
 
 	JavaConstant* jc;
-	UInt16 idx;
+	uint16_t idx;
 	
 	LOG("Class dump:\n");
 	
 	jc = CLASS_CONSTANT(c, c->thisClass);
 	if(jc->type == JAVA_CONST_TYPE_CLASS){
 		
-		idx = *(UInt16*)(jc + 1);
+		idx = *(uint16_t*)(jc + 1);
 		jc = CLASS_CONSTANT(c, idx);	
 	}
 	if(jc->type == JAVA_CONST_TYPE_STRING){
@@ -726,7 +726,7 @@ void classDump(JavaClass* c){
 	jc = CLASS_CONSTANT(c, c->superClass);
 	if(jc->type == JAVA_CONST_TYPE_CLASS){
 		
-		idx = *(UInt16*)(jc + 1);
+		idx = *(uint16_t*)(jc + 1);
 		jc = CLASS_CONSTANT(c, idx);	
 	}
 	if(jc->type == JAVA_CONST_TYPE_STRING){
@@ -763,7 +763,7 @@ void classFreeAttribute(JavaAttribute* f){
 	if(!f) return;
 	if(f->type == J_ATTR_TYPE_CODE){
 	
-		UInt16 i;
+		uint16_t i;
 		natFree(f->data.code.exceptions);
 		
 		for(i = 0; i < f->data.code.numAttributes; i++){
@@ -787,7 +787,7 @@ void classFreeConstant(JavaConstant* f){
 
 void classFreeMethodOrField(JavaMethodOrField* f){
 
-	UInt16 i;
+	uint16_t i;
 	if(!f) return;
 	
 	
@@ -800,7 +800,7 @@ void classFreeMethodOrField(JavaMethodOrField* f){
 
 void classFree(JavaClass* c){
 
-	UInt16 i;
+	uint16_t i;
 	
 	
 	for(i = 0; i < c->constantPoolSz - 1; i++){
@@ -834,11 +834,11 @@ void classFree(JavaClass* c){
 
 
 
-static UInt8 ujStrHash(JavaString* str){
+static uint8_t ujStrHash(JavaString* str){
 
-	UInt8 c = 0xCC;
+	uint8_t c = 0xCC;
 	
-	UInt16 L = str->len;
+	uint16_t L = str->len;
 
 
 	while(L){
@@ -848,7 +848,7 @@ static UInt8 ujStrHash(JavaString* str){
 	}
 
 	if(0){
-		UInt16 t;
+		uint16_t t;
 		
 		fprintf(stderr,"HASH('");
 		for(t = 0; t < str->len; t++) fprintf(stderr, "%c", str->data[t]);
@@ -859,16 +859,16 @@ static UInt8 ujStrHash(JavaString* str){
 }
 
 static UInt24 gFileSz = 0;
-static UInt32 gLastVal = 0;
+static uint32_t gLastVal = 0;
 
-void putU8(UInt8 v){
+void putU8(uint8_t v){
 
 	putchar(v);
 	gFileSz++;
 	gLastVal = v;
 }
 
-void putU16(UInt16 v){
+void putU16(uint16_t v){
 
 	putchar(v >> 8);
 	putchar(v);
@@ -884,7 +884,7 @@ void putU24(UInt24 v){
 	gFileSz += 3;
 	gLastVal = v;
 }
-void putU32(UInt32 v){
+void putU32(uint32_t v){
 
 	putchar(v >> 24);
 	putchar(v >> 16);
@@ -899,15 +899,15 @@ void classExport(JavaClass* c){
 	UInt24 hdrsz = 18, crefs = 0, interfaces = 0, methods = 0, fields = 0, consts = 0, code = 0, addr;
 	JavaConstant* jc;
 	JavaAttribute* ja;
-	UInt16 i, j;
-	Int16 sz;
+	uint16_t i, j;
+	int16_t sz;
 	
 	
 	//precalculate sizes
 	{
 		
 		//precalc. size of constant refs table
-		crefs = 2 + (UInt32)(c->addressblConstantPoolSz - 1) * 3;
+		crefs = 2 + (uint32_t)(c->addressblConstantPoolSz - 1) * 3;
 	
 		//precalc. size of constants
 		for(i = 0; i < c->placedConstantPoolSz - 1; i++){
@@ -967,13 +967,13 @@ void classExport(JavaClass* c){
 		}
 		
 		//precalc interfaces size
-		interfaces = 2 + (UInt32)c->numInterfaces * 3;
+		interfaces = 2 + (uint32_t)c->numInterfaces * 3;
 		
 		//precalc methods size
-		methods = 2 + (UInt32)c->numMethods * 13;
+		methods = 2 + (uint32_t)c->numMethods * 13;
 		
 		//precalc fields
-		fields = 2 + (UInt32)c->numFields * 10;
+		fields = 2 + (uint32_t)c->numFields * 10;
 		
 		//code sizes
 		for(i = 0; i < c->numMethods; i++){
@@ -984,7 +984,7 @@ void classExport(JavaClass* c){
 				
 				if(ja->type != J_ATTR_TYPE_CODE) continue;
 				
-				code += ja->data.code.codeLen + 4 /*locals, stask sizes*/ + 2 /*num exceptions */ + (UInt32)ja->data.code.numExceptions * 8;
+				code += ja->data.code.codeLen + 4 /*locals, stask sizes*/ + 2 /*num exceptions */ + (uint32_t)ja->data.code.numExceptions * 8;
 			}
 		}
 		
@@ -1052,7 +1052,7 @@ void classExport(JavaClass* c){
 				case JAVA_CONST_TYPE_STR_REF:
 					
 					//for single refs, we just the actual string addr
-					jc = c->constantPool[*(UInt16*)(c->constantPool[i] + 1) - 1];
+					jc = c->constantPool[*(uint16_t*)(c->constantPool[i] + 1) - 1];
 					putU24(((JavaString*)(jc + 1))->addr);
 					break;
 				
@@ -1098,7 +1098,7 @@ void classExport(JavaClass* c){
 				
 				if(addr != str->addr){
 				
-					fprintf(stderr, "address fail on const string %u (expected 0x%lX, got 0x%lX)\n", i + 1, str->addr, addr);
+					fprintf(stderr, "address fail on const string %u (expected 0x%" PRIX32 ", got 0x%" PRIX32 ")\n", i + 1, str->addr, addr);
 					exit(-5);
 				}
 			//	LOG(" writing const %u at addr 0x%06X\n", i + 1, gFileSz);
@@ -1127,7 +1127,7 @@ void classExport(JavaClass* c){
 				case JAVA_CONST_TYPE_FLOAT:
 					
 					putU8(jc->type);
-					putU32(((UInt32*)(jc + 1))[0]);
+					putU32(((uint32_t*)(jc + 1))[0]);
 					addr += 4;
 					break;
 				
@@ -1135,8 +1135,8 @@ void classExport(JavaClass* c){
 				case JAVA_CONST_TYPE_DOUBLE:
 					
 					putU8(jc->type);
-					putU32(((UInt32*)(jc + 1))[1]);
-					putU32(((UInt32*)(jc + 1))[0]);
+					putU32(((uint32_t*)(jc + 1))[1]);
+					putU32(((uint32_t*)(jc + 1))[0]);
 					addr += 8;
 					break;
 				
@@ -1152,15 +1152,15 @@ void classExport(JavaClass* c){
 				
 					putU8(jc->type);
 					
-					j = ((UInt16*)(jc + 1))[1];				//const idx for name type info
+					j = ((uint16_t*)(jc + 1))[1];				//const idx for name type info
 					
-					jc = c->constantPool[((UInt16*)(jc + 1))[0] - 1];	//class ref
+					jc = c->constantPool[((uint16_t*)(jc + 1))[0] - 1];	//class ref
 					if(jc->type != JAVA_CONST_TYPE_CLASS){
 						
 						fprintf(stderr," mfi[8] doesn't refer to class\n");
 						exit(-5);
 					}
-					jc = c->constantPool[((UInt16*)(jc + 1))[0] - 1];	//utf8: classname
+					jc = c->constantPool[((uint16_t*)(jc + 1))[0] - 1];	//utf8: classname
 					if(jc->type != JAVA_CONST_TYPE_STRING){
 						
 						fprintf(stderr," 2 cls/strref doesn't refer to utf8 str\n");
@@ -1170,8 +1170,8 @@ void classExport(JavaClass* c){
 					putU24(((JavaString*)(jc + 1))->addr + 1); //+ 1 to point direct to string, not const type - helps the RT
 					
 					jc = c->constantPool[j - 1];				//name type info
-					j = ((UInt16*)(jc + 1))[1];				//const idx for type info
-					jc = c->constantPool[((UInt16*)(jc + 1))[0] - 1];	//utf8: name
+					j = ((uint16_t*)(jc + 1))[1];				//const idx for type info
+					jc = c->constantPool[((uint16_t*)(jc + 1))[0] - 1];	//utf8: name
 					if(jc->type != JAVA_CONST_TYPE_STRING){
 						
 						fprintf(stderr,"  nti[0] doesn't refer to utf8 str\n");
@@ -1217,7 +1217,7 @@ void classExport(JavaClass* c){
 				fprintf(stderr," mfi[8] doesn't refer to class\n");
 				exit(-5);
 			}
-			jc = c->constantPool[((UInt16*)(jc + 1))[0] - 1];	//utf8: classname
+			jc = c->constantPool[((uint16_t*)(jc + 1))[0] - 1];	//utf8: classname
 			if(jc->type != JAVA_CONST_TYPE_STRING){
 				
 				fprintf(stderr," 2 cls/strref doesn't refer to utf8 str\n");
@@ -1235,7 +1235,7 @@ void classExport(JavaClass* c){
 		for(i = 0; i < c->numMethods; i++){
 		
 			UInt24 codeAddr = 0, nameAddr, typeAddr;
-			UInt8 nameHash, typeHash;
+			uint8_t nameHash, typeHash;
 			
 			for(j = 0; j < c->methods[i]->numAttr; j++){
 			
@@ -1265,8 +1265,8 @@ void classExport(JavaClass* c){
 			
 			if(j != c->methods[i]->numAttr){	//have code
 			
-				codeAddr = addr + 4 + 2 + 8 * (UInt32)ja->data.code.numExceptions;
-				addr += ja->data.code.codeLen + 4 + 2 + 8 * (UInt32)ja->data.code.numExceptions;
+				codeAddr = addr + 4 + 2 + 8 * (uint32_t)ja->data.code.numExceptions;
+				addr += ja->data.code.codeLen + 4 + 2 + 8 * (uint32_t)ja->data.code.numExceptions;
 			}
 		
 			putU16(c->methods[i]->accessFlags);
@@ -1284,7 +1284,7 @@ void classExport(JavaClass* c){
 		putU16(c->numFields);
 		for(i = 0; i < c->numFields; i++){
 		
-			UInt8 nameHash, typeHash;
+			uint8_t nameHash, typeHash;
 			UInt24 nameAdr, typeAdr;
 			
 			jc = c->constantPool[c->fields[i]->nameIdx - 1];	//utf8: method name

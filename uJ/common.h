@@ -1,9 +1,10 @@
 #ifndef _COMMON_H_
 #define _COMMON_H_
 
+#include <stdio.h>
 #include <stddef.h>
 #include <stdint.h>
-#include <stdio.h>
+#include <stdbool.h>
 #include <inttypes.h>
 #include <stdalign.h>
 
@@ -37,11 +38,5 @@ void err(const char *str);
 
 #define HEAP_ALIGN alignof(uintptr_t)
 #define _HEAP_ATTRS_
-
-#ifdef UJ_LOG
-void ujLog(const char *fmtStr, ...);
-#else
-#define ujLog(...)
-#endif
 
 #endif

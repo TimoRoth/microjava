@@ -2,7 +2,7 @@
 #include <string.h>
 #include <stdio.h>
 #include "classAccess.h"
-#include "../UJC.h"
+#include "../uJ/UJC.h"
 
 
 #define ERR(str)	do{			\

@@ -1,5 +1,5 @@
 #include "uj.h"
-#include "../UJC.h"
+#include "UJC.h"
 #include "ujHeap.h"
 
 #ifdef UJ_DBG_HELPERS

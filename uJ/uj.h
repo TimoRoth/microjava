@@ -75,6 +75,7 @@ uint32_t ujGetNumInstrs(void);
 #define JAVA_ACC_ABSTRACT     0x0400 // Declared abstract; no implementation is provided.
 #define JAVA_ACC_STRICT       0x0800 // Declared strictfp; floating-point mode is FP-strict
 
+uintptr_t ujThreadPeek(UjThread *t, uint8_t slot /* 0 is top of stack*/);
 uintptr_t ujThreadPop(UjThread *t);
 bool ujThreadPush(UjThread *t, uintptr_t v, bool isRef);
 uint32_t ujArrayLen(uint32_t arr);

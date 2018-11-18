@@ -1352,6 +1352,11 @@ static uintptr_t ujThreadPrvPeek(UjThread *t, uint8_t slots /* 0 is top of stack
     return t->stack[t->spBase - (slots + 1)];
 }
 
+uintptr_t ujThreadPeek(UjThread *t, uint8_t slot /* 0 is top of stack*/)
+{
+    return ujThreadPrvPeek(t, slot);
+}
+
 static uintptr_t ujThreadPrvLocalLoad(UjThread *t, uint16_t idx)
 {
     TL(" local load %u %s -> 0x%08" PRIXPTR "\n", idx,

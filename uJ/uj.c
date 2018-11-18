@@ -107,7 +107,7 @@ typedef struct
     uint16_t numHolds;
 } UjMonitor;
 
-typedef struct UjClass
+struct UjClass
 {
     struct UjClass *nextClass;
 
@@ -150,9 +150,9 @@ typedef struct UjClass
                         // data from superclasses)
 
     uint8_t data[];
-} UjClass;
+};
 
-typedef struct UjInstance // must begin with UjClass*
+struct UjInstance // must begin with UjClass*
 {
     UjClass *cls;
 
@@ -161,7 +161,7 @@ typedef struct UjInstance // must begin with UjClass*
 #endif
 
     uint8_t data[]; // instance data ( array of elements such as: {u8 type, u8 data[]} )
-} UjInstance;
+};
 
 // if a chunk in heap is not an object, its "cls" field is NULL, and the next 8
 // bits explain what it is
@@ -177,7 +177,7 @@ typedef struct UjArray // must begin with UjClass*
     uint8_t data[];
 } UjArray;
 
-typedef struct UjThread
+struct UjThread
 {
     HANDLE nextThread;
 
@@ -202,7 +202,7 @@ typedef struct UjThread
     uint16_t spLimit; // also used for "isPtr"
     uint16_t localsBase;
     uintptr_t stack[];
-} UjThread;
+};
 
 #define STR_EQ_PAR_TYPE_PTR  0 // len, const char*
 #define STR_EQ_PAR_TYPE_REF2 1 //@ (t->cls).const(@((t->cls).const(idx) + offset))

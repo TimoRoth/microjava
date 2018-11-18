@@ -14,6 +14,8 @@ DEVELHELP ?= 1
 # Change this to 0 show compiler invocation lines by default:
 QUIET ?= 1
 
+FEATURES_REQUIRED += periph_gpio
+
 # Java to UJC target
 EXTERNAL_MODULE_DIRS += $(CURDIR)/java_gen
 USEMODULE += java_gen

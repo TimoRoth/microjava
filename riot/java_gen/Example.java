@@ -1,27 +1,7 @@
-public class Example implements Runnable {
-	private int del;
-
-	public Example(int delaynum) {
-
-		del = delaynum * 234;	//approx in centiseconds
-	}
-
-	public void run(){
-
-		int v = del;
-		printString(toString(v));
-		printString("\nDas ist ein Test\n");
-	}
-
-	public static void printString(String s) {
-
-		int i, L = s.Xlen_();			//we cheat by not claling string methods - they are slow
-
-		for(i = 0; i < L; i++) uj.lang.RT.consolePut((char)s.XbyteAt_(i));
-	}
-
-	public static String toString(int v) {
-
+public class Example
+{
+	public static String toString(int v)
+	{
 		int t = v;
 		int len = 0;
 		byte [] ret;
@@ -51,21 +31,9 @@ public class Example implements Runnable {
 	}
 
 	public static void main() {
-		String s = "aefsdfsdfg12423542435\n";
-
-		Example ct = new Example(RIOT.printString("Hallo Print String!"));
-		ct.run();
-
-		printString(s);
-
-		s = RIOT.getSomeString();
-
-		RIOT.sayHello();
-
-		RIOT.printString(s);
-
-		RIOT.printString(toString(RIOT.getSomeString().Xlen_()));
-
-		RIOT.printString("Umlaut test: öäüß");
+		if (GPIO.init(GPIO.pin(0, 1), GPIO.OUT))
+			RIOT.printString("init OK");
+		else
+			RIOT.printString("init not ok");
 	}
 }

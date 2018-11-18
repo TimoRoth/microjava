@@ -1,6 +1,6 @@
 #include "long64.h"
 
-#if defined(UJ_FTR_SUPPORT_LONG) || defined(UJ_FTR_SUPPORT_DOUBLE)
+#if !defined(COMPILER_SUPPORTS_LONG_LONG) && (defined(UJ_FTR_SUPPORT_LONG) || defined(UJ_FTR_SUPPORT_DOUBLE))
 
 UInt64 u64_from_halves(uint32_t hi, uint32_t lo) {
     UInt64 r;

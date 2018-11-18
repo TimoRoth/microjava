@@ -79,7 +79,7 @@ uint32_t ujArrayGetInt(uint32_t arr, uint32_t idx);
 void *ujArrayRawAccessStart(uint32_t arr);
 void ujArrayRawAccessFinish(uint32_t arr);
 uint16_t ujStringGetBytes(HANDLE handle, uint8_t *buf, uint32_t bufsize);
-uint8_t ujStringFromBytes(HANDLE *handleP, uint8_t *str, uint16_t len); // if len is 0 str is assumed to be 0 terminated
+uint8_t ujStringFromBytes(HANDLE *handleP, const uint8_t *str, uint16_t len); // if len is 0 str is assumed to be 0 terminated
 
 // native classes
 

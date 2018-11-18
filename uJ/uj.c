@@ -1935,7 +1935,7 @@ uint16_t ujStringGetBytes(HANDLE handle, uint8_t *buf, uint32_t bufsize)
     return sz + 1;
 }
 
-uint8_t ujStringFromBytes(HANDLE *handleP, uint8_t *str, uint16_t len)
+uint8_t ujStringFromBytes(HANDLE *handleP, const uint8_t *str, uint16_t len)
 {
     HANDLE stringData;
     uint8_t ofst, ret;

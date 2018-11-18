@@ -4,11 +4,11 @@ JAVAC    ?= javac
 TOBIN    ?= $(CURDIR)/tobin.sh
 CLASSCVT ?= $(CURDIR)/../classCvt/classCvt
 
-RT_R_SOURCES = $(shell ls $(CURDIR)/RT/real/**/*.java)
+RT_R_SOURCES = $(shell ls $(CURDIR)/RT{,_tmp}/real/**/*.java)
 RT_R_CLASSES = $(RT_R_SOURCES:.java=.rtclass)
 RT_R_UJC     = $(RT_R_SOURCES:.java=.rtujc)
 
-RT_F_SOURCES = $(shell ls $(CURDIR)/RT/fake/**/*.java)
+RT_F_SOURCES = $(shell ls $(CURDIR)/RT{,_tmp}/fake/**/*.java)
 RT_F_CLASSES = $(RT_F_SOURCES:.java=.rtclass)
 RT_F_UJC     = $(RT_F_SOURCES:.java=.rtujc)
 
@@ -25,10 +25,10 @@ ifeq ($(CLASSCVT),$(CURDIR)/../classCvt/classCvt)
 endif
 
 %.class: %.java runtime
-	"$(JAVAC)" -source 1.6 -target 1.6 -classpath "$(CURDIR)/RT/real:$(CURDIR)/RT/fake:$(CURDIR)" "$<"
+	"$(JAVAC)" -source 1.6 -target 1.6 -classpath "$(CURDIR)/RT/real:$(CURDIR)/RT/fake:$(CURDIR)/RT_tmp/real:$(CURDIR)/RT_tmp/fake:$(CURDIR)" "$<"
 
 %.rtclass: %.java
-	"$(JAVAC)" -source 1.6 -target 1.6 -classpath "$(CURDIR)/RT/real:$(CURDIR)/RT/fake:$(CURDIR)" "$<"
+	"$(JAVAC)" -source 1.6 -target 1.6 -classpath "$(CURDIR)/RT/real:$(CURDIR)/RT/fake:$(CURDIR)/RT_tmp/real:$(CURDIR)/RT_tmp/fake:$(CURDIR)" "$<"
 	cp "$(patsubst %.rtclass,%.class,$@)" "$@"
 
 %.rtujc: %.rtclass classCvt

@@ -9,5 +9,6 @@ BuildEnv/*.ujc
 BuildEnv/*.raw
 BuildEnv/RT/**/*.rtujc
 BuildEnv/RT/**/*.rtclass
+BuildEnv/RT_tmp/
 riot/bin/
 riot/java_gen/*.c

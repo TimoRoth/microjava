@@ -900,6 +900,15 @@ HANDLE ujThreadCreate(uint16_t stackSz)
     return handle;
 }
 
+_UNUSED_ static void ujPrivPrintStrEqualParam(UjPrvStrEqualParam *param)
+{
+    uint16_t L = ujThreadPrvStrEqualGetLen(param);
+    for(uint16_t i = 0; i < L; i++) {
+        printf("%c", (char)ujThreadPrvStrEqualGetChar(param, i));
+    }
+    printf("\n");
+}
+
 static UInt24 ujThreadPrvGetMethodAddr(UjClass **clsP, UjPrvStrEqualParam *name, UjPrvStrEqualParam *type,
                                        uint16_t flagsAnd, uint16_t flagsEqEx,
                                        uint16_t *flagsP) // return offset into class file where code_attribute begins
@@ -1633,7 +1642,7 @@ static uint8_t ujThreadPushRetInfo(UjThread *t) // push all that we need to come
     if (t->flags.access.hasInst) {
         ujThreadPrvPushRef(t, t->instH); // needed to keep ref to the obj
     } else {
-        ujThreadPrvPushRef(t, (uintptr_t)t->cls);
+        ujThreadPrvPushInt(t, (uintptr_t)t->cls);
     }
 
     combined = t->localsBase;
@@ -2258,9 +2267,16 @@ static uint8_t ujThreadPrvInvoke(UjThread *t, _UNUSED_ HANDLE threadH, uint8_t n
     case UJ_INVOKE_SPECIAL:   // TODO: can access private funcs
     case UJ_INVOKE_INTERFACE: // XXX: is this correct?
 
-        objRef = (HANDLE)ujThreadPrvPeek(t, nameIdx - 1);
-        if (!objRef)
+        // TODO: Doing "somestring " + 1 puts an int on the stack where an object is expected
+        /* if (!ujThreadPrvBitGet(t, t->spBase - nameIdx)) {
+            TL("  ERR: instance is no ref\n");
             return UJ_ERR_NULL_POINTER;
+        } */
+        objRef = (HANDLE)ujThreadPrvPeek(t, nameIdx - 1);
+        if (!objRef) {
+            TL(" ERR: instance is NULL\n");
+            return UJ_ERR_NULL_POINTER;
+        }
         if (invokeType != UJ_INVOKE_SPECIAL) { // dynamic binding
 
             UjInstance *inst = (UjInstance *)ujHeapHandleIsLocked(objRef);

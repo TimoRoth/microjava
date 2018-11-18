@@ -21,7 +21,7 @@ all: runtime $(LOCAL_C)
 
 classCvt:
 ifeq ($(CLASSCVT),$(CURDIR)/../classCvt/classCvt)
-	$(MAKE) -C $(CURDIR)/../classCvt
+	"$(MAKE)" -C $(CURDIR)/../classCvt
 endif
 
 %.class: %.java runtime

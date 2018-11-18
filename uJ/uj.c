@@ -4903,8 +4903,8 @@ static uint8_t ujNat_MiniString_init(UjThread *t, UjClass *cls)
 
 static uint8_t ujNat_RT_consolePut(UjThread *t, _UNUSED_ UjClass *myCls)
 {
-    _UNUSED_ char c = ujThreadPop(t);
-    ujLog("%c", c);
+    char c = ujThreadPop(t);
+    printf("%c", c);
 
     return UJ_ERR_NONE;
 }

@@ -7,12 +7,6 @@
 // callback types
 uint8_t ujReadClassByte(void *userData, uint32_t offset);
 
-#ifdef UJ_LOG
-void ujLog(const char *fmtStr, ...);
-#else
-#define ujLog(...)
-#endif
-
 // api
 
 #define UJ_DEFAULT_STACK_SIZE 256

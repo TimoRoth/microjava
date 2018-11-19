@@ -1291,8 +1291,7 @@ static bool ujThreadPrvDup(UjThread *t, int8_t howManyEx, int8_t howFarBelow) //
 
                     ABGHCDEFGH	= AB GH CDEF GH
 
-            we need to make space for "howMany" items by shifting "howMany +
-       howFarBelow" items up "howMany" spots
+            we need to make space for "howMany" items by shifting "howMany + howFarBelow" items up "howMany" spots
     */
 
     uint16_t src;
@@ -1302,8 +1301,7 @@ static bool ujThreadPrvDup(UjThread *t, int8_t howManyEx, int8_t howFarBelow) //
 
     // step 0: verify stack has space for "howMany" extra elements
 
-    TL(" dup %d %d below%s sp=%u\n", howMany, howFarBelow,
-       (howManyEx & DUP_FLAG_DONT_COPY) ? " (just shift)" : "", t->spBase);
+    TL(" dup %d %d below%s sp=%u\n", howMany, howFarBelow, (howManyEx & DUP_FLAG_DONT_COPY) ? " (just shift)" : "", t->spBase);
 
     if (t->spBase + howMany > t->spLimit)
         return false;
@@ -1336,7 +1334,6 @@ static bool ujThreadPrvDup(UjThread *t, int8_t howManyEx, int8_t howFarBelow) //
                 ujThreadPrvBitSet(t, dst);
             else
                 ujThreadPrvBitClear(t, dst);
-            ujThreadPrvBitClear(t, src);
             t->stack[dst] = t->stack[src];
             dst++;
             src++;
@@ -2244,9 +2241,7 @@ static uint8_t ujThreadPrvInvoke(UjThread *t, _UNUSED_ HANDLE threadH, uint8_t n
 
                 if (ret)
                     nameIdx++;
-                while (len-- && ujThreadPrvFetchClassByte(t, addr++) !=
-                                    JAVA_TYPE_OBJ_END)
-                    ;
+                while (len-- && ujThreadPrvFetchClassByte(t, addr++) != JAVA_TYPE_OBJ_END);
                 break;
 
             case ')': // done
@@ -2267,11 +2262,11 @@ static uint8_t ujThreadPrvInvoke(UjThread *t, _UNUSED_ HANDLE threadH, uint8_t n
     case UJ_INVOKE_SPECIAL:   // TODO: can access private funcs
     case UJ_INVOKE_INTERFACE: // XXX: is this correct?
 
-        // TODO: Doing "somestring " + 1 puts an int on the stack where an object is expected
-        /* if (!ujThreadPrvBitGet(t, t->spBase - nameIdx)) {
+        if (!ujThreadPrvBitGet(t, t->spBase - nameIdx)) {
+            // TODO: this can happen if something takes an Object but gets an int. Maybe convert for them somehow?
             TL("  ERR: instance is no ref\n");
             return UJ_ERR_NULL_POINTER;
-        } */
+        }
         objRef = (HANDLE)ujThreadPrvPeek(t, nameIdx - 1);
         if (!objRef) {
             TL(" ERR: instance is NULL\n");

@@ -3,6 +3,7 @@
 #include <uJ/uj.h>
 
 #include "nat_classes.h"
+#include "events.h"
 
 
 static uint8_t natGPIO_pin(UjThread* t, UjClass* cls)
@@ -19,6 +20,54 @@ static uint8_t natGPIO_pin(UjThread* t, UjClass* cls)
     return UJ_ERR_NONE;
 }
 
+static int convert_gpio_mode(int mode)
+{
+    // This needs to be translated, as java cannot see board specific constants.
+    switch(mode)
+    {
+    case 1:
+        return GPIO_IN;
+    case 2:
+        return GPIO_IN_PD;
+    case 3:
+        return GPIO_IN_PU;
+    case 4:
+        return GPIO_OUT;
+    case 5:
+        return GPIO_OD;
+    case 6:
+        return GPIO_OD_PU;
+    default:
+        printf("Invalid GPIO mode %d\n", mode);
+        return -1;
+    }
+}
+
+#ifdef MODULE_PERIPH_GPIO_IRQ
+static int convert_gpio_flank(int mode)
+{
+    switch(mode)
+    {
+    case 1:
+        return GPIO_FALLING;
+    case 2:
+        return GPIO_RISING;
+    case 3:
+        return GPIO_BOTH;
+    default:
+        printf("Invalid GPIO flank mode %d\n", mode);
+        return -1;
+    }
+}
+
+static void gpio_int_cb(void *arg)
+{
+    int gpio_pin = (intptr_t)arg;
+
+    post_event_i(EVT_GPIO, gpio_pin);
+}
+#endif
+
 static uint8_t natGPIO_init(UjThread* t, UjClass* cls)
 {
     (void)cls;
@@ -26,36 +75,75 @@ static uint8_t natGPIO_init(UjThread* t, UjClass* cls)
     int mode = ujThreadPop(t);
     int gpio_pin = ujThreadPop(t);
 
-    // This needs to be translated, as java cannot see board specific constants.
-    switch(mode)
-    {
-    case 1:
-        mode = GPIO_IN;
-        break;
-    case 2:
-        mode = GPIO_IN_PD;
-        break;
-    case 3:
-        mode = GPIO_IN_PU;
-        break;
-    case 4:
-        mode = GPIO_OUT;
-        break;
-    case 5:
-        mode = GPIO_OD;
-        break;
-    case 6:
-        mode = GPIO_OD_PU;
-        break;
-    default:
-        printf("Invalid GPIO mode %d\n", mode);
+    mode = convert_gpio_mode(mode);
+    if (mode < 0)
         return UJ_ERR_INTERNAL;
-    }
 
     int res = gpio_init(gpio_pin, mode);
 
     if (!ujThreadPush(t, res ? false : true, false))
         return UJ_ERR_STACK_SPACE;
+
+    return UJ_ERR_NONE;
+}
+
+static uint8_t natGPIO_init_int(UjThread* t, UjClass* cls)
+{
+    (void)cls;
+
+    int flank = ujThreadPop(t);
+    int mode = ujThreadPop(t);
+    int gpio_pin = ujThreadPop(t);
+    int res = 0;
+
+#ifdef MODULE_PERIPH_GPIO_IRQ
+    mode = convert_gpio_mode(mode);
+    if (mode < 0)
+        return UJ_ERR_INTERNAL;
+
+    flank = convert_gpio_flank(flank);
+    if (flank < 0)
+        return UJ_ERR_INTERNAL;
+
+    res = gpio_init_int(gpio_pin, mode, flank, &gpio_int_cb, (void*)(intptr_t)gpio_pin);
+#else
+    (void)gpio_pin;
+    (void)mode;
+    (void)flank;
+#endif
+
+    if (!ujThreadPush(t, res ? false : true, false))
+        return UJ_ERR_STACK_SPACE;
+
+    return UJ_ERR_NONE;
+}
+
+static uint8_t natGPIO_irq_disable(UjThread* t, UjClass* cls)
+{
+    (void)cls;
+
+    int gpio_pin = ujThreadPop(t);
+
+#ifdef MODULE_PERIPH_GPIO_IRQ
+    gpio_irq_disable(gpio_pin);
+#else
+    (void)gpio_pin;
+#endif
+
+    return UJ_ERR_NONE;
+}
+
+static uint8_t natGPIO_irq_enable(UjThread* t, UjClass* cls)
+{
+    (void)cls;
+
+    int gpio_pin = ujThreadPop(t);
+
+#ifdef MODULE_PERIPH_GPIO_IRQ
+    gpio_irq_enable(gpio_pin);
+#else
+    (void)gpio_pin;
+#endif
 
     return UJ_ERR_NONE;
 }
@@ -131,6 +219,27 @@ static const UjNativeMethod nativeCls_GPIO_methods[] = {
         .flags = JAVA_ACC_PUBLIC | JAVA_ACC_NATIVE | JAVA_ACC_STATIC,
 
         .func = natGPIO_init,
+    },
+    {
+        .name = "init_int",
+        .type = "(III)Z",
+        .flags = JAVA_ACC_PUBLIC | JAVA_ACC_NATIVE | JAVA_ACC_STATIC,
+
+        .func = natGPIO_init_int,
+    },
+    {
+        .name = "irq_disable",
+        .type = "(I)V",
+        .flags = JAVA_ACC_PUBLIC | JAVA_ACC_NATIVE | JAVA_ACC_STATIC,
+
+        .func = natGPIO_irq_disable,
+    },
+    {
+        .name = "irq_enable",
+        .type = "(I)V",
+        .flags = JAVA_ACC_PUBLIC | JAVA_ACC_NATIVE | JAVA_ACC_STATIC,
+
+        .func = natGPIO_irq_enable,
     },
     {
         .name = "clear",

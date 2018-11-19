@@ -1,7 +1,10 @@
+#include <xtimer.h>
+
 #include <uJ/uj.h>
 
 #include "events.h"
 #include "nat_classes.h"
+
 
 static uint8_t natRIOT_printString(UjThread* t, UjClass* cls)
 {
@@ -81,6 +84,17 @@ static uint8_t natRIOT_getEventParamStr(UjThread* t, UjClass* cls)
     return UJ_ERR_NONE;
 }
 
+static uint8_t natRIOT_usleep(UjThread* t, UjClass* cls)
+{
+    (void)cls;
+
+    int usec = ujThreadPop(t);
+
+    xtimer_usleep(usec);
+
+    return UJ_ERR_NONE;
+}
+
 static const UjNativeMethod nativeCls_RIOT_methods[] = {
     {
         .name = "printString",
@@ -109,6 +123,13 @@ static const UjNativeMethod nativeCls_RIOT_methods[] = {
         .flags = JAVA_ACC_PUBLIC | JAVA_ACC_NATIVE | JAVA_ACC_STATIC,
 
         .func = natRIOT_getEventParamStr,
+    },
+    {
+        .name = "usleep",
+        .type = "(I)V",
+        .flags = JAVA_ACC_PUBLIC | JAVA_ACC_NATIVE | JAVA_ACC_STATIC,
+
+        .func = natRIOT_usleep,
     },
 };
 

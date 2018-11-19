@@ -8,4 +8,6 @@ public class RIOT {
     public static int waitEvent(int timeout_us) { return 0; }
     public static int getEventParam(int idx) { return 0; };
     public static String getEventParamStr(int idx) { return ""; };
+
+    public static void usleep(int usec) {}
 }

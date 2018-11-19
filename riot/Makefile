@@ -15,7 +15,8 @@ DEVELHELP ?= 1
 QUIET ?= 1
 
 FEATURES_REQUIRED += periph_gpio
-USEMODULE += sema
+FEATURES_OPTIONAL += periph_gpio_irq
+USEMODULE += sema xtimer
 
 # Java to UJC target
 EXTERNAL_MODULE_DIRS += $(CURDIR)/java_gen

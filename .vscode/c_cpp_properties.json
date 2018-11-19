@@ -10,7 +10,7 @@
             "defines": [
                 "UJ_LOG", "UJ_FTR_SUPPORT_UJC_FORMAT", "UJ_OPT_CLASS_SEARCH", "UJ_OPT_RAM_STRINGS",
                 "UJ_FTR_STRING_FEATURES", "UJ_FTR_SYNCHRONIZATION", "UJ_FTR_SUPPORT_EXCEPTIONS",
-                "UJ_DBG_HELPERS", "DEBUG_HEAP", "UJ_HEAP_SZ=4096"
+                "UJ_DBG_HELPERS", "DEBUG_HEAP", "UJ_HEAP_SZ=4096", "MODULE_PERIPH_GPIO_IRQ"
             ],
             "cStandard": "c11",
             "cppStandard": "c++17",

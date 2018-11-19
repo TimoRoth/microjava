@@ -31,12 +31,17 @@ public class Example
 	}
 
 	public static void main() {
-		int i = -1;
-		RIOT.printString("Hi :)" + 1);
+		RIOT.printString("Hi :)");
+
+		int pin = GPIO.pin(1, 12); // Port B12 on bluepill
+
+		if (!GPIO.init_int(pin, GPIO.IN_PD, GPIO.RISING))
+			RIOT.printString("GPIO init failed");
+
+		RIOT.printString("Waiting for GPIO events from pin " + toString(pin));
 
 		while (true) {
-			int eventId = RIOT.waitEvent(1 * 1000000);
-			RIOT.printString("Hmm: " + toString(eventId));
+			int eventId = RIOT.waitEvent(30 * 1000000);
 			switch (eventId)
 			{
 			case RIOT.EVT_GPIO_INT:

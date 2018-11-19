@@ -31,7 +31,8 @@ public class Example
 	}
 
 	public static void main() {
-		RIOT.printString("Hi :)");
+		int i = -1;
+		RIOT.printString("Hi :)" + 1);
 
 		while (true) {
 			int eventId = RIOT.waitEvent(1 * 1000000);

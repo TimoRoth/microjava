@@ -28,8 +28,7 @@
 
 #define INITIAL_NUM_HANDLES UJ_HEAP_SZ / 8 / sizeof(SIZE)
 
-static uint8_t _HEAP_ATTRS_ __attribute__((aligned(HEAP_ALIGN)))
-gHeap[UJ_HEAP_SZ];
+static uint8_t _HEAP_ATTRS_ __attribute__((aligned(HEAP_ALIGN))) gHeap[UJ_HEAP_SZ];
 
 typedef struct {
     HANDLE numHandles; // handles are at start of heap

@@ -4936,8 +4936,10 @@ static uint8_t ujNat_RT_threadCreate(UjThread *oldT, _UNUSED_ UjClass *myCls)
     inst = ujHeapHandleLock(handle);
 
     threadH = ujThreadCreate(0);
-    if (!threadH)
+    if (!threadH) {
+        ujHeapHandleRelease(handle);
         return UJ_ERR_OUT_OF_MEMORY;
+    }
 
     name.type = STR_EQ_PAR_TYPE_PTR;
     name.data.ptr.len = ujCstrlen(name.data.ptr.str = "run");
@@ -4948,8 +4950,10 @@ static uint8_t ujNat_RT_threadCreate(UjThread *oldT, _UNUSED_ UjClass *myCls)
     cls = inst->cls;
 
     addr = ujThreadPrvGetMethodAddr(&cls, &name, &type, 0, 0, NULL);
-    if (addr == UJ_PC_BAD)
+    if (addr == UJ_PC_BAD) {
+        ujHeapHandleRelease(handle);
         return UJ_ERR_METHOD_NONEXISTENT;
+    }
 
     t = ujHeapHandleLock(threadH);
     ujThreadPrvLocalStoreRef(t, 0, handle);

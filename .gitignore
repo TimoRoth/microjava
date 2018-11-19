@@ -1,6 +1,5 @@
 *.class
 *.o
-.vscode/
 uJ/uJ
 classCvt/classCvt
 BuildEnv/*.java

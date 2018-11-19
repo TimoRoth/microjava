@@ -1,0 +1,21 @@
+{
+    "configurations": [
+        {
+            "name": "default",
+            "includePath": [
+                "${workspaceFolder}/**",
+                "${workspaceFolder}/../RIOT/**",
+                "${workspaceFolder}/../../esp/esp32/xtensa-esp32-elf/**"
+            ],
+            "defines": [
+                "UJ_LOG", "UJ_FTR_SUPPORT_UJC_FORMAT", "UJ_OPT_CLASS_SEARCH", "UJ_OPT_RAM_STRINGS",
+                "UJ_FTR_STRING_FEATURES", "UJ_FTR_SYNCHRONIZATION", "UJ_FTR_SUPPORT_EXCEPTIONS",
+                "UJ_DBG_HELPERS", "DEBUG_HEAP", "UJ_HEAP_SZ=4096"
+            ],
+            "cStandard": "c11",
+            "cppStandard": "c++17",
+            "intelliSenseMode": "gcc-x64"
+        }
+    ],
+    "version": 4
+}

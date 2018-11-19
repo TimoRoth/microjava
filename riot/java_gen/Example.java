@@ -33,12 +33,17 @@ public class Example
 	public static void main() {
 		RIOT.printString("Hi :)");
 
-		int pin = GPIO.pin(1, 12); // Port B12 on bluepill
+		int pin = GPIO.pin(0, 12); // Port A12 on bluepill, GPIO12 on ESP32
 
-		if (!GPIO.init_int(pin, GPIO.IN_PD, GPIO.RISING))
+		if (!GPIO.init_int(pin, GPIO.IN_PD, GPIO.FALLING))
 			RIOT.printString("GPIO init failed");
 
-		RIOT.printString("Waiting for GPIO events from pin " + toString(pin));
+		int button_pin = GPIO.pin(0, 0); // Boot button on ESP32
+
+		if (!GPIO.init_int(button_pin, GPIO.IN_PD, GPIO.FALLING))
+			RIOT.printString("GPIO button init failed");
+
+		RIOT.printString("Waiting for GPIO events from pin " + toString(pin) + " and " + toString(button_pin));
 
 		while (true) {
 			int eventId = RIOT.waitEvent(30 * 1000000);

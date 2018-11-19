@@ -1,36 +1,7 @@
 public class Example
 {
-	public static String toString(int v)
+	public static void main()
 	{
-		int t = v;
-		int len = 0;
-		byte [] ret;
-		boolean neg = false;
-
-		if(v < 0){
-			neg = true;
-			len++;
-			v = -v;
-		}
-
-		do{
-			len++;
-			t /= 10;
-		}while(t != 0);
-
-		ret = new byte[len];
-
-		do{
-			ret[--len] = (byte)((v % 10) + (int)'0');
-			v /= 10;
-		}while(v != 0);
-
-		if(neg) ret[--len] = '-';
-
-		return new String(ret);
-	}
-
-	public static void main() {
 		RIOT.printString("Hi :)");
 
 		int pin = GPIO.pin(0, 12); // Port A12 on bluepill, GPIO12 on ESP32
@@ -51,7 +22,7 @@ public class Example
 			{
 			case RIOT.EVT_GPIO_INT:
 				int gpio_pin = RIOT.getEventParam(0);
-				RIOT.printString("GPIO Event on " + toString(gpio_pin));
+				RIOT.printString("GPIO Event on " + gpio_pin);
 				break;
 			case RIOT.EVT_EXIT:
 				RIOT.printString("bye");

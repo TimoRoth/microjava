@@ -3979,8 +3979,7 @@ instr_start:
 
     case 0xAB: // lookupswitch
 
-        instr =
-            (t->pc - t->methodStartPc) & 3; // calculate number of padding bytes
+        instr = (t->pc - t->methodStartPc) & 3; // calculate number of padding bytes
         if (instr)
             instr = 4 - instr;
 
@@ -3993,7 +3992,7 @@ instr_start:
         // now go through pairs and read each to see if we have a match
         i32 <<= 3;
         for (t32 = 0; t32 != i32; t32 += 8) {
-            if (ujThreadPrvFetchClassByte(t, t->pc + instr + 8 + t32) == v32) { // key matches
+            if (ujThreadReadBE32(t, t->pc + instr + 8 + t32) == v32) { // key matches
                 break;
             }
         }

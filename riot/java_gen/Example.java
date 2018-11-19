@@ -43,7 +43,7 @@ public class Example
 		if (!GPIO.init_int(button_pin, GPIO.IN_PD, GPIO.FALLING))
 			RIOT.printString("GPIO button init failed");
 
-		RIOT.printString("Waiting for GPIO events from pin " + toString(pin) + " and " + toString(button_pin));
+		RIOT.printString("Waiting for GPIO events from pin " + pin);
 
 		while (true) {
 			int eventId = RIOT.waitEvent(30 * 1000000);

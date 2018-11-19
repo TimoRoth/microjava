@@ -94,7 +94,7 @@ static uint8_t natGPIO_init_int(UjThread* t, UjClass* cls)
     int flank = ujThreadPop(t);
     int mode = ujThreadPop(t);
     int gpio_pin = ujThreadPop(t);
-    int res = 0;
+    int res = -1;
 
 #ifdef MODULE_PERIPH_GPIO_IRQ
     mode = convert_gpio_mode(mode);

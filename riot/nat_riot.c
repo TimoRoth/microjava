@@ -1,5 +1,6 @@
 #include <uJ/uj.h>
 
+#include "events.h"
 #include "nat_classes.h"
 
 static uint8_t natRIOT_printString(UjThread* t, UjClass* cls)
@@ -22,6 +23,64 @@ static uint8_t natRIOT_printString(UjThread* t, UjClass* cls)
     return UJ_ERR_NONE;
 }
 
+static event_t cur_event = { 0 };
+
+static uint8_t natRIOT_waitEvent(UjThread* t, UjClass* cls)
+{
+    (void)cls;
+
+    int timeout_us = ujThreadPop(t);
+
+    free_event(&cur_event);
+    int res = wait_event(timeout_us, &cur_event);
+
+    if (res == 0)
+        res = cur_event.id;
+    else
+        res = -1;
+
+    if (!ujThreadPush(t, res, false))
+        return UJ_ERR_STACK_SPACE;
+
+    return UJ_ERR_NONE;
+}
+
+static uint8_t natRIOT_getEventParam(UjThread* t, UjClass* cls)
+{
+    (void)cls;
+
+    unsigned int idx = ujThreadPop(t);
+    int res = 0;
+
+    if (cur_event.id > 0 && idx < MAX_EVENT_PARAMS && cur_event.params[idx].type == EPT_Int)
+        res = cur_event.params[idx].val.int_val;
+
+    if (!ujThreadPush(t, res, false))
+        return UJ_ERR_STACK_SPACE;
+
+    return UJ_ERR_NONE;
+}
+
+static uint8_t natRIOT_getEventParamStr(UjThread* t, UjClass* cls)
+{
+    (void)cls;
+
+    unsigned int idx = ujThreadPop(t);
+    HANDLE res = 0;
+    int ret;
+
+    if (cur_event.id > 0 && idx < MAX_EVENT_PARAMS && cur_event.params[idx].type == EPT_String && cur_event.params[idx].val.str_val.str) {
+        ret = ujStringFromBytes(&res, (uint8_t*)cur_event.params[idx].val.str_val.str, 0);
+        if (ret != UJ_ERR_NONE)
+            return ret;
+    }
+
+    if (!ujThreadPush(t, res, res ? true : false))
+        return UJ_ERR_STACK_SPACE;
+
+    return UJ_ERR_NONE;
+}
+
 static const UjNativeMethod nativeCls_RIOT_methods[] = {
     {
         .name = "printString",
@@ -29,6 +88,27 @@ static const UjNativeMethod nativeCls_RIOT_methods[] = {
         .flags = JAVA_ACC_PUBLIC | JAVA_ACC_NATIVE | JAVA_ACC_STATIC,
 
         .func = natRIOT_printString,
+    },
+    {
+        .name = "waitEvent",
+        .type = "(I)I",
+        .flags = JAVA_ACC_PUBLIC | JAVA_ACC_NATIVE | JAVA_ACC_STATIC,
+
+        .func = natRIOT_waitEvent,
+    },
+    {
+        .name = "getEventParam",
+        .type = "(I)I",
+        .flags = JAVA_ACC_PUBLIC | JAVA_ACC_NATIVE | JAVA_ACC_STATIC,
+
+        .func = natRIOT_getEventParam,
+    },
+    {
+        .name = "getEventParamStr",
+        .type = "(I)Ljava/lang/String;",
+        .flags = JAVA_ACC_PUBLIC | JAVA_ACC_NATIVE | JAVA_ACC_STATIC,
+
+        .func = natRIOT_getEventParamStr,
     },
 };
 

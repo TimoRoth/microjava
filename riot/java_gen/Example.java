@@ -31,9 +31,26 @@ public class Example
 	}
 
 	public static void main() {
-		if (GPIO.init(GPIO.pin(0, 1), GPIO.OUT))
-			RIOT.printString("init OK");
-		else
-			RIOT.printString("init not ok");
+		RIOT.printString("Hi :)");
+
+		while (true) {
+			int eventId = RIOT.waitEvent(1 * 1000000);
+			RIOT.printString("Hmm: " + toString(eventId));
+			switch (eventId)
+			{
+			case RIOT.EVT_GPIO_INT:
+				int gpio_pin = RIOT.getEventParam(0);
+				RIOT.printString("GPIO Event on " + toString(gpio_pin));
+				break;
+			case RIOT.EVT_EXIT:
+				RIOT.printString("bye");
+				return;
+			case RIOT.EVT_NONE:
+			case -1:
+				// No event occured, either timeout or spurious wakeup.
+				RIOT.printString("cycling");
+				break;
+			}
+		}
 	}
 }

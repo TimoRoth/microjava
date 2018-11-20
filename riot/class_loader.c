@@ -37,6 +37,8 @@ int loadPackedUjcClasses(UjClass **mainClass)
     int fd = -1;
     int i, sz, done, class_count, offset;
 
+    fd = vfs_open("/main/default.ujcpak", O_RDONLY, 0);
+
 #ifdef MODULE_NAT_CONSTFS
     if (fd < 0)
     {

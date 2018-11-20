@@ -2,33 +2,69 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <string.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <unistd.h>
 
+#include <vfs.h>
 #include <uJ/uj.h>
+#include <assert.h>
+
+#ifdef MODULE_NAT_CONSTFS
+#include "nat/constfs/nat_constfs.h"
+#endif
 
 #include "class_loader.h"
 
-uint8_t ujReadClassByte(void *userData, uint32_t offset)
+
+static inline uint8_t rdByte(int fd)
 {
-    uint8_t *data = (uint8_t*)userData;
-    return data[offset];
+    uint8_t res;
+    assert(vfs_read(fd, &res, 1) == 1);
+    return res;
 }
 
-int loadPackedUjcClasses(unsigned char *data, UjClass **mainClass)
+uint8_t ujReadClassByte(void *userData, uint32_t offset)
 {
-    int i, sz, done, offset, class_count;
+    int fd = ((intptr_t)userData) >> 24;
+    offset += ((intptr_t)userData) & 0xFFFFFF;
+    vfs_lseek(fd, offset, SEEK_SET);
+    return rdByte(fd);
+}
 
-    offset = 0;
+int loadPackedUjcClasses(UjClass **mainClass)
+{
+    int fd = -1;
+    int i, sz, done, class_count, offset;
+
+#ifdef MODULE_NAT_CONSTFS
+    if (fd < 0)
+    {
+        printf("Using builtin source.\n");
+        fd = vfs_open(NAT_CONSTFS_DEFAULT_PATH, O_RDONLY, 0);
+    }
+#endif
+
+    if (fd < 0)
+    {
+        printf("Failed opening java source.\n");
+        return UJ_ERR_INTERNAL;
+    }
+
+    // We pack it with the offset into a potentially 32bit pointer, so it can't use more than 8 bits.
+    assert(fd <= 0xFF);
+
     class_count = 0;
     for (;;)
     {
-        sz  = data[offset++] << 16;
-        sz |= data[offset++] <<  8;
-        sz |= data[offset++] <<  0;
+        sz  = rdByte(fd) << 16;
+        sz |= rdByte(fd) <<  8;
+        sz |= rdByte(fd) <<  0;
 
         if (!sz)
             break;
 
-        offset += sz;
+        vfs_lseek(fd, sz, SEEK_CUR);
         class_count += 1;
     }
 
@@ -41,9 +77,13 @@ int loadPackedUjcClasses(unsigned char *data, UjClass **mainClass)
 
         for (i = 0, offset = 0; i < class_count; i++, offset += sz)
         {
-            sz  = data[offset++] << 16;
-            sz |= data[offset++] <<  8;
-            sz |= data[offset++] <<  0;
+            // ujLoadClass _will_ mess up our file position, so we need to keep track manually.
+            vfs_lseek(fd, offset, SEEK_SET);
+
+            sz  = rdByte(fd) << 16;
+            sz |= rdByte(fd) <<  8;
+            sz |= rdByte(fd) <<  0;
+            offset += 3;
 
             if (!sz)
                 break;
@@ -51,7 +91,7 @@ int loadPackedUjcClasses(unsigned char *data, UjClass **mainClass)
             if (class_loaded[i])
                 continue;
 
-            int res = ujLoadClass(data + offset, i ? NULL : mainClass);
+            int res = ujLoadClass((void*)(intptr_t)((fd << 24) | (offset & 0xFFFFFF)), i ? NULL : mainClass);
 
             if (res == UJ_ERR_NONE)
             {

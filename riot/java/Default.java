@@ -1,4 +1,4 @@
-public class Example
+public class Default
 {
 	public static void main()
 	{

@@ -4,26 +4,58 @@
 #include <stdio.h>
 #include <stdarg.h>
 
+#include <periph/pm.h>
+
 #include <uJ/uj.h>
+
+#ifdef MODULE_NAT_CONSTFS
+#include "nat/constfs/nat_constfs.h"
+#endif
+#ifdef MODULE_NAT_ESP32
+#include "nat/esp32/nat_esp32.h"
+#endif
+#ifdef MODULE_NAT_ESP8266
+#include "nat/esp8266/nat_esp8266.h"
+#endif
+#ifdef MODULE_NAT_ESP_SPIFFS
+#include "nat/esp_spiffs/nat_esp_spiffs.h"
+#endif
 
 #include "nat_classes.h"
 #include "class_loader.h"
 
-extern unsigned char ujc_Example[];
-
-void ujLog(const char *fmtStr, ...)
+static int init_hardware(void)
 {
-    va_list va;
+    int res = 0;
 
-    va_start(va, fmtStr);
-    vfprintf(stdout, fmtStr, va);
-    fflush(stdout);
-    va_end(va);
+#ifdef MODULE_NAT_CONSTFS
+    res = init_nat_constfs();
+    if (res)
+        return res;
+#endif
+
+#ifdef MODULE_NAT_ESP32
+    res = init_nat_esp32();
+    if (res)
+        return res;
+#endif
+
+#ifdef MODULE_NAT_ESP8266
+    res = init_nat_esp8266();
+    if (res)
+        return res;
+#endif
+
+#ifdef MODULE_NAT_ESP_SPIFFS
+    res = init_nat_esp_spiffs();
+    if (res)
+        return res;
+#endif
+
+    return res;
 }
 
-
-
-int main(void)
+static int run_uj(void)
 {
     UjClass *objectClass = NULL;
     UjClass *mainClass = NULL;
@@ -40,7 +72,7 @@ int main(void)
     if (res != UJ_ERR_NONE)
         return -1;
 
-    res = loadPackedUjcClasses(ujc_Example, &mainClass);
+    res = loadPackedUjcClasses(&mainClass);
     if (res != UJ_ERR_NONE)
     {
         return -1;
@@ -53,6 +85,7 @@ int main(void)
         return -1;
     }
 
+    // Half of the heap will be used as stack
     HANDLE threadH = ujThreadCreate(UJ_HEAP_SZ / 2);
     if (!threadH)
     {
@@ -77,6 +110,21 @@ int main(void)
     }
 
     printf("Program ended\n");
+
+    return 0;
+}
+
+int main(void)
+{
+    int res;
+
+    res = init_hardware();
+    if (res != 0)
+        return res;
+
+    run_uj();
+
+    pm_reboot();
 
     return 0;
 }

@@ -1,3 +1,3 @@
 #pragma once
 
-int loadPackedUjcClasses(unsigned char *data, UjClass **mainClass);
+int loadPackedUjcClasses(UjClass **mainClass);

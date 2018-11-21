@@ -64,7 +64,9 @@ static void gpio_int_cb(void *arg)
 {
     int gpio_pin = (intptr_t)arg;
 
-    post_event(make_event_i(EVT_GPIO, gpio_pin));
+    int res = post_event(make_event_i(EVT_GPIO, gpio_pin));
+    if (res < 0)
+        printf("Failed posting GPIO event for %d: %d\n", gpio_pin, res);
 }
 #endif
 

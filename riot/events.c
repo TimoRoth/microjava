@@ -46,6 +46,11 @@ void free_event(event_t **eventP)
 
 event_t *wait_event(int timeout_us)
 {
+    if (thread_getpid() != event_thread_pid) {
+        printf("Wait from invalid thread!\n");
+        return NULL;
+    }
+
     printf("Waiting event for %d us\n", timeout_us);
 
     int sres;

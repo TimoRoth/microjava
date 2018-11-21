@@ -44,7 +44,7 @@ ifneq (,$(findstring esp32,$(BOARD)))
   USEMODULE += nat_esp32
 
   CFLAGS += "-DCONFIG_WIFI_STA_SSID=\"$(STA_SSID)\"" "-DCONFIG_WIFI_STA_PASSWORD=\"$(STA_PASSWORD)\""
-  USEMODULE += esp_wifi gnrc_ipv6_default gnrc_icmpv6_echo
+  USEMODULE += esp_wifi auto_init_gnrc_netif gnrc_ipv6_default gnrc_icmpv6_echo
 
   EXTERNAL_MODULE_DIRS += $(CURDIR)/nat/esp_spiffs
   USEMODULE += esp_spiffs mtd spiffs nat_esp_spiffs
@@ -55,7 +55,7 @@ else ifneq (,$(findstring wittycloud,$(BOARD))$(findstring esp8266,$(BOARD)))
   USEMODULE += nat_esp8266
 
   CFLAGS += "-DESP_NOW_SOFT_AP_PASS=\"$(STA_PASSWORD)\""
-  USEMODULE += esp_now gnrc_ipv6_default gnrc_icmpv6_echo
+  USEMODULE += esp_now auto_init_gnrc_netif gnrc_ipv6_default gnrc_icmpv6_echo
 
   EXTERNAL_MODULE_DIRS += $(CURDIR)/nat/esp_spiffs
   USEMODULE += esp_spiffs mtd spiffs nat_esp_spiffs

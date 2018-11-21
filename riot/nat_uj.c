@@ -39,6 +39,16 @@ static int loadPackedUjcClasses(UjClass **mainClass)
     int fd = -1;
     int i, sz, done, class_count, offset;
 
+    fd = vfs_open("/main/update.ujcpak", O_RDONLY, 0);
+    if (fd >= 0)
+    {
+        vfs_close(fd);
+        printf("Code Update detected, applying.\n");
+        vfs_unlink("/main/default.ujcpak");
+        if (vfs_rename("/main/update.ujcpak", "/main/default.ujcpak") < 0)
+            printf("Update failed.\n");
+    }
+
     fd = vfs_open("/main/default.ujcpak", O_RDONLY, 0);
 
 #ifdef MODULE_NAT_CONSTFS

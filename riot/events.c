@@ -1,178 +1,193 @@
 #include <stdlib.h>
+#include <string.h>
 #include <stdio.h>
 
 #include <ringbuffer.h>
+#include <xtimer.h>
 #include <sema.h>
+#include <msg.h>
 
 #include "events.h"
 
-#define MAX_EVENT_COUNT 32
 
-static mutex_t event_rbuf_mutex = MUTEX_INIT;
-static char event_rbuf_buf[MAX_EVENT_COUNT * sizeof(event_t)];
-static ringbuffer_t event_rbuf = RINGBUFFER_INIT(event_rbuf_buf);
-static sema_t event_rbuf_sema = SEMA_CREATE_LOCKED();
+static msg_t msg_queue[1 << 5]; // size must be power of two
+static kernel_pid_t event_thread_pid = -1;
+static msg_t last_msg = { 0 };
 
+static event_t *make_event_raw(uint8_t id, uint8_t num_params);
 
-void free_event(event_t *event)
+void init_events(void)
 {
+    msg_init_queue(msg_queue, sizeof(msg_queue) / sizeof(msg_queue[0]));
+    event_thread_pid = thread_getpid();
+}
+
+kernel_pid_t get_event_pid(void)
+{
+    return event_thread_pid;
+}
+
+void free_event(event_t **eventP)
+{
+    event_t *event = *eventP;
+
     if (!event)
         return;
 
-    for (int i = 0; i < MAX_EVENT_PARAMS; i++) {
+    for (int i = 0; i < event->num_params; i++) {
         if (event->params[i].type == EPT_String && event->params[i].val.str_val.needs_free)
             free((void*)(event->params[i].val.str_val.str));
         event->params[i].type = EPT_Null;
     }
 
-    event->id = 0;
+    free(event);
+    *eventP = NULL;
 }
 
-int wait_event(int timeout_us, event_t *event)
+event_t *wait_event(int timeout_us)
 {
     printf("Waiting event for %d us\n", timeout_us);
 
     int sres;
-    if (timeout_us >= 0)
-        sres = sema_wait_timed(&event_rbuf_sema, timeout_us);
+    if (timeout_us == 0)
+        sres = (msg_try_receive(&last_msg) < 0) ? 0 : 1;
+    else if (timeout_us > 0)
+        sres = (xtimer_msg_receive_timeout(&last_msg, timeout_us) < 0) ? 0 : 1;
     else
-        sres = sema_wait(&event_rbuf_sema);
+        sres = msg_receive(&last_msg);
 
-    if (sres != 0)
-        return -1;
+    if (!sres)
+        return NULL;
 
-    mutex_lock(&event_rbuf_mutex);
+    event_t *event = NULL;
 
-    if (event_rbuf.avail < sizeof(event_t)) {
-        mutex_unlock(&event_rbuf_mutex);
-        return -1;
+    if (last_msg.type == EVT_MSG_TYPE) {
+        event = last_msg.content.ptr;
+    } else {
+        event = make_event_raw(EVT_GENERIC, 1);
+        if (!event)
+            return NULL;
+
+        event->params[0].type = EPT_Raw;
+        event->params[0].val.raw_val.type = last_msg.type;
+        memcpy(&(event->params[0].val.raw_val.content), &(last_msg.content), sizeof(last_msg.content));
     }
 
-    ringbuffer_get(&event_rbuf, (char*)event, sizeof(event_t));
+    event->sender_pid = last_msg.sender_pid;
 
-    mutex_unlock(&event_rbuf_mutex);
-
-    return 0;
+    return event;
 }
 
 int post_event(event_t *event)
 {
-    mutex_lock(&event_rbuf_mutex);
+    msg_t msg = {
+        .type = EVT_MSG_TYPE,
+        .content.ptr = event,
+    };
 
-    if (event_rbuf.size - event_rbuf.avail < sizeof(event_t)) {
-        mutex_unlock(&event_rbuf_mutex);
-        printf("Event buf overflow!\n");
-        return -1;
-    }
+    int res = msg_send(&msg, event_thread_pid);
 
-    ringbuffer_add(&event_rbuf, (char*)event, sizeof(event_t));
-
-    mutex_unlock(&event_rbuf_mutex);
-
-    sema_post(&event_rbuf_sema);
-
-    return 0;
+    return res - 1; // msg_send returns 1 on success, 0 or -1 otherwise, so we make it so 0 is success, rest <0
 }
 
-int post_event_i(uint8_t id, int val)
+int reply_last_event(event_t *event)
 {
-    event_t event;
+    msg_t msg = {
+        .type = EVT_MSG_TYPE,
+        .content.ptr = event,
+    };
 
-    event.id = id;
+    int res = msg_reply(&last_msg, &msg);
 
-    event.params[0].type = EPT_Int;
-    event.params[0].val.int_val = val;
-
-    for (int i = 1; i < MAX_EVENT_PARAMS; i++)
-        event.params[i].type = EPT_Null;
-
-    return post_event(&event);
+    return res - 1; // similar to return of post_event
 }
 
-int post_event_ii(uint8_t id, int val1, int val2)
+static event_t *make_event_raw(uint8_t id, uint8_t num_params)
 {
-    event_t event;
-
-    event.id = id;
-
-    event.params[0].type = EPT_Int;
-    event.params[0].val.int_val = val1;
-
-    event.params[1].type = EPT_Int;
-    event.params[1].val.int_val = val2;
-
-    for (int i = 2; i < MAX_EVENT_PARAMS; i++)
-        event.params[i].type = EPT_Null;
-
-    return post_event(&event);
+    event_t *event = malloc(sizeof(event_t) + (sizeof(event_param_t) * num_params));
+    event->id = id;
+    event->num_params = num_params;
+    if (num_params)
+        event->params = (event_param_t*)(((uint8_t*)event) + sizeof(event_t));
+    else
+        event->params = NULL;
+    return event;
 }
 
-int post_event_cs(uint8_t id, const char *str)
+event_t *make_event(uint8_t id)
 {
-    event_t event;
-
-    event.id = id;
-
-    event.params[0].type = EPT_String;
-    event.params[0].val.str_val.str = str;
-    event.params[0].val.str_val.needs_free = false;
-
-    for (int i = 1; i < MAX_EVENT_PARAMS; i++)
-        event.params[i].type = EPT_Null;
-
-    return post_event(&event);
+    return make_event_raw(id, 0);
 }
 
-int post_event_s(uint8_t id, const char *str)
+event_t *make_event_i(uint8_t id, int val)
 {
-    event_t event;
+    event_t *event = make_event_raw(id, 1);
 
-    event.id = id;
+    event->params[0].type = EPT_Int;
+    event->params[0].val.int_val = val;
 
-    event.params[0].type = EPT_String;
-    event.params[0].val.str_val.str = str;
-    event.params[0].val.str_val.needs_free = true;
-
-    for (int i = 1; i < MAX_EVENT_PARAMS; i++)
-        event.params[i].type = EPT_Null;
-
-    return post_event(&event);
+    return event;
 }
 
-int post_event_csi(uint8_t id, const char *str, int val)
+event_t *make_event_ii(uint8_t id, int val1, int val2)
 {
-    event_t event;
+    event_t *event = make_event_raw(id, 2);
 
-    event.id = id;
+    event->params[0].type = EPT_Int;
+    event->params[0].val.int_val = val1;
 
-    event.params[0].type = EPT_String;
-    event.params[0].val.str_val.str = str;
-    event.params[0].val.str_val.needs_free = false;
+    event->params[1].type = EPT_Int;
+    event->params[1].val.int_val = val2;
 
-    event.params[1].type = EPT_Int;
-    event.params[1].val.int_val = val;
-
-    for (int i = 2; i < MAX_EVENT_PARAMS; i++)
-        event.params[i].type = EPT_Null;
-
-    return post_event(&event);
+    return event;
 }
 
-int post_event_si(uint8_t id, const char *str, int val)
+event_t *make_event_cs(uint8_t id, const char *str)
 {
-    event_t event;
+    event_t *event = make_event_raw(id, 1);
 
-    event.id = id;
+    event->params[0].type = EPT_String;
+    event->params[0].val.str_val.str = str;
+    event->params[0].val.str_val.needs_free = false;
 
-    event.params[0].type = EPT_String;
-    event.params[0].val.str_val.str = str;
-    event.params[0].val.str_val.needs_free = true;
+    return event;
+}
 
-    event.params[1].type = EPT_Int;
-    event.params[1].val.int_val = val;
+event_t *make_event_s(uint8_t id, const char *str)
+{
+    event_t *event = make_event_raw(id, 1);
 
-    for (int i = 2; i < MAX_EVENT_PARAMS; i++)
-        event.params[i].type = EPT_Null;
+    event->params[0].type = EPT_String;
+    event->params[0].val.str_val.str = str;
+    event->params[0].val.str_val.needs_free = true;
 
-    return post_event(&event);
+    return event;
+}
+
+event_t *make_event_csi(uint8_t id, const char *str, int val)
+{
+    event_t *event = make_event_raw(id, 2);
+
+    event->params[0].type = EPT_String;
+    event->params[0].val.str_val.str = str;
+    event->params[0].val.str_val.needs_free = false;
+
+    event->params[1].type = EPT_Int;
+    event->params[1].val.int_val = val;
+
+    return event;
+}
+
+event_t *make_event_si(uint8_t id, const char *str, int val)
+{
+    event_t *event = make_event_raw(id, 2);
+
+    event->params[0].type = EPT_String;
+    event->params[0].val.str_val.str = str;
+    event->params[0].val.str_val.needs_free = true;
+
+    event->params[1].type = EPT_Int;
+    event->params[1].val.int_val = val;
+
+    return event;
 }

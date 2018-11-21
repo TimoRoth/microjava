@@ -64,7 +64,7 @@ static void gpio_int_cb(void *arg)
 {
     int gpio_pin = (intptr_t)arg;
 
-    post_event_i(EVT_GPIO, gpio_pin);
+    post_event(make_event_i(EVT_GPIO, gpio_pin));
 }
 #endif
 

@@ -14,6 +14,7 @@
 #include "nat/constfs/nat_constfs.h"
 #endif
 
+#include "events.h"
 #include "nat_classes.h"
 #include "nat_uj.h"
 
@@ -126,6 +127,8 @@ int run_uj(void)
     UjClass *objectClass = NULL;
     UjClass *mainClass = NULL;
     int res;
+
+    init_events();
 
     res = ujInit(&objectClass);
     if (res != UJ_ERR_NONE)

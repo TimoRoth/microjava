@@ -54,13 +54,9 @@ static int init_hardware(void)
     return res;
 }
 
-static msg_t main_msg_queue[1 << 3]; // must be power of two
-
 int main(void)
 {
     int res;
-
-    msg_init_queue(main_msg_queue, sizeof(main_msg_queue) / sizeof(main_msg_queue[0]));
 
     res = init_hardware();
     if (res != 0)

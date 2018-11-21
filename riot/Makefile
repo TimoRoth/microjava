@@ -48,6 +48,8 @@ ifneq (,$(findstring esp32,$(BOARD)))
 
   EXTERNAL_MODULE_DIRS += $(CURDIR)/nat/esp_spiffs
   USEMODULE += esp_spiffs mtd spiffs nat_esp_spiffs
+
+  WITH_COAP_SUPPORT ?= 1
 else ifneq (,$(findstring wittycloud,$(BOARD))$(findstring esp8266,$(BOARD)))
   EXTERNAL_MODULE_DIRS += $(CURDIR)/nat/esp8266
   USEMODULE += nat_esp8266
@@ -57,6 +59,11 @@ else ifneq (,$(findstring wittycloud,$(BOARD))$(findstring esp8266,$(BOARD)))
 
   EXTERNAL_MODULE_DIRS += $(CURDIR)/nat/esp_spiffs
   USEMODULE += esp_spiffs mtd spiffs nat_esp_spiffs
+
+  WITH_COAP_SUPPORT ?= 1
+else ifeq (native,$(BOARD))
+  USEMODULE += gnrc_netdev_default auto_init_gnrc_netif gnrc_ipv6_default gnrc_icmpv6_echo
+  WITH_COAP_SUPPORT ?= 1
 endif
 
 EMBED_DEFAULT_JAVA ?= 1
@@ -65,10 +72,15 @@ ifneq (0,$(EMBED_DEFAULT_JAVA))
   USEMODULE += constfs nat_constfs
 endif
 
-WITH_COAP_SUPPORT ?= 1
+WITH_COAP_SUPPORT ?= 0
 ifneq (0,$(EMBED_DEFAULT_JAVA))
   EXTERNAL_MODULE_DIRS += $(CURDIR)/nat/gcoap
   USEMODULE += gcoap nat_gcoap
+endif
+
+WITH_SHELL_SUPPORT ?= 1
+ifneq (0,$(WITH_SHELL_SUPPORT))
+  USEMODULE += shell shell_commands ps
 endif
 
 include $(RIOTBASE)/Makefile.include

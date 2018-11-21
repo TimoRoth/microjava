@@ -4,8 +4,13 @@
 #include <stdio.h>
 #include <stdarg.h>
 
+#include <thread.h>
 #include <periph/pm.h>
 #include <msg.h>
+
+#ifdef MODULE_SHELL
+#include <shell.h>
+#endif
 
 #ifdef MODULE_NAT_CONSTFS
 #include "nat/constfs/nat_constfs.h"
@@ -63,6 +68,27 @@ static int init_hardware(void)
     return res;
 }
 
+char uj_stack[THREAD_STACKSIZE_MAIN];
+
+void *uj_thread(void *arg)
+{
+    (void)arg;
+
+    if (!run_uj())
+        pm_reboot();
+
+    return NULL;
+}
+
+#ifdef MODULE_SHELL
+static const shell_command_t commands[] =
+{
+    { NULL, NULL, NULL }
+};
+
+static msg_t main_msg_queue[1 << 2];
+#endif
+
 int main(void)
 {
     int res;
@@ -71,9 +97,15 @@ int main(void)
     if (res != 0)
         return res;
 
-    run_uj();
+    thread_create(uj_stack, sizeof(uj_stack),
+                  THREAD_PRIORITY_MAIN - 1, 0,
+                  uj_thread, NULL, "uj");
 
-    pm_reboot();
+#ifdef MODULE_SHELL
+    char line_buf[SHELL_DEFAULT_BUFSIZE];
+    msg_init_queue(main_msg_queue, sizeof(main_msg_queue) / sizeof(main_msg_queue[0]));
+    shell_run(commands, line_buf, sizeof(line_buf));
+#endif
 
     return 0;
 }

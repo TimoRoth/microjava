@@ -26,13 +26,13 @@ int init_nat_esp_spiffs(void)
         res = vfs_format(&flash_mount);
         if (res < 0)
         {
-            printf("Format failed.\n");
+            printf("Format failed: %d\n", res);
             return res;
         }
 
         res = vfs_mount(&flash_mount);
         if (res < 0) {
-            printf("Failed mounting flash\n");
+            printf("Failed mounting flash: %d\n", res);
             return res;
         }
     }

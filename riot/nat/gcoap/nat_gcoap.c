@@ -1,5 +1,9 @@
 #include "nat_gcoap.h"
 
+// For nanocoap. These are unused with gcoap, but make the linker happy.
+const void *coap_resources = NULL;
+const unsigned coap_resources_numof = 0;
+
 static const UjNativeMethod nativeCls_COAP_methods[] = {
     {
         .name = "pin",

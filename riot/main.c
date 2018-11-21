@@ -5,8 +5,7 @@
 #include <stdarg.h>
 
 #include <periph/pm.h>
-
-#include <uJ/uj.h>
+#include <msg.h>
 
 #ifdef MODULE_NAT_CONSTFS
 #include "nat/constfs/nat_constfs.h"
@@ -21,8 +20,8 @@
 #include "nat/esp_spiffs/nat_esp_spiffs.h"
 #endif
 
-#include "nat_classes.h"
-#include "class_loader.h"
+#include "nat_uj.h"
+
 
 static int init_hardware(void)
 {
@@ -55,68 +54,13 @@ static int init_hardware(void)
     return res;
 }
 
-static int run_uj(void)
-{
-    UjClass *objectClass = NULL;
-    UjClass *mainClass = NULL;
-    int res;
-
-    res = ujInit(&objectClass);
-    if (res != UJ_ERR_NONE)
-    {
-        printf("ujInit failed: %d\n", res);
-        return -1;
-    }
-
-    res = register_nat_all(objectClass);
-    if (res != UJ_ERR_NONE)
-        return -1;
-
-    res = loadPackedUjcClasses(&mainClass);
-    if (res != UJ_ERR_NONE)
-    {
-        return -1;
-    }
-
-    res = ujInitAllClasses();
-    if (res != UJ_ERR_NONE)
-    {
-        printf("ujInitAllClasses failed: %d\n", res);
-        return -1;
-    }
-
-    // Half of the heap will be used as stack
-    HANDLE threadH = ujThreadCreate(UJ_HEAP_SZ / 2);
-    if (!threadH)
-    {
-        printf("ujThreadCreate failed\n");
-        return -1;
-    }
-
-    res = ujThreadGoto(threadH, mainClass, "main", "()V");
-    if (res != UJ_ERR_NONE)
-    {
-        printf("ujThreadGoto failed: %d\n", res);
-        return -1;
-    }
-
-    while (ujCanRun()) {
-        res = ujInstr();
-        if (res != UJ_ERR_NONE)
-        {
-            printf("ujInstr failed: %d\n", res);
-            return -1;
-        }
-    }
-
-    printf("Program ended\n");
-
-    return 0;
-}
+static msg_t main_msg_queue[1 << 3]; // must be power of two
 
 int main(void)
 {
     int res;
+
+    msg_init_queue(main_msg_queue, sizeof(main_msg_queue) / sizeof(main_msg_queue[0]));
 
     res = init_hardware();
     if (res != 0)

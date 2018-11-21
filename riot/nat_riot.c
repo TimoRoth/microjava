@@ -1,3 +1,5 @@
+#include <stdlib.h>
+#include <string.h>
 #include <xtimer.h>
 
 #include <uJ/uj.h>
@@ -85,6 +87,54 @@ static uint8_t natRIOT_getEventParamStr(UjThread* t, UjClass* cls)
     return UJ_ERR_NONE;
 }
 
+static uint8_t natRIOT_replyEventBuf(UjThread* t, UjClass* cls)
+{
+    (void)cls;
+
+    HANDLE arrHandle = ujThreadPop(t);
+    int dataType = ujThreadPop(t);
+    int replType = ujThreadPop(t);
+
+    int numParams = 2;
+    int arrLen = 0;
+    char *databuf = NULL;
+
+    if (arrHandle) {
+        numParams += 1;
+        arrLen = ujArrayLen(arrHandle);
+        databuf = malloc(arrLen);
+        if (!databuf)
+            return UJ_ERR_OUT_OF_MEMORY;
+
+        char *data = ujArrayRawAccessStart(arrHandle);
+        memcpy(databuf, data, arrLen);
+        ujArrayRawAccessFinish(arrHandle);
+    }
+
+    event_t *event = make_event_raw(replType, numParams);
+
+    event->params[0].type = EPT_Int;
+    event->params[0].val.int_val = dataType;
+
+    event->params[1].type = EPT_Int;
+    event->params[1].val.int_val = arrLen;
+
+    if (databuf) {
+        event->params[2].type = EPT_String;
+        event->params[2].val.str_val.str = databuf;
+        event->params[2].val.str_val.needs_free = true;
+    }
+
+    int res = reply_last_event(event);
+    if (res)
+        free(databuf);
+
+    if (!ujThreadPush(t, res, res ? false : true))
+        return UJ_ERR_STACK_SPACE;
+
+    return UJ_ERR_NONE;
+}
+
 static uint8_t natRIOT_usleep(UjThread* t, UjClass* cls)
 {
     (void)cls;
@@ -124,6 +174,13 @@ static const UjNativeMethod nativeCls_RIOT_methods[] = {
         .flags = JAVA_ACC_PUBLIC | JAVA_ACC_NATIVE | JAVA_ACC_STATIC,
 
         .func = natRIOT_getEventParamStr,
+    },
+    {
+        .name = "replyEvent",
+        .type = "(II[B)Z",
+        .flags = JAVA_ACC_PUBLIC | JAVA_ACC_NATIVE | JAVA_ACC_STATIC,
+
+        .func = natRIOT_replyEventBuf,
     },
     {
         .name = "usleep",

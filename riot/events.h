@@ -20,7 +20,9 @@ typedef struct event_param_t
             const char *str;
             bool needs_free;
         } str_val;
+
         int int_val;
+
         struct {
             uint16_t type;
             union {
@@ -33,10 +35,12 @@ typedef struct event_param_t
 
 #define EVT_MSG_TYPE ((uint16_t)0x05FF)
 
-#define EVT_NONE ((uint8_t)0x00)
-#define EVT_GPIO ((uint8_t)0x01)
-#define EVT_GENERIC ((uint8_t)0xFE)
-#define EVT_EXIT ((uint8_t)0xFF)
+#define EVT_NONE       ((uint8_t)0x00)
+#define EVT_GPIO       ((uint8_t)0x01)
+#define EVT_COAP_CALL  ((uint8_t)0x02)
+#define EVT_COAP_REPLY ((uint8_t)0x03)
+#define EVT_GENERIC    ((uint8_t)0xFE)
+#define EVT_EXIT       ((uint8_t)0xFF)
 
 typedef struct event_t
 {
@@ -59,6 +63,8 @@ int post_event(event_t *event); // takes ownership of event, event must be freea
 int reply_last_event(event_t *event); // takes ownership of event, event must be freeable, 0 == success
 
 // All the make_event function return the event passed to them for convenience.
+
+event_t *make_event_raw(uint8_t id, uint8_t num_params);
 
 // For the very simple case
 event_t *make_event(uint8_t id);

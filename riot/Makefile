@@ -44,7 +44,7 @@ ifneq (,$(findstring esp32,$(BOARD)))
   USEMODULE += nat_esp32
 
   CFLAGS += "-DCONFIG_WIFI_STA_SSID=\"$(STA_SSID)\"" "-DCONFIG_WIFI_STA_PASSWORD=\"$(STA_PASSWORD)\""
-  USEMODULE += esp_wifi
+  USEMODULE += esp_wifi gnrc_ipv6_default gnrc_icmpv6_echo
 
   EXTERNAL_MODULE_DIRS += $(CURDIR)/nat/esp_spiffs
   USEMODULE += esp_spiffs mtd spiffs nat_esp_spiffs
@@ -53,7 +53,7 @@ else ifneq (,$(findstring wittycloud,$(BOARD))$(findstring esp8266,$(BOARD)))
   USEMODULE += nat_esp8266
 
   CFLAGS += "-DESP_NOW_SOFT_AP_PASS=\"$(STA_PASSWORD)\""
-  USEMODULE += esp_now
+  USEMODULE += esp_now gnrc_ipv6_default gnrc_icmpv6_echo
 
   EXTERNAL_MODULE_DIRS += $(CURDIR)/nat/esp_spiffs
   USEMODULE += esp_spiffs mtd spiffs nat_esp_spiffs
@@ -63,6 +63,12 @@ EMBED_DEFAULT_JAVA ?= 1
 ifneq (0,$(EMBED_DEFAULT_JAVA))
   EXTERNAL_MODULE_DIRS += $(CURDIR)/nat/constfs
   USEMODULE += constfs nat_constfs
+endif
+
+WITH_COAP_SUPPORT ?= 1
+ifneq (0,$(EMBED_DEFAULT_JAVA))
+  EXTERNAL_MODULE_DIRS += $(CURDIR)/nat/gcoap
+  USEMODULE += gcoap nat_gcoap
 endif
 
 include $(RIOTBASE)/Makefile.include

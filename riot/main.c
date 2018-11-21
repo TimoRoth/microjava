@@ -19,6 +19,9 @@
 #ifdef MODULE_NAT_ESP_SPIFFS
 #include "nat/esp_spiffs/nat_esp_spiffs.h"
 #endif
+#ifdef MODULE_NAT_GCOAP
+#include "nat/gcoap/nat_gcoap.h"
+#endif
 
 #include "nat_uj.h"
 
@@ -47,6 +50,12 @@ static int init_hardware(void)
 
 #ifdef MODULE_NAT_ESP_SPIFFS
     res = init_nat_esp_spiffs();
+    if (res)
+        return res;
+#endif
+
+#ifdef MODULE_NAT_GCOAP
+    res = init_nat_gcoap();
     if (res)
         return res;
 #endif

@@ -14,10 +14,11 @@ static msg_t msg_queue[1 << 5]; // size must be power of two
 static kernel_pid_t event_thread_pid = -1;
 static msg_t last_msg = { 0 };
 
-static event_t *make_event_raw(uint8_t id, uint8_t num_params);
-
 void init_events(void)
 {
+    if (event_thread_pid == thread_getpid())
+        return;
+
     msg_init_queue(msg_queue, sizeof(msg_queue) / sizeof(msg_queue[0]));
     event_thread_pid = thread_getpid();
 }
@@ -107,7 +108,7 @@ int reply_last_event(event_t *event)
     return res - 1; // similar to return of post_event
 }
 
-static event_t *make_event_raw(uint8_t id, uint8_t num_params)
+event_t *make_event_raw(uint8_t id, uint8_t num_params)
 {
     event_t *event = malloc(sizeof(event_t) + (sizeof(event_param_t) * num_params));
     event->id = id;

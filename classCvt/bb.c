@@ -3,6 +3,7 @@
 #include <string.h>
 #include <inttypes.h>
 #include "bb.h"
+#include "class.h"
 
 #define DBG		0
 
@@ -91,7 +92,16 @@ void mfree(void* ptr){
 	}
 }
 
-static BB* bbPrvDisasm(const uint8_t* code, uint32_t pos, uint32_t len){
+static void bbVerifyNewType(const char *str, uint16_t len)
+{
+	if(!strncmp("java/lang/String", str, len)) return;
+	if(!strncmp("java/lang/StringBuilder", str, len)) return;
+
+	fprintf(stderr, "ERROR: Attempting to create instance of illegal class %.*s\n", len, str);
+	exit(-77);
+}
+
+static BB* bbPrvDisasm(JavaClass *c, const uint8_t* code, uint32_t pos, uint32_t len){
 
 	uint32_t pc = pos;
 	uint32_t t1, t2, t3;
@@ -412,6 +422,23 @@ static BB* bbPrvDisasm(const uint8_t* code, uint32_t pos, uint32_t len){
 			if(DBG) fprintf(stderr, " %02X", i->bytes[j]);
 		}
 
+		if (i->type == 0xBB){
+			uint16_t offst = ((i->bytes[0] << 8) | i->bytes[1]) - 1;
+			JavaConstant *jc = c->constantPool[offst];
+			if (jc->type == JAVA_CONST_TYPE_CLASS){
+				offst = ((uint16_t*)(c->constantPool[offst] + 1))[0] - 1;
+				jc = c->constantPool[offst];
+				if (jc->type == JAVA_CONST_TYPE_STRING) {
+					JavaString *jstr = (JavaString*)(jc + 1);
+					bbVerifyNewType(jstr->data, jstr->len);
+				} else {
+					fprintf(stderr, "unknown inner type %d\n", (int)jc->type);
+				}
+			} else {
+				fprintf(stderr, "unknown type %d\n", (int)jc->type);
+			}
+		}
+
 		if(DBG) fprintf(stderr, "\n");
 	}
 
@@ -641,7 +668,7 @@ static void bbTruncate(BB* bb, uint32_t newLen){	//not not call this anytime if 
 	}
 }
 
-static void bbPrvRun(){
+static void bbPrvRun(JavaClass *c){
 
 	LLN* lli;
 	QueueNode* n;
@@ -682,7 +709,7 @@ static void bbPrvRun(){
 		}
 
 		if(lli){
-			bbNew = bbPrvDisasm(gCode, n->start, len);
+			bbNew = bbPrvDisasm(c, gCode, n->start, len);
 			llInsertAfter(lli, &bbNew->list);
 		}
 
@@ -700,7 +727,7 @@ static void bbPrvInsertAddr(uint32_t addr){
 	llInsertAfter(Q.prev, &n->list);	//inserts at end
 }
 
-void bbInit(uint8_t* code, uint32_t len){
+void bbInit(JavaClass *c, uint8_t* code, uint32_t len){
 
 	llInit(&bbList);
 	llInit(&excList);
@@ -710,7 +737,7 @@ void bbInit(uint8_t* code, uint32_t len){
 	gCodeLen = len;
 
 	bbPrvInsertAddr(0);
-	bbPrvRun();
+	bbPrvRun(c);
 
 	if(DBG){
 		LLN* lli = &bbList;
@@ -722,7 +749,7 @@ void bbInit(uint8_t* code, uint32_t len){
 	}
 }
 
-void bbAddExc(uint16_t startpc, uint16_t endpc, uint16_t handler){
+void bbAddExc(JavaClass *c, uint16_t startpc, uint16_t endpc, uint16_t handler){
 
 	ExcEntry* ee = alloc(sizeof(ExcEntry));
 
@@ -736,7 +763,7 @@ void bbAddExc(uint16_t startpc, uint16_t endpc, uint16_t handler){
 
 	llInsertAfter(excList.prev, &ee->list);	//insert at end
 
-	bbPrvRun();
+	bbPrvRun(c);
 }
 
 void bbFinishLoading(){
@@ -978,5 +1005,3 @@ void bbDestroy(){
 		mfree(ee);
 	}
 }
-
-

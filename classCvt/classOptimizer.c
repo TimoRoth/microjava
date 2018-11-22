@@ -426,11 +426,11 @@ void classOptimize(JavaClass* c){
 					if(DEBUG) dumpcode("BEFORE", attrib->data.code.code, attrib->data.code.codeLen,
 							attrib->data.code.exceptions, attrib->data.code.numExceptions);
 
-					bbInit(attrib->data.code.code, attrib->data.code.codeLen);
+					bbInit(c, attrib->data.code.code, attrib->data.code.codeLen);
 
 					for(k = 0; k < attrib->data.code.numExceptions; k++){
 
-						bbAddExc(attrib->data.code.exceptions[k].start_pc,
+						bbAddExc(c, attrib->data.code.exceptions[k].start_pc,
 								attrib->data.code.exceptions[k].end_pc,
 								attrib->data.code.exceptions[k].handler_pc);
 					}
@@ -642,11 +642,11 @@ void classOptimize(JavaClass* c){
 					if(DEBUG) dumpcode("BEFORE", attrib->data.code.code, attrib->data.code.codeLen,
 							attrib->data.code.exceptions, attrib->data.code.numExceptions);
 
-					bbInit(attrib->data.code.code, attrib->data.code.codeLen);
+					bbInit(c, attrib->data.code.code, attrib->data.code.codeLen);
 
 					for(k = 0; k < attrib->data.code.numExceptions; k++){
 
-						bbAddExc(attrib->data.code.exceptions[k].start_pc,
+						bbAddExc(c, attrib->data.code.exceptions[k].start_pc,
 								attrib->data.code.exceptions[k].end_pc,
 								attrib->data.code.exceptions[k].handler_pc);
 					}

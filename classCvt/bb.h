@@ -4,6 +4,7 @@
 struct BB;
 
 #include "common.h"
+#include "class.h"
 
 #define INSTR_TYPE_WIDE		0xC4
 #define INSTR_TYPE_TABLESWITCH	0xAA
@@ -45,10 +46,10 @@ typedef struct{
 
 
 //parse code into blocks (code pointer must remain valid after this call!)
-void bbInit(uint8_t* code, uint32_t len);
+void bbInit(JavaClass *c, uint8_t* code, uint32_t len);
 
 //add exception info
-void bbAddExc(uint16_t startpc, uint16_t endpc, uint16_t handler);
+void bbAddExc(JavaClass *c, uint16_t startpc, uint16_t endpc, uint16_t handler);
 
 //final checks before optimization passes (initial code pointer guaranteed not used after this)
 void bbFinishLoading();

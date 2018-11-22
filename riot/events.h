@@ -40,6 +40,7 @@ typedef struct event_param_t
 #define EVT_GPIO       ((uint8_t)0x01)
 #define EVT_COAP_CALL  ((uint8_t)0x02)
 #define EVT_COAP_REPLY ((uint8_t)0x03)
+#define EVT_UPD_RDY    ((uint8_t)0xFD)
 #define EVT_GENERIC    ((uint8_t)0xFE)
 #define EVT_EXIT       ((uint8_t)0xFF)
 

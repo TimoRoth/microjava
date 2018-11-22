@@ -21,8 +21,8 @@
 
 static inline uint8_t rdByte(int fd)
 {
-    uint8_t res;
-    assert(vfs_read(fd, &res, 1) == 1);
+    uint8_t res = 0;
+    vfs_read(fd, &res, 1);
     return res;
 }
 

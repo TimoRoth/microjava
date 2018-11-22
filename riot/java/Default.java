@@ -24,6 +24,9 @@ public class Default
 				int gpio_pin = RIOT.getEventParam(0);
 				RIOT.printString("GPIO Event on " + gpio_pin);
 				break;
+			case RIOT.EVT_UPD_RDY:
+				RIOT.printString("Rebooting for update!");
+				return;
 			case RIOT.EVT_EXIT:
 				RIOT.printString("bye");
 				return;

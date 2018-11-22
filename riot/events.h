@@ -9,6 +9,7 @@ typedef enum
     EPT_Null = 0,
     EPT_Int,
     EPT_String,
+    EPT_Bytes,
     EPT_Raw,
 } event_param_type_t;
 

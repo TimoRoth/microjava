@@ -36,7 +36,7 @@ void free_event(event_t **eventP)
         return;
 
     for (int i = 0; i < event->num_params; i++) {
-        if (event->params[i].type == EPT_String && event->params[i].val.str_val.needs_free)
+        if ((event->params[i].type == EPT_String || event->params[i].type == EPT_Bytes) && event->params[i].val.str_val.needs_free)
             free((void*)(event->params[i].val.str_val.str));
         event->params[i].type = EPT_Null;
     }

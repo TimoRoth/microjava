@@ -126,7 +126,7 @@ static uint8_t natRIOT_replyEventBuf(UjThread* t, UjClass* cls)
     }
 
     int res = reply_last_event(event);
-    if (res)
+    if (res != 0)
         free(databuf);
 
     if (!ujThreadPush(t, res, res ? false : true))

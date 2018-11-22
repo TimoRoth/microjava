@@ -12,6 +12,7 @@ public class RIOT {
     public static int getEventParam(int idx) { return 0; };
     public static String getEventParamStr(int idx) { return ""; };
     public static boolean replyEvent(int reply_type, int data_type, byte[] data) { return true; }
+    public static boolean replyEvent(int reply_type, int data_type, String data) { return true; }
 
     public static void usleep(int usec) {}
 }

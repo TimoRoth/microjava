@@ -1,22 +1,22 @@
-#include <fs/spiffs_fs.h>
+#include <fs/littlefs_fs.h>
 #include <stdio.h>
 #include <mutex.h>
 #include <board.h>
 
-#include "nat_esp_spiffs.h"
+#include "nat_littlefs.h"
 
 
-static spiffs_desc_t fs_desc = {
+static littlefs_desc_t fs_desc = {
     .lock = MUTEX_INIT,
 };
 
 static vfs_mount_t flash_mount = {
-    .fs = &spiffs_file_system,
+    .fs = &littlefs_file_system,
     .mount_point = "/main",
     .private_data = &fs_desc,
 };
 
-int init_nat_esp_spiffs(void)
+int init_nat_littlefs(void)
 {
     fs_desc.dev = MTD_0;
 

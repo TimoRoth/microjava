@@ -13,3 +13,4 @@ BuildEnv/RT_tmp/
 riot/bin/
 riot/java/*.inc
 riot/java/*.ujcpak
+riot/MEMORY.bin

@@ -16,7 +16,7 @@ QUIET ?= 1
 
 FEATURES_REQUIRED += periph_gpio
 FEATURES_OPTIONAL += periph_gpio_irq
-USEMODULE += sema xtimer
+USEMODULE += xtimer
 
 INCLUDES += -I$(CURDIR)
 DIRS += $(CURDIR)/java
@@ -62,7 +62,12 @@ else ifneq (,$(findstring wittycloud,$(BOARD))$(findstring esp8266,$(BOARD)))
 
   WITH_COAP_SUPPORT ?= 1
 else ifeq (native,$(BOARD))
+  EXTERNAL_MODULE_DIRS += $(CURDIR)/nat/littlefs
+  USEMODULE += mtd littlefs nat_littlefs
+  CFLAGS += -DVFS_FILE_BUFFER_SIZE=56 -DVFS_DIR_BUFFER_SIZE=44
+
   USEMODULE += gnrc_netdev_default auto_init_gnrc_netif gnrc_ipv6_default gnrc_icmpv6_echo
+
   WITH_COAP_SUPPORT ?= 1
 endif
 

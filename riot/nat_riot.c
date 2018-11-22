@@ -87,11 +87,9 @@ static uint8_t natRIOT_getEventParamStr(UjThread* t, UjClass* cls)
     return UJ_ERR_NONE;
 }
 
-static uint8_t natRIOT_replyEventBuf(UjThread* t, UjClass* cls)
+static uint8_t natRIOT_replyEvent(UjThread* t, bool isArray)
 {
-    (void)cls;
-
-    HANDLE arrHandle = ujThreadPop(t);
+    HANDLE handle = ujThreadPop(t);
     int dataType = ujThreadPop(t);
     int replType = ujThreadPop(t);
 
@@ -99,16 +97,20 @@ static uint8_t natRIOT_replyEventBuf(UjThread* t, UjClass* cls)
     int arrLen = 0;
     char *databuf = NULL;
 
-    if (arrHandle) {
+    if (handle) {
         numParams += 1;
-        arrLen = ujArrayLen(arrHandle);
+        arrLen = isArray ? ujArrayLen(handle) : ujStringGetBytes(handle, NULL, 0);
         databuf = malloc(arrLen);
         if (!databuf)
             return UJ_ERR_OUT_OF_MEMORY;
 
-        char *data = ujArrayRawAccessStart(arrHandle);
-        memcpy(databuf, data, arrLen);
-        ujArrayRawAccessFinish(arrHandle);
+        if (isArray) {
+            char *data = ujArrayRawAccessStart(handle);
+            memcpy(databuf, data, arrLen);
+            ujArrayRawAccessFinish(handle);
+        } else {
+            ujStringGetBytes(handle, (uint8_t*)databuf, arrLen);
+        }
     }
 
     event_t *event = make_event_raw(replType, numParams);
@@ -120,7 +122,7 @@ static uint8_t natRIOT_replyEventBuf(UjThread* t, UjClass* cls)
     event->params[1].val.int_val = arrLen;
 
     if (databuf) {
-        event->params[2].type = EPT_String;
+        event->params[2].type = isArray ? EPT_Bytes : EPT_String;
         event->params[2].val.str_val.str = databuf;
         event->params[2].val.str_val.needs_free = true;
     }
@@ -133,6 +135,20 @@ static uint8_t natRIOT_replyEventBuf(UjThread* t, UjClass* cls)
         return UJ_ERR_STACK_SPACE;
 
     return UJ_ERR_NONE;
+}
+
+static uint8_t natRIOT_replyEventBuf(UjThread* t, UjClass* cls)
+{
+    (void)cls;
+
+    return natRIOT_replyEvent(t, true);
+}
+
+static uint8_t natRIOT_replyEventStr(UjThread* t, UjClass* cls)
+{
+    (void)cls;
+
+    return natRIOT_replyEvent(t, false);
 }
 
 static uint8_t natRIOT_usleep(UjThread* t, UjClass* cls)
@@ -181,6 +197,13 @@ static const UjNativeMethod nativeCls_RIOT_methods[] = {
         .flags = JAVA_ACC_PUBLIC | JAVA_ACC_NATIVE | JAVA_ACC_STATIC,
 
         .func = natRIOT_replyEventBuf,
+    },
+    {
+        .name = "replyEvent",
+        .type = "(IILjava/lang/String;)Z",
+        .flags = JAVA_ACC_PUBLIC | JAVA_ACC_NATIVE | JAVA_ACC_STATIC,
+
+        .func = natRIOT_replyEventStr,
     },
     {
         .name = "usleep",

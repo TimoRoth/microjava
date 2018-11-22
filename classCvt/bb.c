@@ -86,8 +86,8 @@ void* alloc(uint32_t sz){
 void mfree(void* ptr){
 
 	if(ptr){
-		
-		free(ptr);	
+
+		free(ptr);
 	}
 }
 
@@ -193,7 +193,7 @@ static BB* bbPrvDisasm(const uint8_t* code, uint32_t pos, uint32_t len){
 			case INSTR_TYPE_TABLESWITCH:	//tableswitch
 
 				extraSz = 3 - (initialPC & 3);
-				
+
 				t3 = code[pc++ + extraSz];	//calculate default branch dest
 				t3 <<= 8;
 				t3 += code[pc++ + extraSz];
@@ -227,13 +227,13 @@ static BB* bbPrvDisasm(const uint8_t* code, uint32_t pos, uint32_t len){
 				i->switches.initialDestAddrs = alloc(sizeof(uint32_t[i->switches.numCases + 1]));
 				i->switches.destOffsets = alloc(sizeof(int32_t[i->switches.numCases + 1]));
 				i->switches.dests = alloc(sizeof(BB*[i->switches.numCases + 1]));
-				
+
 				//fill tables as needed
 				i->switches.initialDestAddrs[i->switches.numCases] = t3;
 				bbPrvInsertAddr(t3);
 
 				for(t1 = 0; t1 < i->switches.numCases; t1++){
-				
+
 					t2 = code[pc++ + extraSz];	//calculate offset
 					t2 <<= 8;
 					t2 += code[pc++ + extraSz];
@@ -241,9 +241,9 @@ static BB* bbPrvDisasm(const uint8_t* code, uint32_t pos, uint32_t len){
 					t2 += code[pc++ + extraSz];
 					t2 <<= 8;
 					t2 += code[pc++ + extraSz];
-					
+
 					t2 += initialPC;
-				
+
 					i->switches.initialDestAddrs[t1] = t2;
 					bbPrvInsertAddr(t2);
 				}
@@ -252,7 +252,7 @@ static BB* bbPrvDisasm(const uint8_t* code, uint32_t pos, uint32_t len){
 			case INSTR_TYPE_LOOKUPSWITCH:	//lookupswitch
 
 				extraSz = 3 - (initialPC & 3);
-				
+
 				t3 = code[pc++ + extraSz];	//calculate default branch dest
 				t3 <<= 8;
 				t3 += code[pc++ + extraSz];
@@ -278,13 +278,13 @@ static BB* bbPrvDisasm(const uint8_t* code, uint32_t pos, uint32_t len){
 				i->switches.initialDestAddrs = alloc(sizeof(uint32_t[i->switches.numCases + 1]));
 				i->switches.destOffsets = alloc(sizeof(int32_t[i->switches.numCases + 1]));
 				i->switches.dests = alloc(sizeof(BB*[i->switches.numCases + 1]));
-				
+
 				//fill tables as needed
 				i->switches.initialDestAddrs[i->switches.numCases] = t3;
 				bbPrvInsertAddr(t3);
 
 				for(t1 = 0; t1 < i->switches.numCases; t1++){
-				
+
 					t2 = code[pc++ + extraSz];	//calculate match val
 					t2 <<= 8;
 					t2 += code[pc++ + extraSz];
@@ -292,9 +292,9 @@ static BB* bbPrvDisasm(const uint8_t* code, uint32_t pos, uint32_t len){
 					t2 += code[pc++ + extraSz];
 					t2 <<= 8;
 					t2 += code[pc++ + extraSz];
-					
+
 					i->switches.matchVals[t1] = t2;
-					
+
 					t2 = code[pc++ + extraSz];	//calculate offset
 					t2 <<= 8;
 					t2 += code[pc++ + extraSz];
@@ -302,9 +302,9 @@ static BB* bbPrvDisasm(const uint8_t* code, uint32_t pos, uint32_t len){
 					t2 += code[pc++ + extraSz];
 					t2 <<= 8;
 					t2 += code[pc++ + extraSz];
-					
+
 					t2 += initialPC;
-				
+
 					i->switches.initialDestAddrs[t1] = t2;
 					bbPrvInsertAddr(t2);
 				}
@@ -401,9 +401,9 @@ static BB* bbPrvDisasm(const uint8_t* code, uint32_t pos, uint32_t len){
 		if(DBG) fprintf(stderr, "INSTR(0x%06" PRIX32 "): %s%02X", initialPC, i->wide ? "C4 ":"", i->type);
 
 		if(extraSz > sizeof(i->bytes)){
-		
+
 			fprintf(stderr, "Too much data for an instruction: %" PRIu32 " bytes\n", extraSz);
-			exit(-22);	
+			exit(-22);
 		}
 		i->numBytes = extraSz;
 		for(j = 0; j < extraSz; j++){
@@ -411,7 +411,7 @@ static BB* bbPrvDisasm(const uint8_t* code, uint32_t pos, uint32_t len){
 			i->bytes[j] = code[pc++];
 			if(DBG) fprintf(stderr, " %02X", i->bytes[j]);
 		}
-		
+
 		if(DBG) fprintf(stderr, "\n");
 	}
 
@@ -422,7 +422,7 @@ static void llRemove(LLN* lli){
 
 	lli->prev->next = lli->next;
 	lli->next->prev = lli->prev;
-	
+
 	lli->prev = 0;
 	lli->next = 0;
 }
@@ -464,66 +464,66 @@ static uint32_t bbPrvInstrExport(const Instr* i, uint8_t* buf, uint32_t pc){	//r
 	uint8_t padBytes;
 	uint32_t j;
 	uint32_t len = 1;	//instr itself
-	
-	
+
+
 	if(DBG) fprintf(stderr, "exporting %s %02X (nb=%" PRIu32 ")->", i->wide ? "wide" : "", i->type, i->numBytes);
-	
+
 	if(i->wide){
 		if(buf) *buf++ = INSTR_TYPE_WIDE;
 		len++;
 	}
 	if(buf) *buf++ = i->type;
-	
+
 	if(i->type == INSTR_TYPE_TABLESWITCH){
-	
+
 		//padBytes calculation (for padding)
 		padBytes = 3 - (pc & 3);
 		for(j = 0; j < padBytes; j++){
-		
+
 			if(buf) *buf++ = 0x00;
 			len++;
 		}
-		
+
 		//default case
 		bbPrvInstrExportWrite32(&buf, i->switches.destOffsets[i->switches.numCases]);
 		len += 4;
-		
+
 		//lo
 		bbPrvInstrExportWrite32(&buf, i->switches.first);
 		len += 4;
-		
+
 		//hi
 		bbPrvInstrExportWrite32(&buf, i->switches.first + i->switches.numCases - 1);
 		len += 4;
-		
+
 		//cases
 		for(j = 0; j < i->switches.numCases; j++){
-		
+
 			bbPrvInstrExportWrite32(&buf, i->switches.destOffsets[j]);
 			len += 4;
 		}
 	}
 	else if(i->type == INSTR_TYPE_LOOKUPSWITCH){
-	
+
 		//padBytes calculation (for padding)
 		padBytes = 3 - (pc & 3);
 		for(j = 0; j < padBytes; j++){
-		
+
 			if(buf) *buf++ = 0x00;
 			len++;
 		}
-		
+
 		//default case
 		bbPrvInstrExportWrite32(&buf, i->switches.destOffsets[i->switches.numCases]);
 		len += 4;
-		
+
 		//numCases
 		bbPrvInstrExportWrite32(&buf, i->switches.numCases);
 		len += 4;
-		
+
 		//cases
 		for(j = 0; j < i->switches.numCases; j++){
-		
+
 			bbPrvInstrExportWrite32(&buf, i->switches.matchVals[j]);
 			bbPrvInstrExportWrite32(&buf, i->switches.destOffsets[j]);
 			len += 8;
@@ -532,7 +532,7 @@ static uint32_t bbPrvInstrExport(const Instr* i, uint8_t* buf, uint32_t pc){	//r
 	else if(i->destLen){ 	//simple branch
 
 		switch(i->destLen){
-			
+
 			case 4: if(buf) *buf++ = i->finalOffset >> 24;
 				if(buf) *buf++ = i->finalOffset >> 16;
 				len += 2;
@@ -542,22 +542,22 @@ static uint32_t bbPrvInstrExport(const Instr* i, uint8_t* buf, uint32_t pc){	//r
 				len += 2;
 				break;
 			default:
-				
+
 				fprintf(stderr, "Weird destination size in branch: %" PRIu32 "\n", i->destLen);
 				exit(-19);
 		}
 	}
 	else{			//somethign else - just emit the bytes
-	
+
 		for(j = 0; j < i->numBytes; j++){
-		
+
 			if(buf) *buf++ = i->bytes[j];
 			len++;
 		}
 	}
-	
+
 	if(DBG) fprintf(stderr, "%" PRIu32 "\n", len);
-	
+
 	return len;
 }
 
@@ -630,13 +630,13 @@ static void bbTruncate(BB* bb, uint32_t newLen){	//not not call this anytime if 
 
 		bb->numInstr -= instrsLeft;
 		bb->initialLen = newLen;
-		
+
 		while(instrsLeft--){
 
 			 bbPrvInstrFree(i++);
 		}
 
-		
+
 		bb->instrs = realloc(bb->instrs, sizeof(Instr[bb->numInstr]));
 	}
 }
@@ -751,7 +751,7 @@ void bbFinishLoading(){
 
 		BB* bb = (BB*)n;
 		uint32_t i, j;
-		
+
 		n = n->next;
 
 		for(i = 0; i < bb->numInstr; i++){
@@ -759,10 +759,10 @@ void bbFinishLoading(){
 			if((bb->instrs[i].type == INSTR_TYPE_TABLESWITCH) || (bb->instrs[i].type == INSTR_TYPE_LOOKUPSWITCH)){
 
 				for(j = 0; j <= bb->instrs[i].switches.numCases; j++){
-				
+
 					dst = bbPrvFind(wantedAddr = bb->instrs[i].switches.initialDestAddrs[j], FIND_EXACT_ADDR);
 					if(!dst) goto fail;
-					
+
 					bb->instrs[i].switches.dests[j] = dst;
 				}
 			}
@@ -819,16 +819,16 @@ void bbPass(BbPassF pf, void* userData){
 }
 
 static uint32_t bbPrvExportOneBlock(BB* bb, uint8_t* buf, uint32_t pc){
-	
+
 	uint32_t i, len = 0, iL;
-	
+
 	for(i = 0; i < bb->numInstr; i++){
 
 		iL = bbPrvInstrExport(bb->instrs + i, buf, pc + len);
 		len += iL;
 		if(buf) buf += iL;
 	}
-	
+
 	return len;
 }
 
@@ -843,12 +843,12 @@ void bbFinalizeChanges(){
 
 		BB* bb = (BB*)n;
 		n = n->next;
-		
+
 		bb->addr = len;
 		bb->len = bbPrvExportOneBlock(bb, NULL, len);
 		len += bb->len;
 	}
-	
+
 	//calculate final offsets for branches and switches
 	pc = 0;
 	n = bbList.next;
@@ -856,34 +856,34 @@ void bbFinalizeChanges(){
 
 		BB* bb = (BB*)n;
 		n = n->next;
-		
+
 		for(i = 0; i < bb->numInstr; i++){
-		
+
 			if(bb->instrs[i].destLen){	//branch
-			
+
 				bb->instrs[i].finalOffset = bb->instrs[i].jmpDest->addr - pc;
-				
+
 				if(bb->instrs[i].destLen == 2){	//check offset fits
-				
+
 					int32_t t = bb->instrs[i].finalOffset >> 15;
-					
+
 					if(t && t != -1){
-					
+
 						fprintf(stderr, "offsett impossible in 16 bits: %" PRIi32 "\n", bb->instrs[i].finalOffset);
 						exit(-23);
 					}
 				}
 			}
 			else if(bb->instrs[i].type == INSTR_TYPE_TABLESWITCH || bb->instrs[i].type == INSTR_TYPE_LOOKUPSWITCH){
-			
+
 				uint32_t j;
-				
+
 				for(j = 0; j <= bb->instrs[i].switches.numCases; j++){
-				
+
 					bb->instrs[i].switches.destOffsets[j] = bb->instrs[i].switches.dests[j]->addr - pc;
 				}
 			}
-			
+
 			pc += bbPrvInstrExport(bb->instrs + i, NULL, pc);
 		}
 	}
@@ -903,7 +903,7 @@ uint32_t bbExport(uint8_t* buf){
 		if(buf) buf += bL;
 		n = n->next;
 	}
-	
+
 	return len;
 }
 
@@ -923,7 +923,7 @@ void bbGetExc(uint32_t idx, uint16_t* startP, uint16_t* endP, uint16_t* handlerP
 		else {
 
 			if((ee->start->addr & 0xFFFF0000) || (ee->end->addr & 0xFFFF0000) || (ee->handler->addr & 0xFFFF0000)){
-			
+
 				fprintf(stderr, "Exception pointer out of range for exception %" PRIu32 " (0x%06" PRIX32 " 0x%06" PRIX32 " 0x%06" PRIX32 ")\n",
 						idxOrig, ee->start->addr, ee->end->addr, ee->handler->addr);
 				exit(-22);

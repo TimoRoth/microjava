@@ -21,14 +21,14 @@ void* natAlloc(uint16_t sz){
 
 void natFree(void* ptr){
 
-	if(ptr && ptr != ALLOC_SPECIAL_VAL_ZERO_SZ_CHUNK) free(ptr);	
+	if(ptr && ptr != ALLOC_SPECIAL_VAL_ZERO_SZ_CHUNK) free(ptr);
 }
 
 void natMemZero(void* ptr, uint16_t len){
 
 	uint8_t* p = ptr;
-	
-	while(len--) *p++ = 0;	
+
+	while(len--) *p++ = 0;
 }
 
 void err(const char* str){
@@ -38,7 +38,7 @@ void err(const char* str){
 
 
 uint16_t classReadF(_UNUSED_ void* ptr){
-	
+
 	int c = getchar();
 
 	return (c == EOF) ? CLASS_IMPORT_READ_F_FAIL : (uint16_t)(uint8_t)c;
@@ -47,16 +47,16 @@ uint16_t classReadF(_UNUSED_ void* ptr){
 int main(_UNUSED_ int argc, _UNUSED_ char** argv){
 
 	JavaClass* cls;
-	
-	
+
+
 	if(sizeof(uint64_t) != 8 || sizeof(uint32_t) != 4 || sizeof(uint16_t) != 2 || sizeof(uint8_t) != 1){
-	
+
 		fprintf(stderr, "Type megafail!\n");
 		return -1;
 	}
-	
+
 	cls = classImport(&classReadF, NULL);
-	if(cls){	
+	if(cls){
 
 		classDump(cls);
 		classOptimize(cls);
@@ -74,7 +74,7 @@ int main(_UNUSED_ int argc, _UNUSED_ char** argv){
 
 
 
-	
+
 
 
 

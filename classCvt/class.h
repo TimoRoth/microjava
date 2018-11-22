@@ -42,16 +42,16 @@ typedef struct{
 }JavaExceptionTableEntry;
 
 typedef struct {
-		
+
 	uint16_t maxStack;	//in elements
 	uint16_t maxLocals;	//in elements
-	
+
 	uint16_t numExceptions;	//num entries in exception table
 	JavaExceptionTableEntry* exceptions;
-	
+
 	uint16_t numAttributes;
 	struct JavaAttribute** attributes;
-	
+
 	uint32_t codeLen;
 	uint8_t code[];
 
@@ -63,11 +63,11 @@ typedef struct JavaAttribute{
 	uint8_t type;
 	union{
 		struct{
-			
+
 			uint32_t len;
 			uint8_t data[];
 		}generic;
-		
+
 		JavaCodeAttr code;
 	}data;
 
@@ -79,7 +79,7 @@ typedef struct{
 	bool used;
 	bool directUsed;
 	//...
-	
+
 }JavaConstant;
 
 typedef struct{
@@ -119,27 +119,27 @@ typedef struct{
 typedef struct{
 
 	uint16_t constantPoolSz;
-	
+
 	/* if these are not equal to the above, STRICT ordering of cunstant must exist: first addressable, then just placed, then neither */
 	uint16_t addressblConstantPoolSz;	//export constant address as if we had only this many
 	uint16_t placedConstantPoolSz;	//export constant data as if we had only this many
-	
+
 	JavaConstant** constantPool;	//constantPoolSz - 1 items (index starts at 1)
-	
+
 	uint16_t accessFlags;		//see ACCESS_FLAG_* constants
-	
+
 	uint16_t thisClass;		//index into constant pool
 	uint16_t superClass;		//index into constant pool or 0 (if this class is Object class only)
-	
+
 	uint16_t numInterfaces;
 	uint16_t* interfaces;		//numInterfaces items
-	
+
 	uint16_t numFields;
 	JavaMethodOrField** fields;	//numFields items
-	
+
 	uint16_t numMethods;
 	JavaMethodOrField** methods;	//numMethods items
-	
+
 	uint16_t numAttributes;
 	JavaAttribute** attributes;	//numAttributes items
 

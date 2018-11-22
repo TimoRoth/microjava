@@ -10,7 +10,7 @@ void classOptimize(JavaClass* c);
 
 
 
-//todo: ldc2, reindex consts,  
+//todo: ldc2, reindex consts,
 
 
 #endif

@@ -14,29 +14,29 @@ typedef struct{
 
 	uint8_t type;
 	uint8_t wide;
-	
+
 	uint32_t numBytes;
 	uint8_t bytes[8];
 
 	uint32_t destLen;		//0 2 or 4 for no, short, and long pointers respectively
 	uint32_t destOrigAddr;	//original address of destination
-	
+
 	struct{
-	
+
 		uint32_t first; 		//unused for lookup
 		uint32_t numCases;
 		uint32_t* matchVals;	//unused for table
-			
+
 		uint32_t* initialDestAddrs;
-		
+
 		//this gets resolved later and cannot be used by the pass function!
 		int32_t* destOffsets; //numCases+1, where least is the default addr
 		struct BB** dests;
-		
+
 	}switches;
 
 	//these gets resolved later and cannot be used by the pass function!
-	
+
 	int32_t finalOffset;	//resolved to be correct
 	struct BB* jmpDest;	//calculated at end (final address of destination)
 

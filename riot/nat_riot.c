@@ -75,7 +75,7 @@ static uint8_t natRIOT_getEventParamStr(UjThread* t, UjClass* cls)
     HANDLE res = 0;
     int ret;
 
-    if (cur_event->id > 0 && idx < cur_event->num_params && cur_event->params[idx].type == EPT_String && cur_event->params[idx].val.str_val.str) {
+    if (cur_event->id > 0 && idx < cur_event->num_params && (cur_event->params[idx].type == EPT_String || cur_event->params[idx].type == EPT_Bytes) && cur_event->params[idx].val.str_val.str) {
         ret = ujStringFromBytes(&res, (uint8_t*)cur_event->params[idx].val.str_val.str, cur_event->params[idx].val.str_val.len);
         if (ret != UJ_ERR_NONE)
             return ret;
@@ -94,7 +94,7 @@ static uint8_t natRIOT_replyEvent(UjThread* t, bool isArray)
     int param1 = ujThreadPop(t);
     int replType = ujThreadPop(t);
 
-    int numParams = 3;
+    int numParams = 2;
     int arrLen = 0;
     char *databuf = NULL;
 
@@ -123,10 +123,10 @@ static uint8_t natRIOT_replyEvent(UjThread* t, bool isArray)
     event->params[1].val.int_val = param2;
 
     if (databuf) {
-        event->params[3].type = isArray ? EPT_Bytes : EPT_String;
-        event->params[3].val.str_val.str = databuf;
-        event->params[3].val.str_val.needs_free = true;
-        event->params[3].val.str_val.len = arrLen;
+        event->params[2].type = isArray ? EPT_Bytes : EPT_String;
+        event->params[2].val.str_val.str = databuf;
+        event->params[2].val.str_val.needs_free = true;
+        event->params[2].val.str_val.len = arrLen - (isArray ? 0 : 1); // remove final null byte for strings from length
     }
 
     int res = reply_last_event(event);

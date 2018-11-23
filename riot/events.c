@@ -52,8 +52,6 @@ event_t *wait_event(int timeout_us)
         return NULL;
     }
 
-    printf("Waiting event for %d us\n", timeout_us);
-
     int sres;
     if (timeout_us == 0)
         sres = (msg_try_receive(&last_msg) < 0) ? 0 : 1;
@@ -105,14 +103,14 @@ int post_event_receive(event_t *event, event_t **ret)
 
     int res = msg_send_receive(&msg, &msg, event_thread_pid);
 
-    if (res == 0) {
+    if (res == 1) {
         if (msg.type == EVT_MSG_TYPE)
             *ret = msg.content.ptr;
         else
-            return -5;
+            return -1;
     }
 
-    return res - 1; // msg_send returns 1 on success, 0 or -1 otherwise, so we make it so 0 is success, rest <0
+    return res - 1; // similar to return of post_event
 }
 
 int reply_last_event(event_t *event)

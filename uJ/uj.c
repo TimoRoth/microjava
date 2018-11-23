@@ -1947,10 +1947,10 @@ uint8_t ujStringFromBytes(HANDLE *handleP, const uint8_t *str, uint16_t len)
     uint8_t ofst, ret;
     uint8_t *dst;
     UjInstance *inst;
+    uint16_t real_len = 0;
 
-    if (!len)
-        while(str[len])
-            len++;
+    while((real_len < len || len == 0) && str[real_len])
+        real_len++;
 
     ret = ujPrvNewStringObj(handleP);
     if (ret != UJ_ERR_NONE)
@@ -1958,7 +1958,7 @@ uint8_t ujStringFromBytes(HANDLE *handleP, const uint8_t *str, uint16_t len)
 
     inst = ujHeapHandleLock(*handleP);
 
-    stringData = ujHeapHandleNew(len + 2);
+    stringData = ujHeapHandleNew(real_len + 2);
     if (!stringData) {
         ujHeapHandleRelease(*handleP);
         ujHeapHandleFree(*handleP);
@@ -1974,9 +1974,9 @@ uint8_t ujStringFromBytes(HANDLE *handleP, const uint8_t *str, uint16_t len)
     ujThreadPrvPut32(inst->data + inst->cls->supr->instDataOfst + ofst, stringData);
 
     dst = ujHeapHandleLock(stringData);
-    ujThreadPrvPut16(dst, len);
+    ujThreadPrvPut16(dst, real_len);
     dst += 2;
-    while(len--)
+    while(real_len--)
         *dst++ = *str++;
     ujHeapHandleRelease(stringData);
 

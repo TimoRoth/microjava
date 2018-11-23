@@ -12,8 +12,8 @@ public class RIOT {
     public static int waitEvent(int timeout_us) { return 0; }
     public static int getEventParam(int idx) { return 0; };
     public static String getEventParamStr(int idx) { return ""; };
-    public static boolean replyEvent(int reply_type, int data_type, byte[] data) { return true; }
-    public static boolean replyEvent(int reply_type, int data_type, String data) { return true; }
+    public static boolean replyEvent(int reply_type, int param1, int param2, byte[] data) { return true; }
+    public static boolean replyEvent(int reply_type, int param1, int param2, String data) { return true; }
 
     public static void usleep(int usec) {}
 }

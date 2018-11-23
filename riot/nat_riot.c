@@ -76,7 +76,7 @@ static uint8_t natRIOT_getEventParamStr(UjThread* t, UjClass* cls)
     int ret;
 
     if (cur_event->id > 0 && idx < cur_event->num_params && cur_event->params[idx].type == EPT_String && cur_event->params[idx].val.str_val.str) {
-        ret = ujStringFromBytes(&res, (uint8_t*)cur_event->params[idx].val.str_val.str, 0);
+        ret = ujStringFromBytes(&res, (uint8_t*)cur_event->params[idx].val.str_val.str, cur_event->params[idx].val.str_val.len);
         if (ret != UJ_ERR_NONE)
             return ret;
     }
@@ -90,10 +90,11 @@ static uint8_t natRIOT_getEventParamStr(UjThread* t, UjClass* cls)
 static uint8_t natRIOT_replyEvent(UjThread* t, bool isArray)
 {
     HANDLE handle = ujThreadPop(t);
-    int dataType = ujThreadPop(t);
+    int param2 = ujThreadPop(t);
+    int param1 = ujThreadPop(t);
     int replType = ujThreadPop(t);
 
-    int numParams = 2;
+    int numParams = 3;
     int arrLen = 0;
     char *databuf = NULL;
 
@@ -116,15 +117,16 @@ static uint8_t natRIOT_replyEvent(UjThread* t, bool isArray)
     event_t *event = make_event_raw(replType, numParams);
 
     event->params[0].type = EPT_Int;
-    event->params[0].val.int_val = dataType;
+    event->params[0].val.int_val = param1;
 
     event->params[1].type = EPT_Int;
-    event->params[1].val.int_val = arrLen;
+    event->params[1].val.int_val = param2;
 
     if (databuf) {
-        event->params[2].type = isArray ? EPT_Bytes : EPT_String;
-        event->params[2].val.str_val.str = databuf;
-        event->params[2].val.str_val.needs_free = true;
+        event->params[3].type = isArray ? EPT_Bytes : EPT_String;
+        event->params[3].val.str_val.str = databuf;
+        event->params[3].val.str_val.needs_free = true;
+        event->params[3].val.str_val.len = arrLen;
     }
 
     int res = reply_last_event(event);
@@ -191,16 +193,17 @@ static const UjNativeMethod nativeCls_RIOT_methods[] = {
 
         .func = natRIOT_getEventParamStr,
     },
+    // TODO: getEventParamArr, returns a byte[]
     {
         .name = "replyEvent",
-        .type = "(II[B)Z",
+        .type = "(III[B)Z",
         .flags = JAVA_ACC_PUBLIC | JAVA_ACC_NATIVE | JAVA_ACC_STATIC,
 
         .func = natRIOT_replyEventBuf,
     },
     {
         .name = "replyEvent",
-        .type = "(IILjava/lang/String;)Z",
+        .type = "(IIILjava/lang/String;)Z",
         .flags = JAVA_ACC_PUBLIC | JAVA_ACC_NATIVE | JAVA_ACC_STATIC,
 
         .func = natRIOT_replyEventStr,

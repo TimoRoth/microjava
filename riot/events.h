@@ -20,6 +20,7 @@ typedef struct event_param_t
         struct {
             const char *str;
             bool needs_free;
+            uint16_t len; // 0 -> use strlen
         } str_val;
 
         int int_val;
@@ -37,12 +38,12 @@ typedef struct event_param_t
 #define EVT_MSG_TYPE ((uint16_t)0x05FF)
 
 #define EVT_NONE       ((uint8_t)0x00)
-#define EVT_GPIO       ((uint8_t)0x01)
-#define EVT_COAP_CALL  ((uint8_t)0x02)
-#define EVT_COAP_REPLY ((uint8_t)0x03)
-#define EVT_UPD_RDY    ((uint8_t)0xFD)
-#define EVT_GENERIC    ((uint8_t)0xFE)
-#define EVT_EXIT       ((uint8_t)0xFF)
+#define EVT_GPIO       ((uint8_t)0x01) // GPIO interrupt was triggered, one int parameter, the gpio_pin.
+#define EVT_COAP_CALL  ((uint8_t)0x02) // Incoming CoAP req, params: int req_id, int method, [str/bytes payload if present]
+#define EVT_COAP_REPLY ((uint8_t)0x03) // Reply to CoAP req, params: int coap_code, [str/bytes payload if present]
+#define EVT_UPD_RDY    ((uint8_t)0xFD) // Informs about a code update being ready to reboot into.
+#define EVT_GENERIC    ((uint8_t)0xFE) // A generic non-event_t event. Original msg_t contents in first parameters raw_val.
+#define EVT_EXIT       ((uint8_t)0xFF) // Exit eventloop asap.
 
 typedef struct event_t
 {
@@ -55,13 +56,14 @@ typedef struct event_t
 // init_events has to be called from the thread that should receive all events
 void init_events(void);
 
-// Returns the id of the thread that called init_events
+// Returns the id of the thread that called init_events, usually the uj one.
 kernel_pid_t get_event_pid(void);
 
 // Core functions
 void free_event(event_t **eventP);
 event_t *wait_event(int timeout_us); // NULL == error, returned event must be freed with free_event.
 int post_event(event_t *event); // takes ownership of event, event must be freeable, 0 == success
+int post_event_receive(event_t *event, event_t **ret); // takes ownership of event, event must be freeable, ret must be freed with free_event, 0 == success
 int reply_last_event(event_t *event); // takes ownership of event, event must be freeable, 0 == success
 
 // All the make_event function return the event passed to them for convenience.

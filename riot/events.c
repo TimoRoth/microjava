@@ -96,6 +96,25 @@ int post_event(event_t *event)
     return res - 1; // msg_send returns 1 on success, 0 or -1 otherwise, so we make it so 0 is success, rest <0
 }
 
+int post_event_receive(event_t *event, event_t **ret)
+{
+    msg_t msg = {
+        .type = EVT_MSG_TYPE,
+        .content.ptr = event,
+    };
+
+    int res = msg_send_receive(&msg, &msg, event_thread_pid);
+
+    if (res == 0) {
+        if (msg.type == EVT_MSG_TYPE)
+            *ret = msg.content.ptr;
+        else
+            return -5;
+    }
+
+    return res - 1; // msg_send returns 1 on success, 0 or -1 otherwise, so we make it so 0 is success, rest <0
+}
+
 int reply_last_event(event_t *event)
 {
     msg_t msg = {
@@ -155,6 +174,7 @@ event_t *make_event_cs(uint8_t id, const char *str)
     event->params[0].type = EPT_String;
     event->params[0].val.str_val.str = str;
     event->params[0].val.str_val.needs_free = false;
+    event->params[0].val.str_val.len = 0;
 
     return event;
 }
@@ -166,6 +186,7 @@ event_t *make_event_s(uint8_t id, const char *str)
     event->params[0].type = EPT_String;
     event->params[0].val.str_val.str = str;
     event->params[0].val.str_val.needs_free = true;
+    event->params[0].val.str_val.len = 0;
 
     return event;
 }
@@ -177,6 +198,7 @@ event_t *make_event_csi(uint8_t id, const char *str, int val)
     event->params[0].type = EPT_String;
     event->params[0].val.str_val.str = str;
     event->params[0].val.str_val.needs_free = false;
+    event->params[0].val.str_val.len = 0;
 
     event->params[1].type = EPT_Int;
     event->params[1].val.int_val = val;
@@ -191,6 +213,7 @@ event_t *make_event_si(uint8_t id, const char *str, int val)
     event->params[0].type = EPT_String;
     event->params[0].val.str_val.str = str;
     event->params[0].val.str_val.needs_free = true;
+    event->params[0].val.str_val.len = 0;
 
     event->params[1].type = EPT_Int;
     event->params[1].val.int_val = val;

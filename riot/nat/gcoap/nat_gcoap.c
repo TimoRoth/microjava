@@ -10,6 +10,9 @@
 #include "nat_gcoap.h"
 #include "events.h"
 
+// Nanocoap symbols, unused, but linker likes to have them.
+const coap_resource_t coap_resources[] = { { 0 } };
+const unsigned coap_resources_numof = 0;
 
 static const UjNativeMethod nativeCls_COAP_methods[] = {
     {

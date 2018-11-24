@@ -58,7 +58,7 @@ static uint8_t natRIOT_getEventParam(UjThread* t, UjClass* cls)
     unsigned int idx = ujThreadPop(t);
     int res = 0;
 
-    if (cur_event->id > 0 && idx < cur_event->num_params && cur_event->params[idx].type == EPT_Int)
+    if (cur_event && cur_event->id > 0 && idx < cur_event->num_params && cur_event->params[idx].type == EPT_Int)
         res = cur_event->params[idx].val.int_val;
 
     if (!ujThreadPush(t, res, false))
@@ -75,10 +75,39 @@ static uint8_t natRIOT_getEventParamStr(UjThread* t, UjClass* cls)
     HANDLE res = 0;
     int ret;
 
-    if (cur_event->id > 0 && idx < cur_event->num_params && (cur_event->params[idx].type == EPT_String || cur_event->params[idx].type == EPT_Bytes) && cur_event->params[idx].val.str_val.str) {
+    if (cur_event && cur_event->id > 0 && idx < cur_event->num_params && (cur_event->params[idx].type == EPT_String || cur_event->params[idx].type == EPT_Bytes) && cur_event->params[idx].val.str_val.str) {
         ret = ujStringFromBytes(&res, (uint8_t*)cur_event->params[idx].val.str_val.str, cur_event->params[idx].val.str_val.len);
         if (ret != UJ_ERR_NONE)
             return ret;
+    }
+
+    if (!ujThreadPush(t, res, res ? true : false))
+        return UJ_ERR_STACK_SPACE;
+
+    return UJ_ERR_NONE;
+}
+
+static uint8_t natRIOT_getEventParamBytes(UjThread* t, UjClass* cls)
+{
+    (void)cls;
+
+    unsigned int idx = ujThreadPop(t);
+    HANDLE res = 0;
+    int ret;
+
+    if (cur_event && cur_event->id > 0 && idx < cur_event->num_params && (cur_event->params[idx].type == EPT_String || cur_event->params[idx].type == EPT_Bytes) && cur_event->params[idx].val.str_val.str) {
+        const char *data = cur_event->params[idx].val.str_val.str;
+        int len = cur_event->params[idx].val.str_val.len;
+        if (!len)
+            len = strlen(data);
+
+        ret = ujArrayNew('B', len, &res);
+        if (ret != UJ_ERR_NONE)
+            return ret;
+
+        char *arr_data = ujArrayRawAccessStart(res);
+        memcpy(arr_data, data, len);
+        ujArrayRawAccessFinish(res);
     }
 
     if (!ujThreadPush(t, res, res ? true : false))
@@ -243,7 +272,13 @@ static const UjNativeMethod nativeCls_RIOT_methods[] = {
 
         .func = natRIOT_getEventParamStr,
     },
-    // TODO: getEventParamArr, returns a byte[]
+    {
+        .name = "getEventParamBytes",
+        .type = "(I)[B",
+        .flags = JAVA_ACC_PUBLIC | JAVA_ACC_NATIVE | JAVA_ACC_STATIC,
+
+        .func = natRIOT_getEventParamBytes,
+    },
     {
         .name = "replyEvent",
         .type = "(III[B)Z",

@@ -8,16 +8,25 @@ public class Default
 	{
 		int req_id = RIOT.getEventParam(0);
 		int method = RIOT.getEventParam(1);
-		String data = RIOT.getEventParamStr(2);
 
 		if (req_id == c_req)
 			RIOT.printString("In /java/c request handler!");
 
 		RIOT.printString("Got CoAP request id " + req_id + " with method " + method);
-		if (data != null)
-			RIOT.printString("Data: " + data);
-		else
-			RIOT.printString("no data");
+
+		if (req_id == b_req) {
+			String data = RIOT.getEventParamStr(2);
+			if (data != null)
+				RIOT.printString("Data: " + data);
+			else
+				RIOT.printString("no data");
+		} else if(req_id == c_req) {
+			byte[] data = RIOT.getEventParamBytes(2);
+			if (data != null)
+				RIOT.printString("Got " + data.length + " bytes data: " + new String(data));
+			else
+				RIOT.printString("no bytes data");
+		}
 
 		RIOT.replyEvent(RIOT.EVT_COAP_REPLY, COAP.CODE_CONTENT, COAP.FORMAT_TEXT, "Test Reply\n");
 	}

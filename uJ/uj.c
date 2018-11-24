@@ -1805,6 +1805,20 @@ static uint8_t ujThreadPrvNewArray(char type, int32_t len, HANDLE *arrP)
     return UJ_ERR_NONE;
 }
 
+uint8_t ujArrayNew(char type, int32_t len, HANDLE *arrP)
+{
+    uint8_t res = ujThreadPrvNewArray(type, len, arrP);
+    if (res != UJ_ERR_NONE)
+        return res;
+
+    uint8_t *data = ujArrayRawAccessStart(*arrP);
+    for (int32_t i = 0; i < len * ujPrvJavaTypeToSize(type); i++)
+        data[i] = 0;
+    ujArrayRawAccessFinish(*arrP);
+
+    return UJ_ERR_NONE;
+}
+
 static uint8_t ujThreadPrvMultiNewArrayHelper(UjThread *t, UInt24 type,
                                             uint8_t thisDim, uint8_t totalDim,
                                             HANDLE *arrP)

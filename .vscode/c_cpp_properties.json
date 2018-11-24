@@ -5,7 +5,7 @@
             "includePath": [
                 "${workspaceFolder}/**",
                 "${workspaceFolder}/../RIOT/**",
-                "${workspaceFolder}/../../esp/esp32/xtensa-esp32-elf/**"
+                "${workspaceFolder}/../../esp/**"
             ],
             "defines": [
                 "UJ_LOG", "UJ_FTR_SUPPORT_UJC_FORMAT", "UJ_OPT_CLASS_SEARCH", "UJ_OPT_RAM_STRINGS",

@@ -34,16 +34,16 @@ CFLAGS += -DUJ_HEAP_SZ=4096
 # Using VFS for file access
 USEMODULE += vfs
 
-# Wifi AP settings, used for esp_wifi on esp32 and esp_now on esp8266(only pw)
-STA_SSID ?= RIOT_AP
-STA_PASSWORD ?= RIOT_ESP_PW
+# ESP-NOW settings
+ESPNOW_PASS ?= ThisistheRIOTporttoESP
+ESPNOW_CHANNEL ?= 6
 
 # Board Specifics
 ifneq (,$(findstring esp32,$(BOARD)))
   EXTERNAL_MODULE_DIRS += $(CURDIR)/nat/esp32
   USEMODULE += nat_esp32
 
-  CFLAGS += "-DCONFIG_WIFI_STA_SSID=\"$(STA_SSID)\"" "-DCONFIG_WIFI_STA_PASSWORD=\"$(STA_PASSWORD)\""
+  CFLAGS += "-DESP_NOW_SOFT_AP_PASS=\"$(ESPNOW_PASS)\"" -DESP_NOW_CHANNEL=$(ESPNOW_CHANNEL)
   USEMODULE += esp_now auto_init_gnrc_netif gnrc_ipv6_default gnrc_icmpv6_echo
 
   EXTERNAL_MODULE_DIRS += $(CURDIR)/nat/esp_spiffs
@@ -54,7 +54,7 @@ else ifneq (,$(findstring wittycloud,$(BOARD))$(findstring esp8266,$(BOARD)))
   EXTERNAL_MODULE_DIRS += $(CURDIR)/nat/esp8266
   USEMODULE += nat_esp8266
 
-  CFLAGS += "-DESP_NOW_SOFT_AP_PASS=\"$(STA_PASSWORD)\""
+  CFLAGS += "-DESP_NOW_SOFT_AP_PASS=\"$(ESPNOW_PASS)\"" -DESP_NOW_CHANNEL=$(ESPNOW_CHANNEL)
   USEMODULE += esp_now auto_init_gnrc_netif gnrc_ipv6_default gnrc_icmpv6_echo
 
   EXTERNAL_MODULE_DIRS += $(CURDIR)/nat/esp_spiffs

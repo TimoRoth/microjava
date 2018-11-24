@@ -131,7 +131,7 @@ event_t *make_event_raw(uint8_t id, uint8_t num_params)
     event->id = id;
     event->num_params = num_params;
     if (num_params)
-        event->params = (event_param_t*)(((uint8_t*)event) + sizeof(event_t));
+        event->params = (event_param_t*)&event[1];
     else
         event->params = NULL;
     return event;

@@ -44,6 +44,9 @@ public class Default
 		c_req = COAP.registerResource("/java/c", COAP.GET | COAP.PUT);
 		COAP.finishRegistration();
 
+		RIOT.setTimeoutS(25, 1234);
+		RIOT.setTimeoutUS(10 * 1000000, 4321);
+
 		while (true) {
 			int eventId = RIOT.waitEvent(30 * 1000000);
 			switch (eventId)
@@ -60,6 +63,9 @@ public class Default
 				return;
 			case RIOT.EVT_COAP_REQ: // We HAVE to reply to this, otherwise the CoAP thread hangs forever.
 				handleCoapReq();
+				break;
+			case RIOT.EVT_TIMER:
+				RIOT.printString("Timer event: " + RIOT.getEventParam(0));
 				break;
 			case RIOT.EVT_NONE:
 			case -1:

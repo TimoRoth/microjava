@@ -87,7 +87,7 @@ static uint8_t natRIOT_getEventParamStr(UjThread* t, UjClass* cls)
     return UJ_ERR_NONE;
 }
 
-static uint8_t natRIOT_replyEvent(UjThread* t, bool isArray)
+static uint8_t replyEventGeneric(UjThread* t, bool isArray)
 {
     HANDLE handle = ujThreadPop(t);
     int param2 = ujThreadPop(t);
@@ -143,14 +143,64 @@ static uint8_t natRIOT_replyEventBuf(UjThread* t, UjClass* cls)
 {
     (void)cls;
 
-    return natRIOT_replyEvent(t, true);
+    return replyEventGeneric(t, true);
 }
 
 static uint8_t natRIOT_replyEventStr(UjThread* t, UjClass* cls)
 {
     (void)cls;
 
-    return natRIOT_replyEvent(t, false);
+    return replyEventGeneric(t, false);
+}
+
+typedef struct timer_helper_st
+{
+    event_t event; // has to be first memeber, as this is what gets passed to free()
+    event_param_t params[1];
+    msg_t msg;
+    xtimer_t timer;
+} timer_helper_t;
+
+static uint8_t setTimeoutGeneric(uint64_t timeout_us, int userdata)
+{
+    timer_helper_t *timer_helper = calloc(1, sizeof(timer_helper_t));
+    xtimer_t *timer = &timer_helper->timer;
+    msg_t *msg = &timer_helper->msg;
+    event_t *event = &timer_helper->event;
+
+    msg->type = EVT_MSG_TYPE;
+    msg->content.ptr = event;
+
+    event->id = EVT_TIMER;
+    event->num_params = sizeof(timer_helper->params) / sizeof(timer_helper->params[0]);
+    event->params = timer_helper->params;
+
+    event->params[0].type = EPT_Int;
+    event->params[0].val.int_val = userdata;
+
+    xtimer_set_msg64(timer, timeout_us, msg, get_event_pid());
+
+    return UJ_ERR_NONE;
+}
+
+static uint8_t natRIOT_setTimeoutUS(UjThread* t, UjClass* cls)
+{
+    (void)cls;
+
+    int userdata = ujThreadPop(t);
+    int usec = ujThreadPop(t);
+
+    return setTimeoutGeneric(usec, userdata);
+}
+
+static uint8_t natRIOT_setTimeoutS(UjThread* t, UjClass* cls)
+{
+    (void)cls;
+
+    int userdata = ujThreadPop(t);
+    int sec = ujThreadPop(t);
+
+    return setTimeoutGeneric((uint64_t)sec * (uint64_t)1000000, userdata);
 }
 
 static uint8_t natRIOT_usleep(UjThread* t, UjClass* cls)
@@ -207,6 +257,20 @@ static const UjNativeMethod nativeCls_RIOT_methods[] = {
         .flags = JAVA_ACC_PUBLIC | JAVA_ACC_NATIVE | JAVA_ACC_STATIC,
 
         .func = natRIOT_replyEventStr,
+    },
+    {
+        .name = "setTimeoutUS",
+        .type = "(II)V",
+        .flags = JAVA_ACC_PUBLIC | JAVA_ACC_NATIVE | JAVA_ACC_STATIC,
+
+        .func = natRIOT_setTimeoutUS,
+    },
+    {
+        .name = "setTimeoutS",
+        .type = "(II)V",
+        .flags = JAVA_ACC_PUBLIC | JAVA_ACC_NATIVE | JAVA_ACC_STATIC,
+
+        .func = natRIOT_setTimeoutS,
     },
     {
         .name = "usleep",

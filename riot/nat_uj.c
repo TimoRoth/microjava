@@ -34,7 +34,7 @@ uint8_t ujReadClassByte(void *userData, uint32_t offset)
     return rdByte(fd);
 }
 
-static int loadPackedUjcClasses(UjClass **mainClass)
+static int loadPackedUjcClasses(UjClass **mainClass, int *fdP)
 {
     int fd = -1;
     int i, sz, done, class_count, offset;
@@ -114,6 +114,7 @@ static int loadPackedUjcClasses(UjClass **mainClass)
             }
             else if (res != UJ_ERR_DEPENDENCY_MISSING)
             {
+                vfs_close(fd);
                 printf("Failed to load class at %d: %d\n", offset, res);
                 return res;
             }
@@ -124,11 +125,13 @@ static int loadPackedUjcClasses(UjClass **mainClass)
     {
         if (!class_loaded[i])
         {
+            vfs_close(fd);
             printf("Could not resolve all class dependencies.\n");
             return UJ_ERR_DEPENDENCY_MISSING;
         }
     }
 
+    *fdP = fd;
     return UJ_ERR_NONE;
 }
 
@@ -136,7 +139,7 @@ int run_uj(void)
 {
     UjClass *objectClass = NULL;
     UjClass *mainClass = NULL;
-    int res;
+    int res, fd = -1;
 
     init_events();
 
@@ -151,7 +154,7 @@ int run_uj(void)
     if (res != UJ_ERR_NONE)
         return -1;
 
-    res = loadPackedUjcClasses(&mainClass);
+    res = loadPackedUjcClasses(&mainClass, &fd);
     if (res != UJ_ERR_NONE)
     {
         return -1;
@@ -160,6 +163,7 @@ int run_uj(void)
     res = ujInitAllClasses();
     if (res != UJ_ERR_NONE)
     {
+        vfs_close(fd);
         printf("ujInitAllClasses failed: %d\n", res);
         return -1;
     }
@@ -168,6 +172,7 @@ int run_uj(void)
     HANDLE threadH = ujThreadCreate(UJ_HEAP_SZ / 2);
     if (!threadH)
     {
+        vfs_close(fd);
         printf("ujThreadCreate failed\n");
         return -1;
     }
@@ -175,6 +180,7 @@ int run_uj(void)
     res = ujThreadGoto(threadH, mainClass, "main", "()V");
     if (res != UJ_ERR_NONE)
     {
+        vfs_close(fd);
         printf("ujThreadGoto failed: %d\n", res);
         return -1;
     }
@@ -183,10 +189,13 @@ int run_uj(void)
         res = ujInstr();
         if (res != UJ_ERR_NONE)
         {
+            vfs_close(fd);
             printf("ujInstr failed: %d\n", res);
             return -1;
         }
     }
+
+    vfs_close(fd);
 
     printf("Program ended\n");
 

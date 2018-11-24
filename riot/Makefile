@@ -78,7 +78,7 @@ ifneq (0,$(EMBED_DEFAULT_JAVA))
 endif
 
 WITH_COAP_SUPPORT ?= 0
-ifneq (0,$(EMBED_DEFAULT_JAVA))
+ifneq (0,$(WITH_COAP_SUPPORT))
   EXTERNAL_MODULE_DIRS += $(CURDIR)/nat/gcoap
   USEMODULE += gcoap nat_gcoap
 endif

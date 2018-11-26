@@ -14,10 +14,6 @@ DEVELHELP ?= 1
 # Change this to 0 show compiler invocation lines by default:
 QUIET ?= 1
 
-FEATURES_REQUIRED += periph_gpio
-FEATURES_OPTIONAL += periph_gpio_irq
-USEMODULE += xtimer
-
 INCLUDES += -I$(CURDIR)
 DIRS += $(CURDIR)/java
 
@@ -30,6 +26,8 @@ CFLAGS += -ggdb -DUJ_LOG -DUJ_FTR_SUPPORT_UJC_FORMAT -DUJ_OPT_CLASS_SEARCH -DUJ_
 CFLAGS += -DUJ_DBG_HELPERS -DDEBUG_HEAP
 # uJ Heap Size
 CFLAGS += -DUJ_HEAP_SZ=4096
+
+USEMODULE += xtimer
 
 # Using VFS for file access
 USEMODULE += vfs
@@ -75,6 +73,14 @@ EMBED_DEFAULT_JAVA ?= 1
 ifneq (0,$(EMBED_DEFAULT_JAVA))
   EXTERNAL_MODULE_DIRS += $(CURDIR)/nat/constfs
   USEMODULE += constfs nat_constfs
+endif
+
+WITH_GPIO_SUPPORT ?= 1
+ifneq (0,$(WITH_GPIO_SUPPORT))
+  EXTERNAL_MODULE_DIRS += $(CURDIR)/nat/gpio
+  USEMODULE += nat_gpio
+  FEATURES_REQUIRED += periph_gpio
+  FEATURES_OPTIONAL += periph_gpio_irq
 endif
 
 WITH_COAP_SUPPORT ?= 0

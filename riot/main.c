@@ -27,6 +27,9 @@
 #ifdef MODULE_NAT_LITTLEFS
 #include "nat/littlefs/nat_littlefs.h"
 #endif
+#ifdef MODULE_NAT_GPIO
+#include "nat/gpio/nat_gpio.h"
+#endif
 #ifdef MODULE_NAT_GCOAP
 #include "nat/gcoap/nat_gcoap.h"
 #endif
@@ -64,6 +67,12 @@ static int init_hardware(void)
 
 #ifdef MODULE_NAT_LITTLEFS
     res = init_nat_littlefs();
+    if (res)
+        return res;
+#endif
+
+#ifdef MODULE_NAT_GPIO
+    res = init_nat_gpio();
     if (res)
         return res;
 #endif

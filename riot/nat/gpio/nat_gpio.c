@@ -1,8 +1,7 @@
+#include <periph_conf.h>
 #include <periph/gpio.h>
 
-#include <uJ/uj.h>
-
-#include "nat_classes.h"
+#include "nat_gpio.h"
 #include "events.h"
 
 
@@ -300,4 +299,9 @@ int register_nat_gpio(UjClass *objectClass)
         printf("Failed registering GPIO native class.\n");
 
     return res;
+}
+
+int init_nat_gpio(void)
+{
+    return 0;
 }

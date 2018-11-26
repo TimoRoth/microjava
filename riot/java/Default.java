@@ -4,6 +4,10 @@ public class Default
 	static int b_req;
 	static int c_req;
 
+	static final int i2c_timer_timeout_s = 60;
+	static final int i2c_timer = 100;
+	static int i2c_dev;
+
 	private static void handleCoapReq()
 	{
 		int req_id = RIOT.getEventParam(0);
@@ -31,6 +35,32 @@ public class Default
 		RIOT.replyEvent(RIOT.EVT_COAP_REPLY, COAP.CODE_CONTENT, COAP.FORMAT_TEXT, "Test Reply\n");
 	}
 
+	private static void handleI2CTimer()
+	{
+		RIOT.setTimeoutS(i2c_timer_timeout_s, i2c_timer);
+
+		I2C.acquire(i2c_dev);
+		byte[] data = { 0x01, 0x34, 0x00, (byte)0xff };
+		I2C.write_regs(i2c_dev, 0, 2, data, 0);
+		byte res = I2C.read_byte(i2c_dev, 4, 0);
+		I2C.release(i2c_dev);
+
+		RIOT.printString("I2C res on dev " + i2c_dev + ": " + res);
+	}
+
+	private static void handleTimerEvent()
+	{
+		int timer_id = RIOT.getEventParam(0);
+		RIOT.printString("Timer event: " + timer_id);
+
+		switch(timer_id)
+		{
+			case i2c_timer:
+				handleI2CTimer();
+				break;
+		}
+	}
+
 	public static void main()
 	{
 		RIOT.printString("Hi :)");
@@ -53,8 +83,10 @@ public class Default
 		c_req = COAP.registerResource("/java/c", COAP.GET | COAP.PUT);
 		COAP.finishRegistration();
 
-		RIOT.setTimeoutS(25, 1234);
-		RIOT.setTimeoutUS(10 * 1000000, 4321);
+		// Not available on all boards, comment in if desired
+		/* i2c_dev = I2C.dev(0);
+		I2C.init(i2c_dev);
+		RIOT.setTimeoutS(i2c_timer_timeout_s, i2c_timer); */
 
 		while (true) {
 			int eventId = RIOT.waitEvent(30 * 1000000);
@@ -74,7 +106,7 @@ public class Default
 				handleCoapReq();
 				break;
 			case RIOT.EVT_TIMER:
-				RIOT.printString("Timer event: " + RIOT.getEventParam(0));
+				handleTimerEvent();
 				break;
 			case RIOT.EVT_NONE:
 			case -1:

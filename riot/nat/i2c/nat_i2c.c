@@ -9,11 +9,11 @@ static uint8_t natI2C_dev(UjThread* t, UjClass* cls)
 {
     (void)cls;
 
-    int input = ujThreadPop(t);
+    int32_t input = ujThreadPop(t);
 
     i2c_t dev = I2C_DEV(input);
 
-    if (!ujThreadPush(t, dev, false))
+    if (!ujThreadPush(t, (int32_t)dev, false))
         return UJ_ERR_STACK_SPACE;
 
     return UJ_ERR_NONE;
@@ -23,7 +23,7 @@ static uint8_t natI2C_init(UjThread* t, UjClass* cls)
 {
     (void)cls;
 
-    i2c_t dev = ujThreadPop(t);
+    i2c_t dev = (int32_t)ujThreadPop(t);
 
     i2c_init(dev);
 
@@ -34,7 +34,7 @@ static uint8_t natI2C_acquire(UjThread* t, UjClass* cls)
 {
     (void)cls;
 
-    i2c_t dev = ujThreadPop(t);
+    i2c_t dev = (int32_t)ujThreadPop(t);
 
     int res = i2c_acquire(dev);
 
@@ -48,7 +48,7 @@ static uint8_t natI2C_release(UjThread* t, UjClass* cls)
 {
     (void)cls;
 
-    i2c_t dev = ujThreadPop(t);
+    i2c_t dev = (int32_t)ujThreadPop(t);
 
     int res = i2c_release(dev);
 
@@ -78,10 +78,10 @@ static uint8_t natI2C_read_reg(UjThread* t, UjClass* cls)
 {
     (void)cls;
 
-    int flags = cvt_flags_val(ujThreadPop(t));
-    int reg = ujThreadPop(t);
-    int addr = ujThreadPop(t);
-    i2c_t dev = ujThreadPop(t);
+    int32_t flags = cvt_flags_val(ujThreadPop(t));
+    int32_t reg = ujThreadPop(t);
+    int32_t addr = ujThreadPop(t);
+    i2c_t dev = (int32_t)ujThreadPop(t);
 
     int8_t data;
     int res = i2c_read_reg(dev, addr, reg, &data, flags);
@@ -97,10 +97,10 @@ static uint8_t natI2C_read_regs(UjThread* t, UjClass* cls)
     (void)cls;
 
     int flags = cvt_flags_val(ujThreadPop(t));
-    int len = ujThreadPop(t);
-    int reg = ujThreadPop(t);
-    int addr = ujThreadPop(t);
-    i2c_t dev = ujThreadPop(t);
+    int32_t len = ujThreadPop(t);
+    int32_t reg = ujThreadPop(t);
+    int32_t addr = ujThreadPop(t);
+    i2c_t dev = (int32_t)ujThreadPop(t);
 
     HANDLE arr = 0;
     int ret = ujArrayNew('B', len, &arr);
@@ -123,9 +123,9 @@ static uint8_t natI2C_write_reg(UjThread* t, UjClass* cls)
 
     int flags = cvt_flags_val(ujThreadPop(t));
     int8_t data = ujThreadPop(t);
-    int reg = ujThreadPop(t);
-    int addr = ujThreadPop(t);
-    i2c_t dev = ujThreadPop(t);
+    int32_t reg = ujThreadPop(t);
+    int32_t addr = ujThreadPop(t);
+    i2c_t dev = (int32_t)ujThreadPop(t);
 
     int res = i2c_write_reg(dev, addr, reg, data, flags);
 
@@ -141,9 +141,9 @@ static uint8_t natI2C_write_regs(UjThread* t, UjClass* cls)
 
     int flags = cvt_flags_val(ujThreadPop(t));
     HANDLE arr = ujThreadPop(t);
-    int reg = ujThreadPop(t);
-    int addr = ujThreadPop(t);
-    i2c_t dev = ujThreadPop(t);
+    int32_t reg = ujThreadPop(t);
+    int32_t addr = ujThreadPop(t);
+    i2c_t dev = (int32_t)ujThreadPop(t);
     int res = -1;
 
     if (!arr)
@@ -170,8 +170,8 @@ static uint8_t natI2C_read_byte(UjThread* t, UjClass* cls)
     (void)cls;
 
     int flags = cvt_flags_val(ujThreadPop(t));
-    int addr = ujThreadPop(t);
-    i2c_t dev = ujThreadPop(t);
+    int32_t addr = ujThreadPop(t);
+    i2c_t dev = (int32_t)ujThreadPop(t);
 
     int8_t data;
     int res = i2c_read_byte(dev, addr, &data, flags);
@@ -187,9 +187,9 @@ static uint8_t natI2C_read_bytes(UjThread* t, UjClass* cls)
     (void)cls;
 
     int flags = cvt_flags_val(ujThreadPop(t));
-    int len = ujThreadPop(t);
-    int addr = ujThreadPop(t);
-    i2c_t dev = ujThreadPop(t);
+    int32_t len = ujThreadPop(t);
+    int32_t addr = ujThreadPop(t);
+    i2c_t dev = (int32_t)ujThreadPop(t);
 
     HANDLE arr = 0;
     int ret = ujArrayNew('B', len, &arr);
@@ -212,8 +212,8 @@ static uint8_t natI2C_write_byte(UjThread* t, UjClass* cls)
 
     int flags = cvt_flags_val(ujThreadPop(t));
     int8_t data = ujThreadPop(t);
-    int addr = ujThreadPop(t);
-    i2c_t dev = ujThreadPop(t);
+    int32_t addr = ujThreadPop(t);
+    i2c_t dev = (int32_t)ujThreadPop(t);
 
     int res = i2c_write_byte(dev, addr, data, flags);
 
@@ -229,8 +229,8 @@ static uint8_t natI2C_write_bytes(UjThread* t, UjClass* cls)
 
     int flags = cvt_flags_val(ujThreadPop(t));
     HANDLE arr = ujThreadPop(t);
-    int addr = ujThreadPop(t);
-    i2c_t dev = ujThreadPop(t);
+    int32_t addr = ujThreadPop(t);
+    i2c_t dev = (int32_t)ujThreadPop(t);
     int res = -1;
 
     if (!arr)

@@ -8,6 +8,11 @@ public class Default
 	static final int i2c_timer = 100;
 	static int i2c_dev;
 
+	static final int spi_timer_timeout_s = 30;
+	static final int spi_timer = 200;
+	static int spi_dev;
+	static int spi_cs;
+
 	private static void handleCoapReq()
 	{
 		int req_id = RIOT.getEventParam(0);
@@ -48,6 +53,18 @@ public class Default
 		RIOT.printString("I2C res on dev " + i2c_dev + ": " + res);
 	}
 
+	private static void handleSPITimer()
+	{
+		RIOT.setTimeoutS(spi_timer_timeout_s, spi_timer);
+
+		SPI.acquire(spi_dev, spi_cs, SPI.MODE_0, SPI.CLK_1MHZ);
+		byte[] data = { 0x01, 0x34, 0x00, (byte)0xff };
+		byte[] res = SPI.transfer_bytes(spi_dev, spi_cs, false, data);
+		SPI.release(spi_dev);
+
+		RIOT.printString("SPI res on dev " + spi_dev + " cs " + spi_cs + ": " + new String(res));
+	}
+
 	private static void handleTimerEvent()
 	{
 		int timer_id = RIOT.getEventParam(0);
@@ -57,6 +74,9 @@ public class Default
 		{
 			case i2c_timer:
 				handleI2CTimer();
+				break;
+			case spi_timer:
+				handleSPITimer();
 				break;
 		}
 	}
@@ -87,6 +107,13 @@ public class Default
 		/* i2c_dev = I2C.dev(0);
 		I2C.init(i2c_dev);
 		RIOT.setTimeoutS(i2c_timer_timeout_s, i2c_timer); */
+
+		/* spi_dev = SPI.dev(0);
+		spi_cs = GPIO.pin(0, 14); // depending on hw cs channels: SPI.hwcs(0)
+		if (SPI.init_cs(spi_dev, spi_cs))
+			RIOT.setTimeoutS(spi_timer_timeout_s, spi_timer);
+		else
+			RIOT.printString("SPI init failed."); */
 
 		while (true) {
 			int eventId = RIOT.waitEvent(30 * 1000000);

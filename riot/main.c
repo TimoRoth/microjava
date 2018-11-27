@@ -33,6 +33,9 @@
 #ifdef MODULE_NAT_I2C
 #include "nat/i2c/nat_i2c.h"
 #endif
+#ifdef MODULE_NAT_SPI
+#include "nat/spi/nat_spi.h"
+#endif
 #ifdef MODULE_NAT_GCOAP
 #include "nat/gcoap/nat_gcoap.h"
 #endif
@@ -82,6 +85,12 @@ static int init_hardware(void)
 
 #ifdef MODULE_NAT_I2C
     res = init_nat_i2c();
+    if (res)
+        return res;
+#endif
+
+#ifdef MODULE_NAT_SPI
+    res = init_nat_spi();
     if (res)
         return res;
 #endif

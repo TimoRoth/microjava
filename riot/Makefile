@@ -49,6 +49,7 @@ ifneq (,$(findstring esp32,$(BOARD)))
 
   WITH_COAP_SUPPORT ?= 1
   WITH_I2C_SUPPORT ?= 1
+  WITH_SPI_SUPPORT ?= 1
 else ifneq (,$(findstring wittycloud,$(BOARD))$(findstring esp8266,$(BOARD)))
   EXTERNAL_MODULE_DIRS += $(CURDIR)/nat/esp8266
   USEMODULE += nat_esp8266
@@ -61,8 +62,10 @@ else ifneq (,$(findstring wittycloud,$(BOARD))$(findstring esp8266,$(BOARD)))
 
   WITH_COAP_SUPPORT ?= 1
   WITH_I2C_SUPPORT ?= 1
+  WITH_SPI_SUPPORT ?= 1
 else ifneq (,$(findstring bluepill,$(BOARD)))
   WITH_I2C_SUPPORT ?= 1
+  WITH_SPI_SUPPORT ?= 1
 else ifeq (native,$(BOARD))
   EXTERNAL_MODULE_DIRS += $(CURDIR)/nat/littlefs
   USEMODULE += mtd littlefs nat_littlefs
@@ -92,6 +95,13 @@ ifneq (0,$(WITH_I2C_SUPPORT))
   EXTERNAL_MODULE_DIRS += $(CURDIR)/nat/i2c
   USEMODULE += nat_i2c
   FEATURES_REQUIRED += periph_i2c
+endif
+
+WITH_SPI_SUPPORT ?= 0
+ifneq (0,$(WITH_SPI_SUPPORT))
+  EXTERNAL_MODULE_DIRS += $(CURDIR)/nat/spi
+  USEMODULE += nat_spi
+  FEATURES_REQUIRED += periph_spi
 endif
 
 WITH_COAP_SUPPORT ?= 0

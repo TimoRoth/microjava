@@ -29,6 +29,10 @@ CFLAGS += -DUJ_HEAP_SZ=4096
 
 USEMODULE += xtimer
 
+# RNG
+USEMODULE += random
+FEATURES_OPTIONAL += periph_hwrng
+
 # Using VFS for file access
 USEMODULE += vfs
 

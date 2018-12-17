@@ -21,4 +21,7 @@ public class RIOT {
     public static void setTimeoutS(int timeout_s, int userdata) {}
 
     public static void usleep(int usec) {}
+
+    public static int random() { return 0; }
+    public static int randomRange(int a, int b) { return 0; }
 }

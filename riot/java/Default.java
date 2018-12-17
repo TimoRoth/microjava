@@ -97,6 +97,10 @@ public class Default
 
 		RIOT.printString("Waiting for GPIO events from pin " + pin + " and " + button_pin);
 
+		RIOT.printString("Random int: " + RIOT.random());
+		RIOT.printString("Random int range 55 to 555: " + RIOT.randomRange(55, 555));
+		RIOT.printString("Random int range -555 to -55: " + RIOT.randomRange(-555, -55));
+
 		// These have to be in alphabetical order!
 		a_req = COAP.registerResource("/java/a", COAP.GET);
 		b_req = COAP.registerResource("/java/b", COAP.PUT);

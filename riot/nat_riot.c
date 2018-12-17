@@ -2,6 +2,13 @@
 #include <string.h>
 #include <xtimer.h>
 
+#ifdef MODULE_PERIPH_HWRNG
+#include <periph/hwrng.h>
+#include <bitarithm.h>
+#else
+#include <random.h>
+#endif
+
 #include <uJ/uj.h>
 
 #include "events.h"
@@ -243,6 +250,67 @@ static uint8_t natRIOT_usleep(UjThread* t, UjClass* cls)
     return UJ_ERR_NONE;
 }
 
+static uint8_t natRIOT_random(UjThread* t, UjClass* cls)
+{
+    (void)cls;
+
+    uint32_t res;
+
+#ifdef MODULE_PERIPH_HWRNG
+    hwrng_read(&res, sizeof(res));
+#else
+    res = random_uint32();
+#endif
+
+    if (!ujThreadPush(t, res, false))
+        return UJ_ERR_STACK_SPACE;
+
+    return UJ_ERR_NONE;
+}
+
+static uint8_t natRIOT_randomRange(UjThread* t, UjClass* cls)
+{
+    (void)cls;
+
+    uint32_t b = ujThreadPop(t);
+    uint32_t a = ujThreadPop(t);
+
+    uint32_t res;
+
+    if (a > b) {
+        res = a;
+        a = b;
+        b = res;
+    }
+
+#ifdef MODULE_PERIPH_HWRNG
+    // logic taken from random_uint32_range implementation
+    uint32_t divisor, range = b - a;
+    uint8_t range_msb = bitarithm_msb(range);
+
+    if (!(range & (range - 1)))
+        divisor = (1 << range_msb) - 1;
+    else if (range_msb < 31)
+        divisor = (1 << (range_msb + 1)) -1;
+    else
+        divisor = UINT32_MAX;
+
+    do {
+        hwrng_read(&res, sizeof(res));
+        res &= divisor;
+    } while (res >= range);
+
+    res += a;
+#else
+    res = random_uint32_range(a, b);
+#endif
+
+    if (!ujThreadPush(t, res, false))
+        return UJ_ERR_STACK_SPACE;
+
+    return UJ_ERR_NONE;
+}
+
 static const UjNativeMethod nativeCls_RIOT_methods[] = {
     {
         .name = "printString",
@@ -314,6 +382,20 @@ static const UjNativeMethod nativeCls_RIOT_methods[] = {
 
         .func = natRIOT_usleep,
     },
+    {
+        .name = "random",
+        .type = "()I",
+        .flags = JAVA_ACC_PUBLIC | JAVA_ACC_NATIVE | JAVA_ACC_STATIC,
+
+        .func = natRIOT_random,
+    },
+    {
+        .name = "randomRange",
+        .type = "(II)I",
+        .flags = JAVA_ACC_PUBLIC | JAVA_ACC_NATIVE | JAVA_ACC_STATIC,
+
+        .func = natRIOT_randomRange,
+    }
 };
 
 static const UjNativeClass nativeCls_RIOT =

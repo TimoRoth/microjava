@@ -40,6 +40,26 @@ public class Default
 		RIOT.replyEvent(RIOT.EVT_COAP_REPLY, COAP.CODE_CONTENT, COAP.FORMAT_TEXT, "Test Reply\n");
 	}
 
+    private static void handleCoapResp()
+    {
+        int req_id = RIOT.getEventParam(0);
+		int req_state = RIOT.getEventParam(1);
+
+        if (req_state == COAP.MEMO_TIMEOUT || req_state == COAP.MEMO_ERR) {
+            RIOT.printString("Error sending COAP request " + req_id + ": " + req_state);
+            return;
+        }
+
+        int resp_code = RIOT.getEventParam(2);
+        int resp_format = RIOT.getEventParam(3);
+        String payload = RIOT.getEventParamStr(4);
+
+        RIOT.printString("Got reply to COAP request " + req_id + " with code " + resp_code + " and format " + resp_format);
+
+        if (payload != null)
+            RIOT.printString("Request payload: " + payload);
+    }
+
 	private static void handleI2CTimer()
 	{
 		RIOT.setTimeoutS(i2c_timer_timeout_s, i2c_timer);
@@ -107,6 +127,12 @@ public class Default
 		c_req = COAP.registerResource("/java/c", COAP.GET | COAP.PUT);
 		COAP.finishRegistration();
 
+        int get_req_id = COAP.sendRequest(COAP.METHOD_GET, "fd20::1", 5683, "/test/get_request");
+        RIOT.printString("Sending COAP GET request with ID " + get_req_id);
+
+        int put_req_id = COAP.sendRequest(COAP.METHOD_PUT, "fd20::1", 5683, "/test/put_request", COAP.FORMAT_TEXT, "Test data to be put!");
+        RIOT.printString("Sending COAP PUT request with ID " + put_req_id);
+
 		// Not available on all boards, comment in if desired
 		/* i2c_dev = I2C.dev(0);
 		I2C.init(i2c_dev);
@@ -136,6 +162,9 @@ public class Default
 			case RIOT.EVT_COAP_REQ: // We HAVE to reply to this, otherwise the CoAP thread hangs forever.
 				handleCoapReq();
 				break;
+            case RIOT.EVT_COAP_RESP:
+                handleCoapResp();
+                break;
 			case RIOT.EVT_TIMER:
 				handleTimerEvent();
 				break;

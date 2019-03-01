@@ -3,7 +3,8 @@ public class RIOT {
     public static final int EVT_GPIO_INT = 0x01;
     public static final int EVT_COAP_REQ = 0x02;
     public static final int EVT_COAP_REPLY = 0x03;
-    public static final int EVT_TIMER = 0x04;
+    public static final int EVT_COAP_RESP = 0x04;
+    public static final int EVT_TIMER = 0x05;
     public static final int EVT_UPD_RDY = 0xFD;
     public static final int EVT_GENERIC = 0xFE;
     public static final int EVT_EXIT = 0xFF;

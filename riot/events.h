@@ -40,8 +40,9 @@ typedef struct event_param_t
 #define EVT_NONE       ((uint8_t)0x00)
 #define EVT_GPIO       ((uint8_t)0x01) // GPIO interrupt was triggered, params: int gpio_pin
 #define EVT_COAP_REQ   ((uint8_t)0x02) // Incoming CoAP req, params: int req_id, int method, [str/bytes payload if present]
-#define EVT_COAP_REPLY ((uint8_t)0x03) // Reply to CoAP req, params: int coap_code, int coap_format, [str/bytes payload if present]
-#define EVT_TIMER      ((uint8_t)0x04) // Previously set timer expired, params: int userdata
+#define EVT_COAP_REPLY ((uint8_t)0x03) // Reply to CoAP (server) req, params: int coap_code, int coap_format, [str/bytes payload if present]
+#define EVT_COAP_RESP  ((uint8_t)0x04) // Response to CoAP (client) req, params: int req_id, int req_state, [int resp_code, int resp_format, [str/bytes payload if present]]
+#define EVT_TIMER      ((uint8_t)0x05) // Previously set timer expired, params: int userdata
 #define EVT_UPD_RDY    ((uint8_t)0xFD) // Informs about a code update being ready to reboot into.
 #define EVT_GENERIC    ((uint8_t)0xFE) // A generic non-event_t event. Original msg_t contents in first parameters raw_val.
 #define EVT_EXIT       ((uint8_t)0xFF) // Exit eventloop asap.

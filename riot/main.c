@@ -41,6 +41,7 @@
 #endif
 
 #include "nat_uj.h"
+#include "nat_ip.h"
 
 
 static int init_hardware(void)
@@ -128,6 +129,10 @@ static msg_t main_msg_queue[1 << 2];
 int main(void)
 {
     int res;
+
+    res = init_ip();
+    if (res != 0)
+        return res;
 
     res = init_hardware();
     if (res != 0)

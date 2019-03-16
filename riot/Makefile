@@ -40,6 +40,16 @@ USEMODULE += vfs
 ESPNOW_PASS ?= ThisistheRIOTporttoESP
 ESPNOW_CHANNEL ?= 6
 
+# Assign static or IID based IPv6 address.
+# Prefix size is assumed to be /64.
+IPV6_ADDR ?= fd19:ffff::1234:5678
+IPV6_USE_IID ?= 1
+IPV6_DEFRTR ?= fd19:ffff::1
+IPV6_AUTO ?= 0
+ifeq (0,$(IPV6_AUTO))
+  CFLAGS += -DBR_IPV6_ADDR=\"$(IPV6_ADDR)\" -DBR_IPV6_DEFRTR=\"$(IPV6_DEFRTR)\" -DBR_IPV6_USE_IID=$(IPV6_USE_IID)
+endif
+
 # Board Specifics
 ifneq (,$(findstring esp32,$(BOARD)))
   EXTERNAL_MODULE_DIRS += $(CURDIR)/nat/esp32

@@ -127,8 +127,11 @@ public class Default
 		c_req = COAP.registerResource("/java/c", COAP.GET | COAP.PUT);
 		COAP.finishRegistration();
 
-        int get_req_id = COAP.sendRequest(COAP.METHOD_GET, "fd20::1", 5683, "/test/get_request");
+        int get_req_id = COAP.sendRequest(COAP.METHOD_GET, "fe80::2486:87ff:fe28:80d4", 5683, "/.well-known/core");
         RIOT.printString("Sending COAP GET request with ID " + get_req_id);
+
+        COAP.sendRequest(COAP.METHOD_GET, "fe80::2486:87ff:fe28:80d4", 5683, "/");
+        COAP.sendRequest(COAP.METHOD_GET, "fe80::2486:87ff:fe28:80d4", 5683, "/time");
 
         int put_req_id = COAP.sendRequest(COAP.METHOD_PUT, "fd20::1", 5683, "/test/put_request", COAP.FORMAT_TEXT, "Test data to be put!");
         RIOT.printString("Sending COAP PUT request with ID " + put_req_id);

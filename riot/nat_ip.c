@@ -13,6 +13,9 @@ int init_ip(void)
     // Assuming client with single network interface, so blindly using first (and hopefully only).
     gnrc_netif_t *netif = gnrc_netif_iter(NULL);
 
+    if (!netif)
+        return 0;
+
     ipv6_addr_t addr;
     ipv6_addr_from_str(&addr, BR_IPV6_ADDR);
 
